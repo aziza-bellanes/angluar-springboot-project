@@ -1,0 +1,11 @@
+.env
+**/node_modules/
+**/target/
+**/dist/
+**/.angular/
+**/.idea/
+**/.classpath
+**/.project
+**/.settings/
+*.log
+.DS_Store
