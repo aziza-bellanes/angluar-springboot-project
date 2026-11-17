@@ -16,7 +16,6 @@ export interface Trend {
 export type ActivityRange = 7 | 14;
 
 const GOLD = TONES.overview.hex;
-const BLUE = TONES.users.hex;
 const AXIS = 'rgba(244,237,222,0.45)';
 
 /** Week-over-week change between two counters, ready for display. */
@@ -50,50 +49,55 @@ export function inRange(points: BidActivityPoint[], range: ActivityRange): BidAc
   return points.slice(-range);
 }
 
+const NICE_STEPS = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+
+/** Smallest "round" value at or above `value` (1.2k, 4M…), so the top axis label reads cleanly. */
+export function niceCeiling(value: number): number {
+  if (value <= 0) return 1;
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  const step = NICE_STEPS.find((s) => s * magnitude >= value - 1e-9) ?? 10;
+  return step * magnitude;
+}
+
 /**
- * Combined chart: bars for the number of bids (right axis) and a smooth gold line for the
- * euro volume (left axis), so quiet days still read as days rather than a flat line.
+ * Daily volume as solid gold bars over a faint full-height track per day, so quiet days still
+ * read as days. One axis only; the tooltip gives both the volume and the number of bids.
  */
-export function bidActivityConfig(points: BidActivityPoint[]): ChartConfiguration {
+export function bidActivityConfig(points: BidActivityPoint[]): ChartConfiguration<'bar'> {
+  const volumes = points.map((p) => p.volume);
+  const ceiling = niceCeiling(Math.max(0, ...volumes) * 1.05);
   return {
     type: 'bar',
     data: {
       labels: points.map((p) => shortDay(p.day)),
       datasets: [
         {
-          type: 'line',
           label: 'Volume',
-          data: points.map((p) => p.volume),
-          yAxisID: 'volume',
-          borderColor: GOLD,
-          borderWidth: 2.5,
-          tension: 0.35,
-          fill: true,
-          pointRadius: points.map((p) => (p.bids > 0 ? 3 : 0)),
-          pointHoverRadius: 6,
-          pointBackgroundColor: GOLD,
-          pointBorderColor: '#101d35',
-          pointBorderWidth: 2,
-          backgroundColor: (ctx: ScriptableContext<'line'>) => {
+          data: volumes,
+          backgroundColor: (ctx: ScriptableContext<'bar'>) => {
             const { ctx: canvas, chartArea } = ctx.chart;
-            if (!chartArea) return 'rgba(231,184,75,0.15)';
+            if (!chartArea) return GOLD;
             const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, 'rgba(231,184,75,0.32)');
-            gradient.addColorStop(1, 'rgba(231,184,75,0)');
+            gradient.addColorStop(0, '#f3d27e');
+            gradient.addColorStop(1, '#c99a2e');
             return gradient;
           },
+          hoverBackgroundColor: '#f6dc96',
+          borderRadius: 8,
+          borderSkipped: false,
+          maxBarThickness: 34,
+          grouped: false,
           order: 1,
         },
         {
-          type: 'bar',
-          label: 'Bids',
-          data: points.map((p) => p.bids),
-          yAxisID: 'bids',
-          backgroundColor: 'rgba(106,155,224,0.55)',
-          hoverBackgroundColor: BLUE,
-          borderRadius: 6,
+          label: 'Track',
+          data: points.map(() => ceiling),
+          backgroundColor: 'rgba(244,237,222,0.05)',
+          hoverBackgroundColor: 'rgba(244,237,222,0.08)',
+          borderRadius: 8,
           borderSkipped: false,
-          maxBarThickness: 18,
+          maxBarThickness: 34,
+          grouped: false,
           order: 2,
         },
       ],
@@ -108,34 +112,24 @@ export function bidActivityConfig(points: BidActivityPoint[]): ChartConfiguratio
           bodyColor: '#101d35',
           padding: 12,
           cornerRadius: 10,
-          usePointStyle: true,
+          displayColors: false,
+          filter: (item) => item.datasetIndex === 0,
           callbacks: {
-            label: (item) =>
-              item.dataset.label === 'Volume'
-                ? ` Volume ${formatPrice(Number(item.parsed.y))}`
-                : ` ${item.parsed.y} bids`,
+            label: (item) => {
+              const bids = points[item.dataIndex]?.bids ?? 0;
+              return [formatPrice(Number(item.parsed.y)), `${bids} ${bids === 1 ? 'bid' : 'bids'}`];
+            },
           },
         },
       },
       scales: {
-        x: {
-          grid: { display: false },
-          border: { display: false },
-          ticks: { color: AXIS, maxTicksLimit: 7 },
-        },
-        volume: {
-          position: 'left',
+        x: { grid: { display: false }, border: { display: false }, ticks: { color: AXIS } },
+        y: {
           beginAtZero: true,
-          grid: { color: 'rgba(244,237,222,0.07)' },
+          max: ceiling,
+          grid: { color: 'rgba(244,237,222,0.06)' },
           border: { display: false },
           ticks: { color: AXIS, maxTicksLimit: 5, callback: (value) => compactEuro(Number(value)) },
-        },
-        bids: {
-          position: 'right',
-          beginAtZero: true,
-          grid: { display: false },
-          border: { display: false },
-          ticks: { color: AXIS, precision: 0, maxTicksLimit: 5 },
         },
       },
     },
@@ -235,7 +229,7 @@ export function greeting(hour: number): string {
 export function bidActivitySummary(points: BidActivityPoint[]): string {
   const bids = points.reduce((sum, p) => sum + p.bids, 0);
   const volume = points.reduce((sum, p) => sum + p.volume, 0);
-  return `Bars of daily bids and a line of daily volume over the last ${points.length} days: ${bids} bids totalling ${formatPrice(volume)}.`;
+  return `Bar chart of daily bid volume over the last ${points.length} days: ${bids} bids totalling ${formatPrice(volume)}.`;
 }
 
 export function auctionsSummary(slices: StatusSlice[]): string {
