@@ -4,11 +4,21 @@
       <a [routerLink]="item.path" routerLinkActive="border-sunflower bg-sidebar-accent" [routerLinkActiveOptions]="{ exact: !!item.exact }"
         class="flex items-center gap-3 rounded-md border-l-4 border-transparent px-3 py-2.5 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
         (click)="mobileNavOpen.set(false)">
-        <ng-icon [name]="item.icon" size="18" />
+        <ng-icon [name]="item.icon" size="18" [class]="item.tone" />
         <span class="flex flex-col leading-tight">
           <span class="font-medium">{{ item.label }}</span>
           @if (item.caption) { <span class="text-[0.65rem] tracking-wider text-sidebar-foreground/50 uppercase">{{ item.caption }}</span> }
         </span>
+      </a>
+    }
+  </nav>
+  <hr class="mx-6 my-5 border-sidebar-border" />
+  <p class="px-6 pb-2 text-[0.65rem] font-semibold tracking-widest text-sidebar-foreground/50 uppercase">Gallery</p>
+  <nav aria-label="Gallery" class="grid gap-1 px-3">
+    @for (link of galleryLinks; track link.path) {
+      <a [routerLink]="link.path" class="flex items-center gap-3 rounded-md border-l-4 border-transparent px-3 py-2.5 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+        (click)="mobileNavOpen.set(false)">
+        <ng-icon [name]="link.icon" size="18" [class]="link.tone" /> <span class="font-medium">{{ link.label }}</span>
       </a>
     }
   </nav>
@@ -44,9 +54,11 @@
       </button>
       <h1 class="font-display text-2xl font-semibold">{{ heading() }}</h1>
       <div class="ml-auto flex items-center gap-3">
-        <a routerLink="/" class="hidden items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground sm:inline-flex">
-          View gallery <ng-icon name="lucideExternalLink" size="14" />
-        </a>
+        <form class="relative hidden md:block" role="search" (submit)="$event.preventDefault(); search(q.value)">
+          <ng-icon name="lucideSearch" size="16" class="absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input #q type="search" placeholder="Search artworks" aria-label="Search artworks"
+            class="h-9 w-56 rounded-full border bg-card pr-4 pl-10 text-sm outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt/30" />
+        </form>
         <button type="button" [hlmDropdownMenuTrigger]="menu" align="end"
           class="inline-flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm hover:bg-muted">
           <span class="grid size-8 place-items-center rounded-full bg-midnight text-xs font-bold text-ivory">{{ initials() }}</span>
@@ -57,9 +69,11 @@
         <ng-template #menu>
           <hlm-dropdown-menu class="w-56">
             <hlm-dropdown-menu-label>
-              <span class="block truncate text-xs text-muted-foreground">{{ auth.user()?.email }}</span>
+              <span class="block font-display text-lg">Welcome!</span>
+              <span class="block truncate text-xs font-normal text-muted-foreground">{{ auth.user()?.email }}</span>
             </hlm-dropdown-menu-label>
             <hlm-dropdown-menu-separator />
+            <a hlmDropdownMenuItem routerLink="/studio/profile"><ng-icon name="lucideUser" /> My profile</a>
             <a hlmDropdownMenuItem routerLink="/"><ng-icon name="lucideExternalLink" /> View gallery</a>
             <button hlmDropdownMenuItem (click)="signOut()"><ng-icon name="lucideLogOut" /> Sign out</button>
           </hlm-dropdown-menu>
@@ -69,5 +83,13 @@
     <main class="p-5 lg:p-8">
       <router-outlet />
     </main>
+    <footer class="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-6 text-sm text-muted-foreground lg:px-8">
+      <p>© {{ year }} SmartSoft Solutions · ATELIER</p>
+      <nav aria-label="Footer" class="flex gap-5">
+        <a routerLink="/" class="hover:text-foreground">Gallery</a>
+        <a routerLink="/auctions" class="hover:text-foreground">Auctions</a>
+        <a routerLink="/studio/profile" class="hover:text-foreground">Profile</a>
+      </nav>
+    </footer>
   </div>
 </div>

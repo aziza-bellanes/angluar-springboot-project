@@ -51,6 +51,17 @@ export class AuthStore {
     }
   }
 
+  /** Replaces the cached user (e.g. after a profile edit) without touching the token. */
+  updateUser(user: UserProfile): void {
+    const current = this.session();
+    if (!current) {
+      return;
+    }
+    const session: Session = { ...current, user };
+    this.session.set(session);
+    safeStorage(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(session)));
+  }
+
   private store(response: AuthResponse): void {
     const session: Session = { token: response.token, expiresAt: response.expiresAt, user: response.user };
     this.session.set(session);

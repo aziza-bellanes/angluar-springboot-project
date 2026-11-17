@@ -242,7 +242,58 @@ export interface StudioOverview {
   bids: number;
   users: number;
   exhibitionBudget: number;
+  trends: OverviewTrends;
+  bidActivity: BidActivityPoint[];
+  auctionsByStatus: Record<AuctionStatus, number>;
+  topArtists: TopArtist[];
+  recentBids: RecentBid[];
   endingSoon: Auction[];
+}
+
+export interface OverviewTrends {
+  newArtists: number;
+  newArtistsPrevious: number;
+  newExhibitions: number;
+  newExhibitionsPrevious: number;
+  bids: number;
+  bidsPrevious: number;
+  bidVolume: number;
+  bidVolumePrevious: number;
+  newUsers: number;
+  newUsersPrevious: number;
+}
+
+export interface BidActivityPoint {
+  day: string;
+  bids: number;
+  volume: number;
+}
+
+export interface TopArtist {
+  artistId: number;
+  name: string;
+  bids: number;
+  volume: number;
+}
+
+export interface RecentBid {
+  auctionId: number;
+  artworkTitle: string;
+  imageUrl: string;
+  bidder: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface ProfileRequest {
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+}
+
+export interface PasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }
 
 /** RFC 9457 problem detail returned by the API. */

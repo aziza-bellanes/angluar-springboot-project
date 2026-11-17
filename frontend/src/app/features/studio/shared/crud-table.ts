@@ -33,7 +33,7 @@ import { Pagination } from './pagination';
       }
     </div>
 
-    <div class="overflow-hidden rounded-xl border bg-card">
+    <div class="overflow-hidden rounded-xl border bg-card [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-muted/50 [&_[hlmBadge]]:inline-flex [&_[hlmBadge]]:items-center [&_[hlmBadge]]:gap-1.5 [&_[hlmBadge]]:before:size-1.5 [&_[hlmBadge]]:before:rounded-full [&_[hlmBadge]]:before:bg-current">
       @if (loading()) {
         <div class="grid gap-3 p-5" aria-busy="true">
           @for (i of rows; track i) {
