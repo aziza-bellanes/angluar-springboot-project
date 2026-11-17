@@ -1,84 +1,70 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, inject } from '@angular/core';
-import { gsap, prefersReducedMotion } from './motion';
-
-interface Star {
-  x: number;
-  y: number;
-  r: number;
-}
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 /**
- * The living night sky: slow swirling strokes and golden stars, purely decorative, rendered behind
- * paintings (never applied to the artworks themselves). Hidden from assistive technologies.
+ * Ambient backdrop for the dark (midnight) sections: two slow, softly blurred colour blooms in the
+ * palette's cobalt and sunflower, a vignette and fine film grain. Purely decorative, behind content,
+ * hidden from assistive technologies, and still when reduced motion is requested.
  */
 @Component({
   selector: 'at-night-sky',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'pointer-events-none absolute inset-0 overflow-hidden', 'aria-hidden': 'true' },
   template: `
-    <svg class="size-full" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <radialGradient id="sky-glow" cx="70%" cy="20%" r="60%">
-          <stop offset="0" stop-color="#315c91" stop-opacity="0.55" />
-          <stop offset="1" stop-color="#101d35" stop-opacity="0" />
-        </radialGradient>
-        <radialGradient id="moon" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stop-color="#f6d47a" />
-          <stop offset="0.6" stop-color="#e7b84b" stop-opacity="0.5" />
-          <stop offset="1" stop-color="#e7b84b" stop-opacity="0" />
-        </radialGradient>
-      </defs>
-      <rect width="1440" height="900" fill="url(#sky-glow)" />
-      <g class="swirls" fill="none" stroke-linecap="round">
-        <path class="swirl" stroke="#315c91" stroke-opacity="0.35" stroke-width="3"
-          d="M-40 420 C 180 300, 360 520, 560 400 S 900 260, 1080 380 S 1380 520, 1500 400" />
-        <path class="swirl" stroke="#f4edde" stroke-opacity="0.12" stroke-width="2"
-          d="M-40 470 C 200 360, 380 560, 600 450 S 920 320, 1100 430 S 1380 560, 1500 450" />
-        <path class="swirl" stroke="#e7b84b" stroke-opacity="0.18" stroke-width="2"
-          d="M300 300 c 60 -80 200 -60 210 30 c 8 70 -90 100 -130 50 c -30 -40 10 -90 50 -70" />
-        <path class="swirl" stroke="#315c91" stroke-opacity="0.3" stroke-width="2.5"
-          d="M820 230 c 80 -90 260 -50 250 60 c -8 90 -130 110 -170 40 c -25 -45 20 -95 70 -70" />
-      </g>
-      <circle class="moon" cx="1240" cy="150" r="70" fill="url(#moon)" />
-      <g class="stars">
-        @for (star of stars; track $index) {
-          <circle class="star" [attr.cx]="star.x" [attr.cy]="star.y" [attr.r]="star.r" fill="#e7b84b" />
-        }
-      </g>
-    </svg>
+    <div class="bloom bloom-cobalt"></div>
+    <div class="bloom bloom-gold"></div>
+    <div class="vignette"></div>
+    <div class="grain"></div>
+  `,
+  styles: `
+    .bloom {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(90px);
+      will-change: transform;
+    }
+    .bloom-cobalt {
+      width: 70vmax;
+      height: 70vmax;
+      top: -30vmax;
+      left: -18vmax;
+      background: radial-gradient(circle, rgb(49 92 145 / 0.55), transparent 65%);
+      animation: drift-a 26s ease-in-out infinite alternate;
+    }
+    .bloom-gold {
+      width: 46vmax;
+      height: 46vmax;
+      right: -14vmax;
+      bottom: -22vmax;
+      background: radial-gradient(circle, rgb(231 184 75 / 0.16), transparent 65%);
+      animation: drift-b 32s ease-in-out infinite alternate;
+    }
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgb(8 14 28 / 0.55) 100%);
+    }
+    .grain {
+      position: absolute;
+      inset: 0;
+      opacity: 0.16;
+      mix-blend-mode: soft-light;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    @keyframes drift-a {
+      to {
+        transform: translate3d(12vmax, 8vmax, 0) scale(1.08);
+      }
+    }
+    @keyframes drift-b {
+      to {
+        transform: translate3d(-10vmax, -6vmax, 0) scale(1.12);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bloom {
+        animation: none;
+      }
+    }
   `,
 })
-export class NightSky {
-  protected readonly stars: Star[] = Array.from({ length: 42 }, (_, i) => ({
-    x: (i * 337) % 1440,
-    y: (i * 211) % 620,
-    r: 0.8 + ((i * 7) % 5) * 0.45,
-  }));
-
-  constructor() {
-    const host = inject<ElementRef<HTMLElement>>(ElementRef);
-    const destroyRef = inject(DestroyRef);
-    afterNextRender(() => {
-      if (prefersReducedMotion()) {
-        return;
-      }
-      const ctx = gsap.context(() => {
-        gsap.utils.toArray<SVGPathElement>('.swirl').forEach((path, i) => {
-          const length = path.getTotalLength();
-          gsap.set(path, { strokeDasharray: `${length * 0.35} ${length * 0.15}` });
-          gsap.to(path, { strokeDashoffset: -length, duration: 40 + i * 12, ease: 'none', repeat: -1 });
-        });
-        gsap.to('.star', {
-          opacity: 0.25,
-          duration: () => gsap.utils.random(1.6, 3.8),
-          delay: () => gsap.utils.random(0, 3),
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-        });
-        gsap.to('.moon', { scale: 1.08, transformOrigin: 'center', duration: 6, repeat: -1, yoyo: true, ease: 'sine.inOut' });
-      }, host.nativeElement);
-      destroyRef.onDestroy(() => ctx.revert());
-    });
-  }
-}
+export class NightSky {}

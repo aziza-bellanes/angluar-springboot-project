@@ -1,34 +1,11 @@
-<!-- 1. Cinematic hero -->
-<section class="night relative flex min-h-dvh items-end overflow-hidden pt-16 pb-20 md:items-center">
-  <at-night-sky />
-  <div class="container-gallery relative z-10 grid gap-10 md:grid-cols-[1.2fr_1fr] md:items-end">
-    <div class="space-y-7">
-      <p class="hero-reveal eyebrow !text-sunflower">Digital art gallery · Live auctions</p>
-      <h1 class="hero-reveal font-display text-[clamp(3rem,8vw,7.5rem)] leading-[0.92] font-medium">
-        Where every painting
-        <em class="block text-sunflower">tells a story.</em>
-      </h1>
-      <p class="hero-reveal max-w-xl text-lg leading-relaxed text-ivory/70">
-        Discover a world where art comes alive. Explore remarkable artists, wander through exhibitions and bid in real
-        time on the works that move you.
-      </p>
-      <div class="hero-reveal flex flex-wrap gap-3">
-        <a routerLink="/artworks" class="btn-gold">Explore the gallery</a>
-        <a routerLink="/auctions" class="btn-ghost-light">Live auctions</a>
-      </div>
-    </div>
-    <p class="hero-reveal hidden text-right text-xs tracking-[0.3em] text-ivory/40 uppercase md:block">
-      Scroll to unfold the collection ↓
-    </p>
-  </div>
-</section>
-
-<!-- 2. Signature Riffle sequence -->
+<!-- 1. Opening: the Riffle deck -->
 @if (artworks()?.length) {
-  <at-riffle-gallery [artworks]="artworks()!" />
+  <at-riffle-deck [artworks]="artworks()!" />
+} @else {
+  <section class="h-dvh bg-[#f2eadb]" aria-hidden="true"></section>
 }
 
-<!-- 3. Live auctions -->
+<!-- 2. Live auctions -->
 <section class="canvas-texture py-24">
   <div class="container-gallery">
     <div class="flex flex-wrap items-end justify-between gap-6">
@@ -37,12 +14,17 @@
         title="Collect what moves you."
         lead="Real-time bidding with transparent history. Every accepted bid is broadcast instantly to every collector."
       />
-      <a routerLink="/auctions" class="text-sm font-semibold underline-offset-4 hover:underline">All auctions →</a>
+      <a routerLink="/auctions" class="text-sm font-semibold underline-offset-4 hover:underline"
+        >All auctions →</a
+      >
     </div>
 
     <div class="mt-12 grid gap-8 md:grid-cols-3">
       @for (auction of auctions(); track auction.id) {
-        <a [routerLink]="['/auctions', auction.id]" class="group block overflow-hidden rounded-md border bg-card">
+        <a
+          [routerLink]="['/auctions', auction.id]"
+          class="group block overflow-hidden rounded-md border bg-card"
+        >
           <div class="relative overflow-hidden">
             <img
               [src]="auction.artwork.imageUrl"
@@ -50,7 +32,9 @@
               class="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-105"
               loading="lazy"
             />
-            <div class="absolute top-3 left-3"><at-auction-status-badge [status]="auction.status" /></div>
+            <div class="absolute top-3 left-3">
+              <at-auction-status-badge [status]="auction.status" />
+            </div>
           </div>
           <div class="space-y-3 p-5">
             <div>
@@ -70,13 +54,15 @@
           </div>
         </a>
       } @empty {
-        <p class="text-muted-foreground md:col-span-3">No auction is open right now. Upcoming sales appear here.</p>
+        <p class="text-muted-foreground md:col-span-3">
+          No auction is open right now. Upcoming sales appear here.
+        </p>
       }
     </div>
   </div>
 </section>
 
-<!-- 4. Recent arrivals -->
+<!-- 3. Recent arrivals -->
 @if (artworks()?.length) {
   <section class="border-t py-24">
     <div class="container-gallery">
@@ -94,7 +80,7 @@
   </section>
 }
 
-<!-- 5. Exhibitions -->
+<!-- 4. Exhibitions -->
 @if (exhibitions()?.length) {
   <section class="night relative overflow-hidden py-24">
     <div class="container-gallery relative">
@@ -105,8 +91,12 @@
             routerLink="/exhibitions"
             class="group grid gap-2 py-8 transition-colors md:grid-cols-[1fr_auto] md:items-baseline"
           >
-            <span class="font-display text-3xl group-hover:text-sunflower md:text-4xl">{{ exhibition.title }}</span>
-            <span class="text-sm text-ivory/60">{{ exhibition.venue }} · {{ exhibition.durationDays }} days</span>
+            <span class="font-display text-3xl group-hover:text-sunflower md:text-4xl">{{
+              exhibition.title
+            }}</span>
+            <span class="text-sm text-ivory/60"
+              >{{ exhibition.venue }} · {{ exhibition.durationDays }} days</span
+            >
           </a>
         }
       </div>
@@ -114,11 +104,13 @@
   </section>
 }
 
-<!-- 6. Invitation -->
+<!-- 5. Invitation -->
 <section class="canvas-texture py-24 text-center">
   <div class="container-gallery max-w-3xl space-y-6">
     <p class="eyebrow">Become a collector</p>
-    <h2 class="font-display text-5xl leading-tight md:text-6xl">Your next favourite painting is one bid away.</h2>
+    <h2 class="font-display text-5xl leading-tight md:text-6xl">
+      Your next favourite painting is one bid away.
+    </h2>
     <a routerLink="/register" class="btn-gold">Create a collector account</a>
   </div>
 </section>
