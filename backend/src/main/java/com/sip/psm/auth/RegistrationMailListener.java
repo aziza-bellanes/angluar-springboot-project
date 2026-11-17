@@ -33,7 +33,7 @@ public class RegistrationMailListener {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(settings.fromAddress());
         message.setTo(settings.adminAddress());
-        message.setSubject("ATELIER — new registration: " + event.fullName());
+        message.setSubject("[SmartSoft Solutions · ATELIER] New registration: " + event.fullName());
         message.setText("""
                 A new collector account has been created on ATELIER.
 
@@ -42,6 +42,8 @@ public class RegistrationMailListener {
                 ID:    %d
 
                 You can review roles from the Studio > Users page.
+
+                — ATELIER, operated by SmartSoft Solutions
                 """.formatted(event.fullName(), event.email(), event.userId()));
         try {
             mailSender.send(message);
