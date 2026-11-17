@@ -3,81 +3,153 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { GalleryApi } from '@app/core/api/gallery.api';
+import { ArtworkCard } from '@app/core/models/api.models';
+import { Reveal } from '@app/shared/animations/reveal.directive';
 
-/** Editorial index of artists, alphabetical, with a client-side search over the loaded list. */
+/** Paintings shown beside each artist in the index. */
+const STRIP_SIZE = 3;
+
+/**
+ * Editorial index of artists: name, country and a strip of their paintings, alphabetical,
+ * with a client-side search over the loaded list.
+ */
 @Component({
   selector: 'at-artists-page',
-  imports: [RouterLink],
+  imports: [RouterLink, Reveal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="canvas-texture min-h-dvh bg-ivory pt-28 pb-24">
+    <section class="canvas-texture min-h-dvh bg-ivory pt-32 pb-24">
       <div class="container-gallery">
-        <header class="max-w-3xl">
-          <p class="eyebrow">The artists</p>
-          <h1 class="mt-3 font-display text-5xl leading-[1.02] md:text-7xl">Masters, in their own words.</h1>
+        <header class="grid gap-8 md:grid-cols-[1.4fr_1fr] md:items-end">
+          <div atReveal>
+            <p class="font-mono text-[11px] tracking-[0.32em] text-midnight/50 uppercase">
+              The artists · {{ pad(all()?.length ?? 0) }}
+            </p>
+            <h1 class="mt-4 font-display text-5xl leading-[1.02] md:text-7xl">
+              The painters who changed <em class="text-cobalt">how light was seen.</em>
+            </h1>
+          </div>
+          <div atReveal [revealDelay]="100">
+            <label
+              for="artist-search"
+              class="font-mono text-[10px] tracking-[0.28em] text-midnight/50 uppercase"
+              >Search the index</label
+            >
+            <input
+              id="artist-search"
+              type="search"
+              autocomplete="off"
+              placeholder="Name or country"
+              [value]="query()"
+              (input)="query.set($any($event.target).value)"
+              class="mt-2 h-11 w-full rounded-full border border-midnight/15 bg-white/50 px-5 text-sm outline-none focus-visible:border-cobalt focus-visible:ring-2 focus-visible:ring-cobalt/30"
+            />
+          </div>
         </header>
 
-        <div class="mt-12 max-w-md">
-          <label for="artist-search" class="eyebrow !text-[0.62rem]">Search artists</label>
-          <input
-            id="artist-search"
-            type="search"
-            autocomplete="off"
-            placeholder="Name or country"
-            [value]="query()"
-            (input)="query.set($any($event.target).value)"
-            class="mt-1.5 h-10 w-full rounded-md border border-ink/15 bg-canvas px-3 text-sm outline-none focus-visible:border-cobalt focus-visible:ring-2 focus-visible:ring-cobalt/30"
-          />
-        </div>
-
-        <ul class="mt-10 border-t border-ink/10">
-          @for (artist of filtered(); track artist.id) {
-            <li>
+        <ol class="mt-16 border-t border-midnight/15">
+          @for (artist of filtered(); track artist.id; let i = $index) {
+            <li atReveal [revealDelay]="(i % 3) * 60">
               <a
                 [routerLink]="['/artists', artist.id]"
-                class="grid gap-3 border-b border-ink/10 px-2 py-8 transition-colors duration-300 hover:bg-canvas focus-visible:bg-canvas focus-visible:outline-2 focus-visible:outline-cobalt md:grid-cols-[1.2fr_1.4fr_auto] md:items-center md:gap-10 md:px-6"
+                class="group grid gap-6 border-b border-midnight/15 py-10 focus-visible:outline-2 focus-visible:outline-cobalt md:grid-cols-[3rem_1.1fr_1.3fr] md:items-center md:gap-10"
               >
-                <div>
-                  <p class="font-display text-4xl leading-tight md:text-5xl">{{ artist.name }}</p>
-                  @if (artist.country) {
-                    <p class="eyebrow mt-2">{{ artist.country }}</p>
+                <span class="font-mono text-xs tracking-[0.2em] text-midnight/40 tabular-nums">{{
+                  pad(i + 1)
+                }}</span>
+                <span class="min-w-0">
+                  <span
+                    class="block font-display text-4xl leading-tight transition-transform duration-500 ease-gallery group-hover:translate-x-2 group-hover:italic md:text-5xl"
+                    >{{ artist.name }}</span
+                  >
+                  <span
+                    class="mt-3 block font-mono text-[10px] tracking-[0.26em] text-midnight/50 uppercase"
+                  >
+                    {{ artist.country || 'Country unknown' }} ·
+                    {{ worksOf(artist.id).length }} works
+                  </span>
+                  <span
+                    class="mt-4 line-clamp-2 block max-w-md text-sm leading-relaxed text-midnight/65"
+                  >
+                    {{ artist.biography || 'Biography coming soon.' }}
+                  </span>
+                </span>
+                <span class="grid grid-cols-3 gap-3">
+                  @for (art of worksOf(artist.id).slice(0, strip); track art.id; let j = $index) {
+                    <span
+                      class="block overflow-hidden rounded-[14px] bg-midnight/5 shadow-[0_18px_40px_-26px_rgb(16_29_53/0.6)] transition-transform duration-700 ease-gallery"
+                      [class]="j === 1 ? 'group-hover:-translate-y-2' : 'group-hover:translate-y-1'"
+                    >
+                      <img
+                        [src]="art.imageUrl"
+                        [alt]="art.title"
+                        class="aspect-[4/5] w-full object-cover transition-transform duration-[1.2s] ease-gallery group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </span>
                   }
-                </div>
-                <p class="line-clamp-2 text-sm leading-relaxed text-muted-foreground md:text-base">
-                  {{ artist.biography || 'Biography coming soon.' }}
-                </p>
-                <span class="text-sm font-semibold">View profile →</span>
+                </span>
               </a>
             </li>
           } @empty {
             @if (loaded()) {
-              <li class="py-16 text-center text-muted-foreground">No artist matches your search.</li>
+              <li class="py-16 text-center text-midnight/60">No artist matches your search.</li>
             } @else {
-              @for (n of [1, 2, 3, 4]; track n) {
-                <li class="py-8" aria-hidden="true"><div class="h-12 w-1/2 animate-pulse rounded bg-ink/10"></div></li>
+              @for (n of [1, 2, 3]; track n) {
+                <li class="border-b border-midnight/10 py-10" aria-hidden="true">
+                  <div class="h-12 w-1/2 animate-pulse rounded bg-midnight/10"></div>
+                </li>
               }
             }
           }
-        </ul>
+        </ol>
       </div>
     </section>
   `,
 })
 export default class ArtistsPage {
   private readonly api = inject(GalleryApi);
+  protected readonly strip = STRIP_SIZE;
 
   protected readonly query = signal('');
-  private readonly all = toSignal(
+  protected readonly all = toSignal(
     this.api.artists(undefined, 0, 500).pipe(
       map((page) => page.content),
       catchError(() => of([])),
     ),
   );
+  private readonly artworks = toSignal(
+    this.api.artworks({ size: 200 }).pipe(
+      map((page) => page.content),
+      catchError(() => of([] as ArtworkCard[])),
+    ),
+  );
+  private readonly worksByArtist = computed(() => {
+    const groups = new Map<number, ArtworkCard[]>();
+    for (const art of this.artworks() ?? []) {
+      groups.set(art.artistId, [...(groups.get(art.artistId) ?? []), art]);
+    }
+    return groups;
+  });
+
   protected readonly loaded = computed(() => this.all() !== undefined);
   protected readonly filtered = computed(() => {
     const term = this.query().trim().toLowerCase();
     return [...(this.all() ?? [])]
-      .filter((a) => !term || a.name.toLowerCase().includes(term) || (a.country ?? '').toLowerCase().includes(term))
+      .filter(
+        (a) =>
+          !term ||
+          a.name.toLowerCase().includes(term) ||
+          (a.country ?? '').toLowerCase().includes(term),
+      )
       .sort((a, b) => a.name.localeCompare(b.name));
   });
+
+  protected worksOf(artistId: number): ArtworkCard[] {
+    return this.worksByArtist().get(artistId) ?? [];
+  }
+
+  protected pad(value: number): string {
+    return String(value).padStart(2, '0');
+  }
 }
