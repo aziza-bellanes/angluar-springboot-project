@@ -9,7 +9,7 @@ Every requirement is kept. Where the vocabulary changes, the mapping is explicit
 | CDC item | ATELIER implementation | Where in code |
 |---|---|---|
 | `User` (id, email, password, tel, nom, prénom) | `User` entity: `id`, `email` (unique), `password` (BCrypt hash), `phone`, `lastName`, `firstName`, plus `enabled` and audit timestamps | `BE/user/User.java`, table `users` in `backend/src/main/resources/db/migration/V1__core_schema.sql` |
-| `Role` (id, libellé) with a closed set of roles | `Role` entity with column `libelle` typed by the enum `RoleName` `{ADMIN, COLLABORATEUR, BIDDER}`. `BIDDER` is an extension for public collectors; `ADMIN` and `COLLABORATEUR` are the two roles of the CDC | `BE/user/Role.java`, `BE/user/RoleName.java`, `BE/config/RoleAndAdminInitializer.java` (creates missing roles at startup) |
+| `Role` (id, libellé) with a closed set of roles | `Role` entity with column `libelle` typed by the enum `RoleName` `{ADMIN, COLLABORATEUR, BIDDER}`. `BIDDER` is an extension for public collectors; `ADMIN` and `COLLABORATEUR` are the two roles of the CDC. **Read-only** through `GET /api/admin/roles`: the roles are a fixed enum, so they are not created or deleted | `BE/user/Role.java`, `BE/user/RoleName.java`, `BE/config/RoleAndAdminInitializer.java` (creates missing roles at startup) |
 | `User` *..* `Role` (Many-to-Many) | `User.roles` mapped with join table `user_roles` (`user_id`, `role_id`) | `BE/user/User.java`, `V1__core_schema.sql` |
 | `Client` (id, nom, tel, email, adresse) | `Artist` entity: `name`, `phone`, `email`, `address`, `photoUrl`, `active`, plus extra `biography` and `country`. Public pages see only name, country, biography and photo; contact details stay in the Studio | `BE/artist/Artist.java`, `BE/artist/ArtistDtos.java`, table `artists` |
 | `Projet` (id, libellé, budget, durée, description, idClient) | `Exhibition` entity: `title` (libellé), `budget` (`BigDecimal`), `durationDays` (durée), `description`, `artist` (idClient), plus `startsOn`, `venue`, `coverUrl`. The public projection hides the budget | `BE/exhibition/Exhibition.java`, `BE/exhibition/ExhibitionDtos.java`, table `exhibitions` |
@@ -41,7 +41,7 @@ The Angular UI mirrors the matrix (it is a convenience, not a security boundary)
 | CDC item | ATELIER implementation | Where in code |
 |---|---|---|
 | 1. Spring Boot project with Web, Data JPA, DevTools, MySQL Driver | Spring Boot 3.5 with `spring-boot-starter-web`, `-data-jpa`, `spring-boot-devtools`, `mysql-connector-j` (plus Security, Validation, Mail, WebSocket, Actuator, Flyway, JJWT) | `backend/pom.xml` |
-| 2. CRUD for the entities, without security | Layered by feature: controller, service, repository, DTO records. Clients and Projets CRUD are `StudioArtistController` and `StudioExhibitionController`; users via `AdminUserController` | `BE/artist/`, `BE/exhibition/`, `BE/user/` |
+| 2. CRUD for the entities, without security | Layered by feature: controller, service, repository, DTO records. Clients and Projets CRUD are `StudioArtistController` and `StudioExhibitionController`; users via `AdminUserController`. **User CRUD is complete**: list, read, create, update and delete under `/api/admin/users` (see [API.md](API.md#user-administration--apiadminusers-admin)) | `BE/artist/`, `BE/exhibition/`, `BE/user/` |
 | 3. Test the APIs in Postman | Postman collection covering every endpoint and role, runnable with Newman | `postman/ATELIER.postman_collection.json`, [TEST_PLAN.md](TEST_PLAN.md#postman-and-newman) |
 | 4. Add the security layer and JWT | Stateless Spring Security with a `JwtAuthenticationFilter` and `JwtService` (JJWT, HS256, expiry `JWT_EXPIRATION`, default 12 h); BCrypt passwords | `BE/config/SecurityConfig.java`, `BE/security/JwtAuthenticationFilter.java`, `BE/security/JwtService.java` |
 | 5. After a registration, send an email to the admin | `AuthService.register` publishes `UserRegisteredEvent`; `RegistrationMailListener` sends the email **asynchronously after commit**, so an SMTP outage never blocks or rolls back a registration. Recipient: `ADMIN_EMAIL`. Visible in Mailpit at http://localhost:8025 | `BE/auth/AuthService.java`, `BE/auth/UserRegisteredEvent.java`, `BE/auth/RegistrationMailListener.java`, `BE/config/AsyncConfig.java`; test `AuthIT` |
@@ -102,3 +102,16 @@ The Angular UI mirrors the matrix (it is a convenience, not a security boundary)
 | Testcontainers tests | Integration tests against real MySQL 8.4, including a concurrency test | `backend/src/test/` |
 | Continuous integration | Backend, frontend and image build on every push and pull request | `.github/workflows/ci.yml` |
 | Vitest unit tests | Guards, interceptor, store, helpers, riffle formations | `FE/**/*.spec.ts` |
+
+## 8. Argon Dashboard template
+
+The studio follows the structure of Argon Dashboard Angular by Creative Tim (MIT licence, https://www.creative-tim.com/product/argon-dashboard-angular). Its source targets Angular 14, Bootstrap 4.6, ng-bootstrap 12 and Chart.js 2.9; the project runs Angular 22, Tailwind CSS 4 and Chart.js 4, so the components were rebuilt rather than copied (ng-bootstrap 12 does not compile on Angular 22, and Bootstrap's global classes would clash with the public site).
+
+| Argon page | ATELIER studio equivalent |
+|---|---|
+| Sidebar, navbar with user menu, footer | Collapsible sidebar, top bar with search and user menu, footer |
+| Dashboard (gradient header, 4 stat cards, dark line chart, bar chart, two tables) | Overview (gradient header, 4 KPI cards with weekly trends, daily bid volume chart, auctions-by-status doughnut, recent bids, top artists, ending soon, quick actions) |
+| Tables | CRUD tables for Artists (Clients), Exhibitions (Projets), Artworks, Auctions and Users with search and paging |
+| User profile | My profile (edit details, change password) |
+| Login / Register | Sign in / Register (registration emails the admin) |
+| Icons, Maps | Not used (template showcase pages) |

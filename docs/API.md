@@ -190,10 +190,41 @@ Trends compare the last seven days with the seven days before.
 | Method | Path | Request | Success |
 |---|---|---|---|
 | GET | `/api/admin/users` | — | 200 `UserResponse[]` |
+| GET | `/api/admin/users/{id}` | — | 200 `UserResponse` |
+| POST | `/api/admin/users` | `CreateUserRequest` | 201 `UserResponse` |
+| PUT | `/api/admin/users/{id}` | `UpdateUserRequest` | 200 `UserResponse` |
+| DELETE | `/api/admin/users/{id}` | — | 204 |
 | PUT | `/api/admin/users/{id}/roles` | `{ "roles": ["COLLABORATEUR"] }` (non-empty set of `ADMIN`, `COLLABORATEUR`, `BIDDER`) | 200 `UserResponse` |
 | PUT | `/api/admin/users/{id}/status` | `{ "enabled": false }` | 200 `UserResponse` |
+| GET | `/api/admin/roles` | — | 200 `RoleResponse[]` |
 
-409 codes: `self_demotion` (an admin cannot remove their own `ADMIN` role), `self_disable`.
+Unknown ids return 404 `not_found`.
+
+```jsonc
+// CreateUserRequest
+{ "firstName": "required, max 80", "lastName": "required, max 80", "email": "required, valid, max 190",
+  "phone": "optional, max 30, digits and + ( ) - only", "password": "required, 8 to 72 chars",
+  "roles": ["COLLABORATEUR"] /* required, non-empty */, "enabled": true /* optional, default true */ }
+
+// UpdateUserRequest (send the whole profile)
+{ "firstName": "required, max 80", "lastName": "required, max 80", "email": "required, valid, max 190",
+  "phone": "optional, max 30", "password": "optional: omit or leave empty to keep the current one, otherwise 8 to 72 chars",
+  "roles": ["COLLABORATEUR"] /* required, non-empty */, "enabled": true /* required */ }
+
+// RoleResponse (GET /api/admin/roles)
+{ "id": 2, "name": "COLLABORATEUR" }
+```
+
+Rules:
+
+- `email` is stored in lower case. Creating a user, or changing a user's email, to an address used by another account returns 409 `email_taken`.
+- `PUT /{id}` returns 409 `password_too_short` when a supplied password has fewer than 8 characters.
+- An admin cannot remove their own `ADMIN` role or disable their own account (409 `self_demotion`, `self_disable`), on either the update or the roles and status endpoints.
+- Any change that would leave no enabled administrator returns 409 `last_admin`.
+- `DELETE /{id}` returns 204 only for an account with no activity. Otherwise it returns 409:
+  - `cannot_delete_self`: the caller's own account;
+  - `last_admin`: the last enabled administrator;
+  - `user_has_activity`: the user has placed bids, won or leads an auction, or has created artists, exhibitions or artworks. Disable the account with `PUT /{id}/status` instead.
 
 ## Health
 
@@ -262,6 +293,6 @@ Validation failure (400) adds a `fields` object:
 | 404 | `not_found` | Unknown resource |
 | 409 | `stale_update` | Optimistic lock: the record changed, reload and retry |
 | 409 | `integrity_violation` | Record still referenced (for example an artist with exhibitions) |
-| 409 | `email_taken`, `wrong_password`, `self_demotion`, `self_disable` | Account rules |
+| 409 | `email_taken`, `wrong_password`, `self_demotion`, `self_disable`, `last_admin`, `password_too_short`, `cannot_delete_self`, `user_has_activity` | Account rules |
 | 409 | `exhibition_artist_mismatch`, `artwork_not_published`, `invalid_window`, `auction_overlap`, `auction_locked`, `artwork_change`, `auction_finished`, `auction_has_bids` | Catalogue and auction rules |
 | 409 | `auction_not_open`, `already_leading`, `bid_too_low` | Bidding rules |
