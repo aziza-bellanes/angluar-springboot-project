@@ -31,6 +31,7 @@ Location: `backend/src/test/java/com/sip/psm/`. Unit tests are `*Test` (Surefire
 | `auction/ConcurrentBiddingIT` | **Concurrency**: many collectors submit the same amount at the same instant on parallel threads; exactly one request gets 201, all others 409, and the stored price, bid count and bid rows stay consistent (validates the pessimistic lock) |
 | `account/ProfileIT` | Profile update, invalid profile rejected, password change requires the current password and then allows login with the new one, anonymous access refused |
 | `studio/StudioOverviewIT` | Dashboard aggregates: trends, two weeks of daily activity, rankings, recent bids |
+| `user/AdminUserIT` | Admin creates, reads, updates and deletes users under `/api/admin/users`: duplicate email 409 `email_taken`, invalid create rejected, update changes fields and the login uses the new password, empty password keeps the current one, taken email refused on update, deletion of a user without activity, own account refused (`cannot_delete_self`), user with bids refused (`user_has_activity`), Collaborateur forbidden on the new endpoints, role list |
 | `demo/DemoDataIT` | The demonstration gallery loads completely, with auctions in every state |
 
 ### Running
@@ -83,6 +84,8 @@ Prerequisites: the backend running with `DEMO_DATA=true` (the development Docker
 ```bash
 npx newman run postman/ATELIER.postman_collection.json --env-var baseUrl=http://localhost:8080
 ```
+
+Folder 6 also covers user administration: it creates a temporary Collaborateur with a unique email, checks the duplicate-email refusal (409 `email_taken`), reads and updates the user, checks that a Collaborateur cannot create users (403), checks that an admin cannot delete their own account (409 `cannot_delete_self`), deletes the temporary user (204), and lists the roles.
 
 The collection exercises the CDC checklist: login and registration, Client (Artist) and Projet (Exhibition) resources before and after security, role restrictions (collaborateur cannot update or delete, bidder cannot use the studio), and the security checks that anonymous calls are refused.
 

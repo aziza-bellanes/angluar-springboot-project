@@ -93,9 +93,14 @@ Everything a Collaborateur can do, plus:
 
 ### Users and roles
 1. Open **Users** to see every account.
-2. Use the switch to **enable or disable** an account; a disabled user cannot sign in.
-3. Click **Roles** to grant `ADMIN`, `COLLABORATEUR` or `BIDDER` (at least one role is required). This is how a new staff member gets Studio access: they register as a collector, then an administrator adds the Collaborateur role.
-4. You cannot remove your own administrator role or disable your own account.
+2. Click **New user** to create an account: first and last name, email, optional phone, a password of at least 8 characters, one or more roles, and the **Enabled** switch. This is how a new staff member gets Studio access: the administrator creates a Collaborateur account.
+3. Click the **pencil** on a row to edit the names, email, phone, roles and the **Enabled** switch. The password is optional: leave it empty to keep the current one, or type a new one (at least 8 characters).
+4. Use the switch to **enable or disable** an account; a disabled user cannot sign in. Disabling is how you retire an account that has history.
+5. Click the **trash** icon on a row to delete a user. A confirmation dialog asks you to confirm first. Deletion is refused, with a clear message, in three cases:
+   - your own account;
+   - the last enabled administrator;
+   - a user who has placed bids, won or leads an auction, or created artists, exhibitions or artworks. Disable that account instead.
+6. You cannot remove your own administrator role or disable your own account.
 
 ### Profile
 **My profile** in the Studio lets you update your name and phone number and change your password. Use **View public site** in the sidebar to see the gallery as visitors do.
