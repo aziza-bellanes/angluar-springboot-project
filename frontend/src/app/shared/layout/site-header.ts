@@ -14,7 +14,7 @@ export const PUBLIC_NAV = [
   { label: 'Live auctions', path: '/auctions' },
 ] as const;
 
-/** Floating midnight navigation pill. Navigation and sign-in stay one click away on every page. */
+/** Floating glass navigation pill. Navigation and sign-in stay one click away on every page. */
 @Component({
   selector: 'at-site-header',
   imports: [RouterLink, RouterLinkActive, NgIcon, BrandMark, UserMenu, HlmSheetImports],
@@ -23,7 +23,7 @@ export const PUBLIC_NAV = [
   template: `
     <header class="pointer-events-none fixed inset-x-0 top-3 z-50 px-3 sm:top-4">
       <div
-        class="night pointer-events-auto mx-auto flex h-14 max-w-5xl items-center justify-between gap-6 rounded-full border border-ivory/10 bg-midnight/85 pr-2 pl-6 shadow-[0_18px_40px_-18px_rgb(16_29_53/0.55)] backdrop-blur-md"
+        class="pointer-events-auto mx-auto flex h-14 max-w-5xl items-center justify-between gap-6 rounded-full border border-white/60 bg-[#fbf8f1]/90 pr-2 pl-6 text-midnight shadow-[0_1px_0_rgb(255_255_255/0.7)_inset,0_18px_40px_-22px_rgb(16_29_53/0.45)] backdrop-blur-xl backdrop-saturate-150"
       >
         <at-brand-mark />
 
@@ -31,8 +31,8 @@ export const PUBLIC_NAV = [
           @for (item of nav; track item.path) {
             <a
               [routerLink]="item.path"
-              routerLinkActive="text-sunflower"
-              class="text-sm text-ivory/75 transition-colors hover:text-ivory"
+              routerLinkActive="!text-midnight after:!scale-x-100"
+              class="relative text-sm text-midnight/60 transition-colors after:absolute after:inset-x-0 after:-bottom-1.5 after:h-px after:origin-left after:scale-x-0 after:bg-midnight after:transition-transform after:duration-500 after:ease-gallery hover:text-midnight hover:after:scale-x-100"
             >
               {{ item.label }}
             </a>
@@ -43,17 +43,17 @@ export const PUBLIC_NAV = [
           @if (auth.isAuthenticated()) {
             <at-user-menu />
           } @else {
-            <a routerLink="/login" class="hidden text-sm text-ivory/80 hover:text-ivory sm:inline"
+            <a routerLink="/login" class="hidden text-sm text-midnight/70 hover:text-midnight sm:inline"
               >Sign in</a
             >
-            <a routerLink="/register" class="btn-gold !px-4 !py-2">Join</a>
+            <a routerLink="/register" class="rounded-full bg-midnight px-4 py-2 text-sm font-semibold text-ivory transition-colors hover:bg-cobalt">Join</a>
           }
 
           <hlm-sheet side="right">
             <button
               hlmSheetTrigger
               type="button"
-              class="grid size-10 place-items-center rounded-full text-ivory md:hidden"
+              class="grid size-10 place-items-center rounded-full text-midnight md:hidden"
               aria-label="Open menu"
             >
               <ng-icon name="lucideMenu" size="22" />

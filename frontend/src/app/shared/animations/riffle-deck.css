@@ -66,3 +66,31 @@
     transform: translateY(16px);
   }
 }
+
+.drift {
+  transform-style: preserve-3d;
+}
+
+.riffle-face {
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.riffle-card:hover .riffle-face {
+  transform: translateY(-3%) scale(1.03);
+  box-shadow:
+    0 2px 5px rgb(16 29 53 / 0.12),
+    0 70px 120px -40px rgb(16 29 53 / 0.55);
+}
+
+.label-in {
+  animation: label-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes label-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}

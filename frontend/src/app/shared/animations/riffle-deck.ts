@@ -14,7 +14,13 @@ import { RouterLink } from '@angular/router';
 import { ArtworkCard } from '@app/core/models/api.models';
 import { FlipTransition } from './flip-transition.service';
 import { gsap } from './motion';
-import { FORMATIONS, FormationName, RENDER_SCALE, formation, layoutMetrics } from './riffle-formations';
+import {
+  FORMATIONS,
+  FormationName,
+  RENDER_SCALE,
+  formation,
+  layoutMetrics,
+} from './riffle-formations';
 
 const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
 const MAX_CARDS = 20;
@@ -66,6 +72,10 @@ export class RiffleDeck {
     return art ? [art.artistName, art.yearCreated].filter(Boolean).join(', ') : '';
   });
   protected readonly scene = signal(0);
+  protected readonly hovered = signal<ArtworkCard | null>(null);
+  protected readonly painters = computed(
+    () => new Set(this.cards().map((art) => art.artistId)).size,
+  );
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -82,6 +92,12 @@ export class RiffleDeck {
     this.flip.capture(slug, image);
   }
 
+  protected hover(art: ArtworkCard | null, event: PointerEvent): void {
+    if (event.pointerType === 'mouse') {
+      this.hovered.set(art);
+    }
+  }
+
   protected pad(value: number): string {
     return String(value).padStart(2, '0');
   }
@@ -89,6 +105,9 @@ export class RiffleDeck {
   private choreograph(): () => void {
     const stage = this.stage().nativeElement;
     const plane = stage.querySelector<HTMLElement>('.plane')!;
+    const drift = stage.querySelector<HTMLElement>('.drift')!;
+    const label = stage.querySelector<HTMLElement>('.museum-label')!;
+    const progressBar = stage.querySelector<HTMLElement>('.deck-progress')!;
     const cards = gsap.utils.toArray<HTMLElement>('.riffle-card', stage);
     const count = cards.length;
     if (count === 0) {
@@ -125,7 +144,7 @@ export class RiffleDeck {
           pin: true,
           start: 'top top',
           end: () => `+=${window.innerHeight * 2.6}`,
-          scrub: 0.7,
+          scrub: 1,
           invalidateOnRefresh: true,
           snap: {
             snapTo: 'labels',
@@ -134,7 +153,13 @@ export class RiffleDeck {
             ease: 'power1.inOut',
           },
           onRefresh: applyCardSize,
-          onUpdate: (self) => this.scene.set(Math.round(self.progress * (SCENES.length - 1))),
+          onUpdate: (self) => {
+            gsap.set(progressBar, { scaleX: self.progress });
+            const scene = Math.round(self.progress * (SCENES.length - 1));
+            if (scene !== this.scene()) {
+              this.scene.set(scene);
+            }
+          },
         },
       });
       scroll.addLabel(SCENES[0].name);
@@ -187,11 +212,28 @@ export class RiffleDeck {
         '-=0.6',
       );
 
+    // The collection breathes: a slow, endless float of the whole arrangement.
+    const breathing = gsap.to(drift, {
+      y: -12,
+      rotationZ: 0.8,
+      duration: 4.5,
+      ease: 'sine.inOut',
+      yoyo: true,
+      repeat: -1,
+    });
+
+    // A museum label follows the pointer over the cards.
+    const labelX = gsap.quickTo(label, 'x', { duration: 0.45, ease: 'power3.out' });
+    const labelY = gsap.quickTo(label, 'y', { duration: 0.45, ease: 'power3.out' });
+
     // The whole plane leans gently toward a mouse pointer.
     const tiltX = gsap.quickTo(plane, 'rotationX', { duration: 1, ease: 'power3.out' });
     const tiltY = gsap.quickTo(plane, 'rotationY', { duration: 1, ease: 'power3.out' });
     const onPointer = (event: PointerEvent) => {
       if (event.pointerType === 'mouse') {
+        const bounds = stage.getBoundingClientRect();
+        labelX(event.clientX - bounds.left);
+        labelY(event.clientY - bounds.top);
         tiltY((event.clientX / window.innerWidth - 0.5) * 10);
         tiltX((0.5 - event.clientY / window.innerHeight) * 7);
       }
@@ -201,6 +243,7 @@ export class RiffleDeck {
     return () => {
       releaseInput();
       opening.kill();
+      breathing.kill();
       scroll?.scrollTrigger?.kill();
       scroll?.kill();
       stage.removeEventListener('pointermove', onPointer);
