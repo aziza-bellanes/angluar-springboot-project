@@ -1,50 +1,126 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import { NgTemplateOutlet } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideChevronDown, lucideExternalLink, lucideGavel, lucideImage, lucideLandmark, lucideLayoutDashboard,
-  lucideLogOut, lucideMenu, lucidePalette, lucideSearch, lucideUser, lucideUsers,
+  lucideChevronDown,
+  lucideExternalLink,
+  lucideGavel,
+  lucideImage,
+  lucideLandmark,
+  lucideLayoutDashboard,
+  lucideLogOut,
+  lucideMenu,
+  lucidePalette,
+  lucidePanelLeftClose,
+  lucidePanelLeftOpen,
+  lucideSearch,
+  lucideUser,
+  lucideUsers,
 } from '@ng-icons/lucide';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { filter, map, startWith } from 'rxjs';
 import { AuthStore } from '@app/core/auth/auth.store';
+import { TONES, Tone } from './shared/tones';
+
+/** Where the sidebar's collapsed state is remembered for this browser. */
+const COLLAPSED_KEY = 'atelier.studio.sidebar-collapsed';
+const SIDEBAR_WIDTH = { open: 256, collapsed: 80 };
 
 interface NavItem {
   path: string;
   label: string;
   caption?: string;
   icon: string;
-  tone: string;
+  tone: Tone;
   adminOnly?: boolean;
   exact?: boolean;
 }
 
-const GALLERY_LINKS = [
-  { path: '/', label: 'View public site', icon: 'lucideExternalLink', tone: 'text-sunflower' },
-  { path: '/studio/profile', label: 'My profile', icon: 'lucideUser', tone: 'text-sky-300' },
+const GALLERY_LINKS: NavItem[] = [
+  { path: '/', label: 'View public site', icon: 'lucideExternalLink', tone: 'neutral' },
+  { path: '/studio/profile', label: 'My profile', icon: 'lucideUser', tone: 'neutral' },
 ];
 
 const NAV: NavItem[] = [
-  { path: '/studio', label: 'Overview', icon: 'lucideLayoutDashboard', tone: 'text-sunflower', exact: true },
-  { path: '/studio/artists', label: 'Artists', caption: 'Clients', icon: 'lucidePalette', tone: 'text-terracotta' },
-  { path: '/studio/exhibitions', label: 'Exhibitions', caption: 'Projets', icon: 'lucideLandmark', tone: 'text-sky-300' },
-  { path: '/studio/artworks', label: 'Artworks', icon: 'lucideImage', tone: 'text-emerald-300' },
-  { path: '/studio/auctions', label: 'Auctions', icon: 'lucideGavel', tone: 'text-amber-500', adminOnly: true },
-  { path: '/studio/users', label: 'Users', icon: 'lucideUsers', tone: 'text-rose-300', adminOnly: true },
+  {
+    path: '/studio',
+    label: 'Overview',
+    icon: 'lucideLayoutDashboard',
+    tone: 'overview',
+    exact: true,
+  },
+  {
+    path: '/studio/artists',
+    label: 'Artists',
+    caption: 'Clients',
+    icon: 'lucidePalette',
+    tone: 'artists',
+  },
+  {
+    path: '/studio/exhibitions',
+    label: 'Exhibitions',
+    caption: 'Projets',
+    icon: 'lucideLandmark',
+    tone: 'exhibitions',
+  },
+  { path: '/studio/artworks', label: 'Artworks', icon: 'lucideImage', tone: 'artworks' },
+  {
+    path: '/studio/auctions',
+    label: 'Auctions',
+    icon: 'lucideGavel',
+    tone: 'auctions',
+    adminOnly: true,
+  },
+  {
+    path: '/studio/users',
+    label: 'Users',
+    caption: 'Roles',
+    icon: 'lucideUsers',
+    tone: 'users',
+    adminOnly: true,
+  },
 ];
 
-/** Argon-style dashboard shell: fixed sidenav, top bar, ivory content area. */
+/** Argon-style dashboard shell: collapsible sidenav, top bar, ivory content area. */
 @Component({
   selector: 'at-studio-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgTemplateOutlet, NgIcon, HlmButton, HlmDropdownMenuImports, HlmSheetImports],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    NgTemplateOutlet,
+    NgIcon,
+    HlmButton,
+    HlmDropdownMenuImports,
+    HlmSheetImports,
+  ],
   providers: [
     provideIcons({
-      lucideChevronDown, lucideExternalLink, lucideGavel, lucideImage, lucideLandmark, lucideLayoutDashboard,
-      lucideLogOut, lucideMenu, lucidePalette, lucideSearch, lucideUser, lucideUsers,
+      lucideChevronDown,
+      lucideExternalLink,
+      lucideGavel,
+      lucideImage,
+      lucideLandmark,
+      lucideLayoutDashboard,
+      lucideLogOut,
+      lucideMenu,
+      lucidePalette,
+      lucidePanelLeftClose,
+      lucidePanelLeftOpen,
+      lucideSearch,
+      lucideUser,
+      lucideUsers,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,7 +134,26 @@ export class StudioLayout {
   protected readonly galleryLinks = GALLERY_LINKS;
   protected readonly year = new Date().getFullYear();
   protected readonly mobileNavOpen = signal(false);
-  protected readonly items = computed(() => NAV.filter((item) => !item.adminOnly || this.auth.isAdmin()));
+  protected readonly tones = TONES;
+
+  /** Desktop sidebar shows icons only when collapsed; the mobile drawer is always full. */
+  protected readonly collapsed = signal(readCollapsed());
+  protected readonly sidebarWidth = computed(() =>
+    this.collapsed() ? SIDEBAR_WIDTH.collapsed : SIDEBAR_WIDTH.open,
+  );
+
+  protected toggleSidebar(): void {
+    const next = !this.collapsed();
+    this.collapsed.set(next);
+    try {
+      localStorage.setItem(COLLAPSED_KEY, String(next));
+    } catch {
+      // Storage unavailable (private mode): the choice simply is not remembered.
+    }
+  }
+  protected readonly items = computed(() =>
+    NAV.filter((item) => !item.adminOnly || this.auth.isAdmin()),
+  );
 
   protected readonly heading = toSignal(
     this.router.events.pipe(
@@ -88,5 +183,13 @@ export class StudioLayout {
   protected signOut(): void {
     this.auth.logout();
     void this.router.navigateByUrl('/');
+  }
+}
+
+function readCollapsed(): boolean {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === 'true';
+  } catch {
+    return false;
   }
 }

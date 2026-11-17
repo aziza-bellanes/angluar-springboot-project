@@ -1,10 +1,19 @@
 <section class="grid gap-4">
   <at-crud-table
-    [search]="search" placeholder="Search artists…" newLabel="New artist"
-    [loading]="loading()" [error]="error()" [empty]="items().length === 0"
+    [search]="search"
+    placeholder="Search artists…"
+    newLabel="New artist"
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="items().length === 0"
     emptyText="No artists match your search."
-    [page]="page()" [totalPages]="totalPages()" [total]="total()"
-    (create)="openCreate()" (retry)="reload()" (pageChange)="goTo($event)">
+    [page]="page()"
+    [totalPages]="totalPages()"
+    [total]="total()"
+    (create)="openCreate()"
+    (retry)="reload()"
+    (pageChange)="goTo($event)"
+  >
     <table hlmTable>
       <thead hlmTHead>
         <tr hlmTr>
@@ -13,7 +22,9 @@
           <th hlmTh>Country</th>
           <th hlmTh>Status</th>
           <th hlmTh>Added</th>
-          @if (auth.isAdmin()) { <th hlmTh class="text-right">Actions</th> }
+          @if (auth.isAdmin()) {
+            <th hlmTh class="text-right">Actions</th>
+          }
         </tr>
       </thead>
       <tbody hlmTBody>
@@ -22,9 +33,17 @@
             <td hlmTd>
               <span class="flex items-center gap-3">
                 @if (artist.photoUrl) {
-                  <img [src]="artist.photoUrl" [alt]="artist.name" class="size-9 rounded-full object-cover" loading="lazy" />
+                  <img
+                    [src]="artist.photoUrl"
+                    [alt]="artist.name"
+                    class="size-9 rounded-full object-cover"
+                    loading="lazy"
+                  />
                 } @else {
-                  <span class="grid size-9 place-items-center rounded-full bg-muted text-xs font-semibold">{{ artist.name[0] }}</span>
+                  <span
+                    class="grid size-9 place-items-center rounded-full bg-muted text-xs font-semibold"
+                    >{{ artist.name[0] }}</span
+                  >
                 }
                 <span class="font-medium">{{ artist.name }}</span>
               </span>
@@ -32,15 +51,31 @@
             <td hlmTd>{{ artist.email }}</td>
             <td hlmTd>{{ artist.country || '—' }}</td>
             <td hlmTd>
-              <span hlmBadge [variant]="artist.active ? 'secondary' : 'outline'">{{ artist.active ? 'Active' : 'Inactive' }}</span>
+              <span hlmBadge [variant]="artist.active ? 'secondary' : 'outline'">{{
+                artist.active ? 'Active' : 'Inactive'
+              }}</span>
             </td>
             <td hlmTd>{{ artist.createdAt | longDate }}</td>
             @if (auth.isAdmin()) {
               <td hlmTd class="text-right whitespace-nowrap">
-                <button hlmBtn variant="ghost" size="icon-sm" type="button" [attr.aria-label]="'Edit ' + artist.name" (click)="openEdit(artist)">
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="'Edit ' + artist.name"
+                  (click)="openEdit(artist)"
+                >
                   <ng-icon name="lucidePencil" />
                 </button>
-                <button hlmBtn variant="ghost" size="icon-sm" type="button" [attr.aria-label]="'Delete ' + artist.name" (click)="toDelete.set(artist)">
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="'Delete ' + artist.name"
+                  (click)="toDelete.set(artist)"
+                >
                   <ng-icon name="lucideTrash2" />
                 </button>
               </td>
@@ -53,11 +88,15 @@
 </section>
 
 <at-form-sheet
-  [open]="sheetOpen()" [form]="form" [saving]="saving()"
+  [open]="sheetOpen()"
+  [form]="form"
+  [saving]="saving()"
   [heading]="editing() ? 'Edit artist' : 'New artist'"
   description="Contact details stay private to the studio."
   [submitLabel]="editing() ? 'Save changes' : 'Create artist'"
-  (closed)="closeSheet()" (submitted)="submit()">
+  (closed)="closeSheet()"
+  (submitted)="submit()"
+>
   <at-form-field label="Name" [control]="form.controls.name" [required]="true">
     <input hlmInput [formControl]="form.controls.name" autocomplete="off" />
   </at-form-field>
@@ -82,12 +121,24 @@
     <input hlmInput type="url" [formControl]="form.controls.photoUrl" />
   </at-form-field>
   <label class="flex items-center gap-2 text-sm">
-    <input type="checkbox" class="size-4 accent-[var(--color-midnight)]" [formControl]="form.controls.active" />
+    <input
+      type="checkbox"
+      class="size-4 accent-[var(--color-midnight)]"
+      [formControl]="form.controls.active"
+    />
     Active (visible in the public gallery)
   </label>
 </at-form-sheet>
 
 <at-confirm-dialog
-  [open]="toDelete() !== null" [pending]="deleting()" heading="Delete this artist?"
-  [message]="'“' + toDelete()?.name + '” will be removed. Artists that still have exhibitions or artworks cannot be deleted.'"
-  (confirmed)="confirmDelete()" (cancelled)="toDelete.set(null)" />
+  [open]="toDelete() !== null"
+  [pending]="deleting()"
+  heading="Delete this artist?"
+  [message]="
+    '“' +
+    toDelete()?.name +
+    '” will be removed. Artists that still have exhibitions or artworks cannot be deleted.'
+  "
+  (confirmed)="confirmDelete()"
+  (cancelled)="toDelete.set(null)"
+/>

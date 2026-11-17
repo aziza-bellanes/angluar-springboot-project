@@ -15,7 +15,13 @@ import { HlmDialogImports } from '@spartan-ng/helm/dialog';
         </hlm-dialog-header>
         <hlm-dialog-footer>
           <button hlmBtn variant="outline" type="button" (click)="cancelled.emit()">Keep</button>
-          <button hlmBtn variant="destructive" type="button" [disabled]="pending()" (click)="confirmed.emit()">
+          <button
+            hlmBtn
+            variant="destructive"
+            type="button"
+            [disabled]="pending()"
+            (click)="confirmed.emit()"
+          >
             {{ pending() ? 'Working…' : confirmLabel() }}
           </button>
         </hlm-dialog-footer>

@@ -35,60 +35,83 @@
       @let o = overview.value()!;
       <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         @for (kpi of kpis(); track kpi.label) {
-          <article
-            class="rounded-xl border bg-card p-5 shadow-sm transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+          <a
+            [routerLink]="kpi.link"
+            class="group block rounded-2xl border bg-card p-5 shadow-[0_10px_30px_-18px_rgb(16_29_53/0.35)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_40px_-20px_rgb(16_29_53/0.45)]"
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <p class="eyebrow">{{ kpi.label }}</p>
-                <p class="mt-2 font-display text-4xl font-semibold">{{ kpi.value }}</p>
+                <p
+                  class="text-[0.7rem] font-semibold tracking-[0.18em] text-muted-foreground uppercase"
+                >
+                  {{ kpi.label }}
+                </p>
+                <p class="mt-2 font-display text-4xl font-semibold tabular-nums">{{ kpi.value }}</p>
               </div>
               <span
-                class="grid size-11 shrink-0 place-items-center rounded-full text-white shadow-md"
-                [class]="kpi.tone"
+                class="grid size-12 shrink-0 place-items-center rounded-xl shadow-[0_8px_18px_-8px_rgb(16_29_53/0.55)] transition-transform duration-300 group-hover:scale-105"
+                [class]="tones[kpi.tone].tile"
               >
-                <ng-icon [name]="kpi.icon" size="20" />
+                <ng-icon [name]="kpi.icon" size="22" />
               </span>
             </div>
-            <p class="mt-3 text-sm text-muted-foreground">
-              <span class="font-semibold" [class]="trendClass(kpi.trend)">{{
-                kpi.trend.label
-              }}</span>
-              <span class="ml-1.5 whitespace-nowrap">{{ trendContext(kpi.trend) }}</span>
+            <p class="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+              <span
+                class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold"
+                [class]="trendClass(kpi.trend)"
+              >
+                <ng-icon [name]="trendIcon(kpi.trend)" size="13" /> {{ kpi.trend.label }}
+              </span>
+              <span class="whitespace-nowrap">{{ trendContext(kpi.trend) }}</span>
             </p>
-          </article>
+          </a>
         }
       </div>
 
       <div class="mt-6 grid gap-6 xl:grid-cols-3">
-        <section class="rounded-xl bg-midnight p-5 text-ivory shadow-sm xl:col-span-2">
+        <section
+          class="rounded-2xl bg-gradient-to-br from-[#101d35] to-[#1a2c50] p-6 text-ivory shadow-[0_20px_45px_-22px_rgb(16_29_53/0.7)] xl:col-span-2"
+        >
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p class="eyebrow !text-ivory/60">Overview</p>
               <h2 class="font-display text-2xl font-semibold">Bid activity</h2>
             </div>
-            <div class="flex rounded-full bg-ivory/10 p-1" role="group" aria-label="Chart metric">
-              @for (m of metrics; track m.id) {
-                <button
-                  type="button"
-                  class="rounded-full px-4 py-1 text-xs font-semibold transition-colors"
-                  [class]="
-                    metric() === m.id
-                      ? 'bg-sunflower text-midnight'
-                      : 'text-ivory/70 hover:text-ivory'
-                  "
-                  [attr.aria-pressed]="metric() === m.id"
-                  (click)="metric.set(m.id)"
+            <div class="flex items-center gap-4">
+              <span
+                class="hidden items-center gap-4 text-xs text-ivory/60 sm:flex"
+                aria-hidden="true"
+              >
+                <span class="flex items-center gap-1.5"
+                  ><span class="h-0.5 w-4 rounded bg-[#e7b84b]"></span>Volume</span
                 >
-                  {{ m.label }}
-                </button>
-              }
+                <span class="flex items-center gap-1.5"
+                  ><span class="size-2.5 rounded-sm bg-[#6a9be0]/70"></span>Bids</span
+                >
+              </span>
+              <div class="flex rounded-full bg-ivory/10 p-1" role="group" aria-label="Chart range">
+                @for (r of ranges; track r) {
+                  <button
+                    type="button"
+                    class="rounded-full px-3.5 py-1 text-xs font-semibold transition-colors"
+                    [class]="
+                      range() === r
+                        ? 'bg-sunflower text-midnight'
+                        : 'text-ivory/70 hover:text-ivory'
+                    "
+                    [attr.aria-pressed]="range() === r"
+                    (click)="range.set(r)"
+                  >
+                    {{ r }} days
+                  </button>
+                }
+              </div>
             </div>
           </div>
           @let t = totals();
           <dl class="mt-5 grid grid-cols-2 gap-4 border-y border-ivory/10 py-4 sm:grid-cols-4">
             <div>
-              <dt class="eyebrow !text-[0.6rem] !text-ivory/50">14-day volume</dt>
+              <dt class="eyebrow !text-[0.6rem] !text-ivory/50">{{ range() }}-day volume</dt>
               <dd class="mt-1 font-display text-2xl tabular-nums">{{ t.volume | price }}</dd>
             </div>
             <div>
@@ -108,24 +131,50 @@
             class="mt-4"
             [config]="activityConfig()"
             [label]="activityLabel()"
-            [height]="240"
+            [height]="330"
           />
         </section>
 
-        <section class="rounded-xl border bg-card p-5 shadow-sm">
+        <section
+          class="rounded-2xl border bg-card p-6 shadow-[0_10px_30px_-18px_rgb(16_29_53/0.35)]"
+        >
           <p class="eyebrow">Performance</p>
           <h2 class="font-display text-2xl font-semibold">Auctions by status</h2>
-          <at-chart-canvas
-            class="mt-4"
-            [config]="statusConfig()"
-            [label]="statusLabel()"
-            [height]="300"
-          />
+          <div class="relative mx-auto mt-4 max-w-[240px]">
+            <at-chart-canvas [config]="statusConfig()" [label]="statusLabel()" [height]="220" />
+            <div class="pointer-events-none absolute inset-0 grid place-content-center text-center">
+              <span class="font-display text-5xl font-semibold tabular-nums">{{
+                auctionTotal()
+              }}</span>
+              <span
+                class="text-[0.65rem] font-semibold tracking-[0.2em] text-muted-foreground uppercase"
+                >Auctions</span
+              >
+            </div>
+          </div>
+          <ul class="mt-6 grid grid-cols-2 gap-3">
+            @for (slice of slices(); track slice.status) {
+              <li class="rounded-xl border px-3 py-2.5">
+                <span class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span class="size-2.5 rounded-full" [style.background]="slice.colour"></span
+                  >{{ slice.label }}
+                </span>
+                <span class="mt-1 flex items-baseline justify-between">
+                  <span class="font-display text-2xl font-semibold tabular-nums">{{
+                    slice.count
+                  }}</span>
+                  <span class="text-xs text-muted-foreground tabular-nums"
+                    >{{ slice.percent }}%</span
+                  >
+                </span>
+              </li>
+            }
+          </ul>
         </section>
       </div>
 
       <div class="mt-6 grid gap-6 xl:grid-cols-3">
-        <section class="overflow-hidden rounded-xl border bg-card shadow-sm xl:col-span-2">
+        <section class="overflow-hidden rounded-2xl border bg-card shadow-sm xl:col-span-2">
           <div class="flex items-center justify-between border-b px-5 py-4">
             <h2 class="font-display text-2xl font-semibold">Recent bids</h2>
             @if (auth.isAdmin()) {
@@ -170,23 +219,33 @@
           }
         </section>
 
-        <section class="rounded-xl border bg-card shadow-sm">
+        <section class="rounded-2xl border bg-card shadow-sm">
           <h2 class="border-b px-5 py-4 font-display text-2xl font-semibold">Top artists</h2>
           @if (o.topArtists.length === 0) {
             <p class="p-8 text-center text-muted-foreground">No bids on any artist yet.</p>
           } @else {
-            <ul class="grid gap-4 p-5">
+            <ol class="grid gap-5 p-5">
               @for (artist of o.topArtists; track artist.artistId; let i = $index) {
-                <li>
-                  <div class="flex items-baseline justify-between gap-3 text-sm">
-                    <span class="truncate font-medium">{{ artist.name }}</span>
-                    <span class="price shrink-0 text-muted-foreground">{{
-                      artist.volume | price
-                    }}</span>
-                  </div>
-                  <div class="mt-1.5 flex items-center gap-3">
+                <li class="grid grid-cols-[2rem_1fr] items-center gap-3">
+                  <span
+                    class="grid size-8 place-items-center rounded-lg text-xs font-bold"
+                    [class]="i === 0 ? tones.overview.tile : 'bg-muted text-muted-foreground'"
+                  >
+                    @if (i === 0) {
+                      <ng-icon name="lucideTrophy" size="15" />
+                    } @else {
+                      {{ i + 1 }}
+                    }
+                  </span>
+                  <div class="min-w-0">
+                    <div class="flex items-baseline justify-between gap-3 text-sm">
+                      <span class="truncate font-medium">{{ artist.name }}</span>
+                      <span class="price shrink-0 text-muted-foreground">{{
+                        artist.volume | price
+                      }}</span>
+                    </div>
                     <div
-                      class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+                      class="mt-1.5 h-2 overflow-hidden rounded-full bg-muted"
                       role="progressbar"
                       [attr.aria-label]="artist.name + ' share of top volume'"
                       aria-valuemin="0"
@@ -194,39 +253,54 @@
                       [attr.aria-valuenow]="artistShares()[i]"
                     >
                       <div
-                        class="h-full rounded-full bg-sunflower"
+                        class="h-full rounded-full transition-[width] duration-700"
                         [style.width.%]="artistShares()[i]"
+                        [style.background]="series[i % series.length]"
                       ></div>
                     </div>
-                    <span class="w-10 text-right text-xs text-muted-foreground"
-                      >{{ artistShares()[i] }}%</span
-                    >
                   </div>
                 </li>
               }
-            </ul>
+            </ol>
           }
         </section>
       </div>
 
       <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         @for (stat of stats(); track stat.label) {
-          <article class="rounded-xl border bg-card p-5">
-            <p class="eyebrow">{{ stat.label }}</p>
-            <p class="mt-2 font-display text-3xl font-semibold">{{ stat.value }}</p>
-            <p class="mt-1 text-xs text-muted-foreground">{{ stat.detail }}</p>
+          <article class="flex items-center gap-4 rounded-2xl border bg-card p-5">
+            <span
+              class="grid size-12 shrink-0 place-items-center rounded-xl"
+              [class]="tones[stat.tone].tile"
+            >
+              <ng-icon [name]="stat.icon" size="22" />
+            </span>
+            <div>
+              <p class="eyebrow">{{ stat.label }}</p>
+              <p class="mt-1 font-display text-3xl font-semibold tabular-nums">{{ stat.value }}</p>
+              <p class="text-xs text-muted-foreground">{{ stat.detail }}</p>
+            </div>
           </article>
         }
-        <article class="rounded-xl border bg-card p-5">
-          <p class="eyebrow">Total exhibition budget</p>
-          <p class="price mt-2 font-display text-3xl font-semibold">
-            {{ o.exhibitionBudget | price }}
-          </p>
+        <article class="flex items-center gap-4 rounded-2xl border bg-card p-5">
+          <span
+            class="grid size-12 shrink-0 place-items-center rounded-xl"
+            [class]="tones.exhibitions.tile"
+          >
+            <ng-icon name="lucideWallet" size="22" />
+          </span>
+          <div>
+            <p class="eyebrow">Total exhibition budget</p>
+            <p class="price mt-1 font-display text-3xl font-semibold">
+              {{ o.exhibitionBudget | price }}
+            </p>
+            <p class="text-xs text-muted-foreground">Across {{ o.exhibitions }} exhibitions</p>
+          </div>
         </article>
       </div>
 
       <div class="mt-6 grid gap-6 xl:grid-cols-3">
-        <section class="overflow-hidden rounded-xl border bg-card xl:col-span-2">
+        <section class="overflow-hidden rounded-2xl border bg-card xl:col-span-2">
           <h2 class="border-b px-5 py-4 font-display text-2xl font-semibold">Ending soon</h2>
           @if (o.endingSoon.length === 0) {
             <p class="p-8 text-center text-muted-foreground">No open auctions right now.</p>
@@ -239,7 +313,7 @@
                     <th hlmTh>Status</th>
                     <th hlmTh class="text-right">Current</th>
                     <th hlmTh class="text-right">Bids</th>
-                    <th hlmTh>Ends</th>
+                    <th hlmTh>Ends in</th>
                   </tr>
                 </thead>
                 <tbody hlmTBody>
@@ -264,7 +338,13 @@
                       <td hlmTd><at-auction-status-badge [status]="a.status" /></td>
                       <td hlmTd class="price text-right">{{ a.currentPrice | price }}</td>
                       <td hlmTd class="text-right">{{ a.bidCount }}</td>
-                      <td hlmTd class="whitespace-nowrap">{{ a.endsAt | dateTime }}</td>
+                      <td
+                        hlmTd
+                        class="whitespace-nowrap font-mono text-xs tabular-nums"
+                        [attr.title]="a.endsAt | dateTime"
+                      >
+                        <at-countdown [until]="a.endsAt" />
+                      </td>
                     </tr>
                   }
                 </tbody>
@@ -273,22 +353,64 @@
           }
         </section>
 
-        <section class="rounded-xl border bg-card p-5">
+        <section class="rounded-2xl border bg-card p-5">
           <h2 class="font-display text-2xl font-semibold">Quick actions</h2>
           <div class="mt-4 grid gap-2">
-            <a hlmBtn variant="outline" routerLink="/studio/artists" [queryParams]="{ new: 1 }"
-              ><ng-icon name="lucidePlus" /> New artist</a
-            >
-            <a hlmBtn variant="outline" routerLink="/studio/exhibitions" [queryParams]="{ new: 1 }"
-              ><ng-icon name="lucidePlus" /> New exhibition</a
-            >
-            <a hlmBtn variant="outline" routerLink="/studio/artworks" [queryParams]="{ new: 1 }"
-              ><ng-icon name="lucidePlus" /> New artwork</a
-            >
+            <a
+              hlmBtn
+              variant="outline"
+              class="h-11 justify-start gap-3"
+              routerLink="/studio/artists"
+              [queryParams]="{ new: 1 }"
+              ><span class="grid size-7 place-items-center rounded-lg" [class]="tones.artists.tile"
+                ><ng-icon name="lucidePalette" size="15"
+              /></span>
+              New artist<ng-icon name="lucidePlus" size="15" class="ml-auto text-muted-foreground"
+            /></a>
+            <a
+              hlmBtn
+              variant="outline"
+              class="h-11 justify-start gap-3"
+              routerLink="/studio/exhibitions"
+              [queryParams]="{ new: 1 }"
+              ><span
+                class="grid size-7 place-items-center rounded-lg"
+                [class]="tones.exhibitions.tile"
+                ><ng-icon name="lucideLandmark" size="15"
+              /></span>
+              New exhibition<ng-icon
+                name="lucidePlus"
+                size="15"
+                class="ml-auto text-muted-foreground"
+            /></a>
+            <a
+              hlmBtn
+              variant="outline"
+              class="h-11 justify-start gap-3"
+              routerLink="/studio/artworks"
+              [queryParams]="{ new: 1 }"
+              ><span class="grid size-7 place-items-center rounded-lg" [class]="tones.artworks.tile"
+                ><ng-icon name="lucideImage" size="15"
+              /></span>
+              New artwork<ng-icon name="lucidePlus" size="15" class="ml-auto text-muted-foreground"
+            /></a>
             @if (auth.isAdmin()) {
-              <a hlmBtn variant="outline" routerLink="/studio/auctions" [queryParams]="{ new: 1 }"
-                ><ng-icon name="lucidePlus" /> New auction</a
-              >
+              <a
+                hlmBtn
+                variant="outline"
+                class="h-11 justify-start gap-3"
+                routerLink="/studio/auctions"
+                [queryParams]="{ new: 1 }"
+                ><span
+                  class="grid size-7 place-items-center rounded-lg"
+                  [class]="tones.auctions.tile"
+                  ><ng-icon name="lucideGavel" size="15"
+                /></span>
+                New auction<ng-icon
+                  name="lucidePlus"
+                  size="15"
+                  class="ml-auto text-muted-foreground"
+              /></a>
             }
           </div>
         </section>

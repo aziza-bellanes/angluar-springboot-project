@@ -9,7 +9,13 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { StudioApi } from '@app/core/api/studio.api';
-import { Artist, Artwork, ArtworkRequest, ArtworkStatus, Exhibition } from '@app/core/models/api.models';
+import {
+  Artist,
+  Artwork,
+  ArtworkRequest,
+  ArtworkStatus,
+  Exhibition,
+} from '@app/core/models/api.models';
 import { PricePipe } from '@app/core/util/format.pipes';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { CrudPage } from '../shared/crud-page';
@@ -23,8 +29,17 @@ const STATUSES: ArtworkStatus[] = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
 @Component({
   selector: 'at-studio-artworks-page',
   imports: [
-    ReactiveFormsModule, NgIcon, HlmBadge, HlmButton, HlmInput, HlmTableImports, PricePipe,
-    ConfirmDialog, CrudTable, FormField, FormSheet,
+    ReactiveFormsModule,
+    NgIcon,
+    HlmBadge,
+    HlmButton,
+    HlmInput,
+    HlmTableImports,
+    PricePipe,
+    ConfirmDialog,
+    CrudTable,
+    FormField,
+    FormSheet,
   ],
   providers: [provideIcons({ lucidePencil, lucideTrash2 })],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,12 +68,18 @@ export default class StudioArtworksPage extends CrudPage<Artwork, ArtworkRequest
     description: ['', Validators.maxLength(4000)],
   });
 
-  private readonly chosenArtist = toSignal(this.form.controls.artistId.valueChanges.pipe(startWith(null)), {
-    initialValue: null,
-  });
-  private readonly imageValue = toSignal(this.form.controls.imageUrl.valueChanges.pipe(startWith('')), {
-    initialValue: '',
-  });
+  private readonly chosenArtist = toSignal(
+    this.form.controls.artistId.valueChanges.pipe(startWith(null)),
+    {
+      initialValue: null,
+    },
+  );
+  private readonly imageValue = toSignal(
+    this.form.controls.imageUrl.valueChanges.pipe(startWith('')),
+    {
+      initialValue: '',
+    },
+  );
   protected readonly preview = computed(() => (this.imageValue() ?? '').trim());
   protected readonly artistExhibitions = computed(() => {
     const artistId = this.chosenArtist() ?? this.form.controls.artistId.value;
@@ -109,7 +130,8 @@ export default class StudioArtworksPage extends CrudPage<Artwork, ArtworkRequest
       title: v.title.trim(),
       artistId: v.artistId as number,
       exhibitionId: v.exhibitionId,
-      yearCreated: v.yearCreated === null || (v.yearCreated as unknown) === '' ? null : Number(v.yearCreated),
+      yearCreated:
+        v.yearCreated === null || (v.yearCreated as unknown) === '' ? null : Number(v.yearCreated),
       medium: blankToNull(v.medium),
       dimensions: blankToNull(v.dimensions),
       imageUrl: v.imageUrl.trim(),

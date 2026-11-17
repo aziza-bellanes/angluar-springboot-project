@@ -1,6 +1,7 @@
 import type { ChartConfiguration, ScriptableContext } from 'chart.js';
 import { AuctionStatus, BidActivityPoint, TopArtist } from '@app/core/models/api.models';
 import { formatPrice } from '@app/core/util/format';
+import { TONES } from '../shared/tones';
 
 export type TrendDirection = 'up' | 'down' | 'flat' | 'new';
 
@@ -11,10 +12,12 @@ export interface Trend {
   label: string;
 }
 
-export type BidMetric = 'volume' | 'bids';
+/** Days shown by the activity chart. */
+export type ActivityRange = 7 | 14;
 
-const SUNFLOWER = '#e7b84b';
-const COBALT = '#315c91';
+const GOLD = TONES.overview.hex;
+const BLUE = TONES.users.hex;
+const AXIS = 'rgba(244,237,222,0.45)';
 
 /** Week-over-week change between two counters, ready for display. */
 export function trendOf(current: number, previous: number): Trend {
@@ -42,34 +45,56 @@ export function compactEuro(value: number): string {
   return `${value} €`;
 }
 
-export function bidActivityConfig(
-  points: BidActivityPoint[],
-  metric: BidMetric,
-): ChartConfiguration<'line'> {
-  const isVolume = metric === 'volume';
+/** Last `range` days of the activity series. */
+export function inRange(points: BidActivityPoint[], range: ActivityRange): BidActivityPoint[] {
+  return points.slice(-range);
+}
+
+/**
+ * Combined chart: bars for the number of bids (right axis) and a smooth gold line for the
+ * euro volume (left axis), so quiet days still read as days rather than a flat line.
+ */
+export function bidActivityConfig(points: BidActivityPoint[]): ChartConfiguration {
   return {
-    type: 'line',
+    type: 'bar',
     data: {
       labels: points.map((p) => shortDay(p.day)),
       datasets: [
         {
-          label: isVolume ? 'Bid volume' : 'Bids',
-          data: points.map((p) => (isVolume ? p.volume : p.bids)),
-          borderColor: SUNFLOWER,
-          borderWidth: 3,
-          tension: 0.4,
+          type: 'line',
+          label: 'Volume',
+          data: points.map((p) => p.volume),
+          yAxisID: 'volume',
+          borderColor: GOLD,
+          borderWidth: 2.5,
+          tension: 0.35,
           fill: true,
-          pointRadius: 0,
-          pointHoverRadius: 5,
-          pointBackgroundColor: SUNFLOWER,
+          pointRadius: points.map((p) => (p.bids > 0 ? 3 : 0)),
+          pointHoverRadius: 6,
+          pointBackgroundColor: GOLD,
+          pointBorderColor: '#101d35',
+          pointBorderWidth: 2,
           backgroundColor: (ctx: ScriptableContext<'line'>) => {
             const { ctx: canvas, chartArea } = ctx.chart;
-            if (!chartArea) return 'rgba(231,184,75,0.2)';
+            if (!chartArea) return 'rgba(231,184,75,0.15)';
             const gradient = canvas.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, 'rgba(231,184,75,0.35)');
+            gradient.addColorStop(0, 'rgba(231,184,75,0.32)');
             gradient.addColorStop(1, 'rgba(231,184,75,0)');
             return gradient;
           },
+          order: 1,
+        },
+        {
+          type: 'bar',
+          label: 'Bids',
+          data: points.map((p) => p.bids),
+          yAxisID: 'bids',
+          backgroundColor: 'rgba(106,155,224,0.55)',
+          hoverBackgroundColor: BLUE,
+          borderRadius: 6,
+          borderSkipped: false,
+          maxBarThickness: 18,
+          order: 2,
         },
       ],
     },
@@ -78,8 +103,17 @@ export function bidActivityConfig(
       plugins: {
         legend: { display: false },
         tooltip: {
+          backgroundColor: '#f4edde',
+          titleColor: '#101d35',
+          bodyColor: '#101d35',
+          padding: 12,
+          cornerRadius: 10,
+          usePointStyle: true,
           callbacks: {
-            label: (item) => (isVolume ? formatPrice(item.parsed.y) : `${item.parsed.y} bids`),
+            label: (item) =>
+              item.dataset.label === 'Volume'
+                ? ` Volume ${formatPrice(Number(item.parsed.y))}`
+                : ` ${item.parsed.y} bids`,
           },
         },
       },
@@ -87,18 +121,21 @@ export function bidActivityConfig(
         x: {
           grid: { display: false },
           border: { display: false },
-          ticks: { color: 'rgba(244,237,222,0.4)', maxTicksLimit: 7 },
+          ticks: { color: AXIS, maxTicksLimit: 7 },
         },
-        y: {
+        volume: {
+          position: 'left',
           beginAtZero: true,
-          grid: { color: 'rgba(244,237,222,0.08)' },
+          grid: { color: 'rgba(244,237,222,0.07)' },
           border: { display: false },
-          ticks: {
-            color: 'rgba(244,237,222,0.4)',
-            precision: 0,
-            maxTicksLimit: 5,
-            callback: (value) => (isVolume ? compactEuro(Number(value)) : String(value)),
-          },
+          ticks: { color: AXIS, maxTicksLimit: 5, callback: (value) => compactEuro(Number(value)) },
+        },
+        bids: {
+          position: 'right',
+          beginAtZero: true,
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: AXIS, precision: 0, maxTicksLimit: 5 },
         },
       },
     },
@@ -106,35 +143,59 @@ export function bidActivityConfig(
 }
 
 const STATUS_ORDER: AuctionStatus[] = ['SCHEDULED', 'OPEN', 'CLOSED', 'CANCELLED'];
+const STATUS_COLOURS: Record<AuctionStatus, string> = {
+  SCHEDULED: TONES.users.hex,
+  OPEN: TONES.overview.hex,
+  CLOSED: TONES.artworks.hex,
+  CANCELLED: TONES.neutral.hex,
+};
 
-export function auctionsByStatusConfig(
-  counts: Record<AuctionStatus, number>,
-): ChartConfiguration<'bar'> {
+export interface StatusSlice {
+  status: AuctionStatus;
+  label: string;
+  count: number;
+  colour: string;
+  /** Whole percent of all auctions. */
+  percent: number;
+}
+
+/** Auctions by status in a fixed order, with colour and share, for the doughnut and its legend. */
+export function statusSlices(counts: Partial<Record<AuctionStatus, number>>): StatusSlice[] {
+  const total = STATUS_ORDER.reduce((sum, s) => sum + (counts[s] ?? 0), 0);
+  return STATUS_ORDER.map((status) => {
+    const count = counts[status] ?? 0;
+    return {
+      status,
+      label: status.charAt(0) + status.slice(1).toLowerCase(),
+      count,
+      colour: STATUS_COLOURS[status],
+      percent: total ? Math.round((count / total) * 100) : 0,
+    };
+  });
+}
+
+export function auctionsByStatusConfig(slices: StatusSlice[]): ChartConfiguration<'doughnut'> {
   return {
-    type: 'bar',
+    type: 'doughnut',
     data: {
-      labels: STATUS_ORDER.map((s) => s.charAt(0) + s.slice(1).toLowerCase()),
+      labels: slices.map((s) => s.label),
       datasets: [
         {
-          label: 'Auctions',
-          data: STATUS_ORDER.map((s) => counts[s] ?? 0),
-          backgroundColor: STATUS_ORDER.map((s) => (s === 'OPEN' ? SUNFLOWER : COBALT)),
+          data: slices.map((s) => s.count),
+          backgroundColor: slices.map((s) => s.colour),
+          hoverOffset: 6,
+          borderWidth: 3,
+          borderColor: '#fbf8f1',
           borderRadius: 6,
-          borderSkipped: false,
-          maxBarThickness: 36,
+          spacing: 2,
         },
       ],
     },
     options: {
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, border: { display: false }, ticks: { color: '#5d6273' } },
-        y: {
-          beginAtZero: true,
-          border: { display: false },
-          grid: { color: 'rgba(27,34,56,0.08)' },
-          ticks: { color: '#5d6273', precision: 0, maxTicksLimit: 5 },
-        },
+      cutout: '74%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (item) => ` ${item.label}: ${item.parsed}` } },
       },
     },
   };
@@ -174,9 +235,9 @@ export function greeting(hour: number): string {
 export function bidActivitySummary(points: BidActivityPoint[]): string {
   const bids = points.reduce((sum, p) => sum + p.bids, 0);
   const volume = points.reduce((sum, p) => sum + p.volume, 0);
-  return `Line chart of bid activity over the last ${points.length} days: ${bids} bids totalling ${formatPrice(volume)}.`;
+  return `Bars of daily bids and a line of daily volume over the last ${points.length} days: ${bids} bids totalling ${formatPrice(volume)}.`;
 }
 
-export function auctionsSummary(counts: Record<AuctionStatus, number>): string {
-  return `Bar chart of auctions by status: ${STATUS_ORDER.map((s) => `${counts[s] ?? 0} ${s.toLowerCase()}`).join(', ')}.`;
+export function auctionsSummary(slices: StatusSlice[]): string {
+  return `Doughnut chart of auctions by status: ${slices.map((s) => `${s.count} ${s.status.toLowerCase()}`).join(', ')}.`;
 }

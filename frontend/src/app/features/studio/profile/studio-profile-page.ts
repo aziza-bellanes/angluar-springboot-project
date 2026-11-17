@@ -49,17 +49,23 @@ export default class StudioProfilePage {
     }
     const v = this.profileForm.getRawValue();
     this.savingProfile.set(true);
-    this.api.updateProfile({ firstName: v.firstName.trim(), lastName: v.lastName.trim(), phone: blankToNull(v.phone) }).subscribe({
-      next: (user) => {
-        this.auth.updateUser(user);
-        this.savingProfile.set(false);
-        toast.success('Profile updated');
-      },
-      error: (err) => {
-        this.savingProfile.set(false);
-        applyServerError(this.profileForm, err);
-      },
-    });
+    this.api
+      .updateProfile({
+        firstName: v.firstName.trim(),
+        lastName: v.lastName.trim(),
+        phone: blankToNull(v.phone),
+      })
+      .subscribe({
+        next: (user) => {
+          this.auth.updateUser(user);
+          this.savingProfile.set(false);
+          toast.success('Profile updated');
+        },
+        error: (err) => {
+          this.savingProfile.set(false);
+          applyServerError(this.profileForm, err);
+        },
+      });
   }
 
   protected savePassword(): void {
@@ -74,21 +80,23 @@ export default class StudioProfilePage {
       return;
     }
     this.savingPassword.set(true);
-    this.api.changePassword({ currentPassword: v.currentPassword, newPassword: v.newPassword }).subscribe({
-      next: () => {
-        this.savingPassword.set(false);
-        form.reset();
-        toast.success('Password changed');
-      },
-      error: (err) => {
-        this.savingPassword.set(false);
-        if (problemOf(err).code === 'wrong_password') {
-          form.controls.currentPassword.setErrors({ server: 'Current password is incorrect.' });
-          form.controls.currentPassword.markAsTouched();
-        } else {
-          applyServerError(form, err);
-        }
-      },
-    });
+    this.api
+      .changePassword({ currentPassword: v.currentPassword, newPassword: v.newPassword })
+      .subscribe({
+        next: () => {
+          this.savingPassword.set(false);
+          form.reset();
+          toast.success('Password changed');
+        },
+        error: (err) => {
+          this.savingPassword.set(false);
+          if (problemOf(err).code === 'wrong_password') {
+            form.controls.currentPassword.setErrors({ server: 'Current password is incorrect.' });
+            form.controls.currentPassword.markAsTouched();
+          } else {
+            applyServerError(form, err);
+          }
+        },
+      });
   }
 }
