@@ -1,0 +1,73 @@
+<ng-template #navList>
+  <nav aria-label="Studio" class="grid gap-1 px-3">
+    @for (item of items(); track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="border-sunflower bg-sidebar-accent" [routerLinkActiveOptions]="{ exact: !!item.exact }"
+        class="flex items-center gap-3 rounded-md border-l-4 border-transparent px-3 py-2.5 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+        (click)="mobileNavOpen.set(false)">
+        <ng-icon [name]="item.icon" size="18" />
+        <span class="flex flex-col leading-tight">
+          <span class="font-medium">{{ item.label }}</span>
+          @if (item.caption) { <span class="text-[0.65rem] tracking-wider text-sidebar-foreground/50 uppercase">{{ item.caption }}</span> }
+        </span>
+      </a>
+    }
+  </nav>
+</ng-template>
+
+<ng-template #brand>
+  <div class="px-6 py-6">
+    <a routerLink="/studio" class="block" aria-label="ATELIER Studio">
+      <span class="font-display text-2xl font-semibold tracking-[0.18em]">ATELIER</span>
+      <span class="ml-1 text-sm font-medium text-sunflower">Studio</span>
+    </a>
+    <p class="mt-0.5 text-xs text-sidebar-foreground/50">by SmartSoft Solutions</p>
+  </div>
+</ng-template>
+
+<div class="min-h-screen bg-background">
+  <aside class="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-sidebar text-sidebar-foreground lg:flex">
+    <ng-container *ngTemplateOutlet="brand" />
+    <ng-container *ngTemplateOutlet="navList" />
+  </aside>
+
+  <hlm-sheet side="left" [state]="mobileNavOpen() ? 'open' : 'closed'" (closed)="mobileNavOpen.set(false)">
+    <hlm-sheet-content *hlmSheetPortal="let ctx" class="w-72 border-0 bg-sidebar p-0 text-sidebar-foreground">
+      <ng-container *ngTemplateOutlet="brand" />
+      <ng-container *ngTemplateOutlet="navList" />
+    </hlm-sheet-content>
+  </hlm-sheet>
+
+  <div class="lg:pl-64">
+    <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-background/95 px-5 backdrop-blur lg:px-8">
+      <button hlmBtn variant="ghost" size="icon" class="lg:hidden" type="button" aria-label="Open navigation" (click)="mobileNavOpen.set(true)">
+        <ng-icon name="lucideMenu" size="20" />
+      </button>
+      <h1 class="font-display text-2xl font-semibold">{{ heading() }}</h1>
+      <div class="ml-auto flex items-center gap-3">
+        <a routerLink="/" class="hidden items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground sm:inline-flex">
+          View gallery <ng-icon name="lucideExternalLink" size="14" />
+        </a>
+        <button type="button" [hlmDropdownMenuTrigger]="menu" align="end"
+          class="inline-flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm hover:bg-muted">
+          <span class="grid size-8 place-items-center rounded-full bg-midnight text-xs font-bold text-ivory">{{ initials() }}</span>
+          <span class="hidden sm:inline">{{ auth.user()?.firstName }} {{ auth.user()?.lastName }}</span>
+          <span class="rounded-full bg-secondary px-2 py-0.5 text-[0.65rem] font-semibold tracking-wider uppercase">{{ roleLabel() }}</span>
+          <ng-icon name="lucideChevronDown" size="14" />
+        </button>
+        <ng-template #menu>
+          <hlm-dropdown-menu class="w-56">
+            <hlm-dropdown-menu-label>
+              <span class="block truncate text-xs text-muted-foreground">{{ auth.user()?.email }}</span>
+            </hlm-dropdown-menu-label>
+            <hlm-dropdown-menu-separator />
+            <a hlmDropdownMenuItem routerLink="/"><ng-icon name="lucideExternalLink" /> View gallery</a>
+            <button hlmDropdownMenuItem (click)="signOut()"><ng-icon name="lucideLogOut" /> Sign out</button>
+          </hlm-dropdown-menu>
+        </ng-template>
+      </div>
+    </header>
+    <main class="p-5 lg:p-8">
+      <router-outlet />
+    </main>
+  </div>
+</div>

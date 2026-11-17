@@ -1,0 +1,105 @@
+<section class="canvas-texture pt-28 pb-24">
+  <div class="container-gallery">
+    <p class="eyebrow">My collection</p>
+    <h1 class="mt-3 font-display text-5xl leading-[1.05] md:text-7xl">Hello, {{ auth.user()?.firstName }}.</h1>
+    <div class="mt-5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+      @for (label of roleLabels(); track label) {
+        <span class="rounded-full border bg-card px-3 py-1 text-xs font-semibold tracking-wider uppercase">{{ label }}</span>
+      }
+      <span>{{ auth.user()?.email }}</span>
+      @if (auth.isStaff()) {
+        <a routerLink="/studio" class="font-semibold text-foreground underline underline-offset-4">Open the Studio →</a>
+      }
+    </div>
+
+    <div role="tablist" aria-label="Collection" class="mt-10 inline-flex rounded-full border bg-card p-1">
+      @for (t of tabs; track t.id) {
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="tab() === t.id"
+          class="rounded-full px-5 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+          [class]="tab() === t.id ? 'bg-midnight text-ivory' : 'text-muted-foreground hover:text-foreground'"
+          (click)="tab.set(t.id)"
+        >
+          {{ t.label }}
+        </button>
+      }
+    </div>
+
+    @if (tab() === 'bids') {
+      <div class="mt-8" role="tabpanel">
+        @let s = bidsState();
+        @if (!s) {
+          <hlm-skeleton class="h-48 w-full" />
+        } @else if (s.error) {
+          <p class="text-terracotta" role="alert">{{ s.error }}</p>
+        } @else if (s.items!.length === 0) {
+          <p class="text-muted-foreground">
+            You have not placed any bid yet.
+            <a routerLink="/auctions" class="font-semibold text-foreground underline underline-offset-4">Browse live auctions</a>
+          </p>
+        } @else {
+          <div class="overflow-x-auto rounded-md border bg-card">
+            <table hlmTable>
+              <thead hlmTHead>
+                <tr hlmTr>
+                  <th hlmTh>Artwork</th>
+                  <th hlmTh>My bid</th>
+                  <th hlmTh>Current price</th>
+                  <th hlmTh>Auction</th>
+                  <th hlmTh>Standing</th>
+                </tr>
+              </thead>
+              <tbody hlmTBody>
+                @for (bid of s.items; track bid.id) {
+                  <tr hlmTr>
+                    <td hlmTd>
+                      <a [routerLink]="['/auctions', bid.auctionId]" class="flex items-center gap-3 hover:underline">
+                        <img [src]="bid.imageUrl" [alt]="bid.artworkTitle" class="size-14 rounded-sm object-cover" loading="lazy" />
+                        <span class="font-display text-lg">{{ bid.artworkTitle }}</span>
+                      </a>
+                      <p class="mt-1 text-xs text-muted-foreground">{{ bid.createdAt | dateTime }}</p>
+                    </td>
+                    <td hlmTd class="price">{{ bid.amount | price }}</td>
+                    <td hlmTd class="price">{{ bid.currentPrice | price }}</td>
+                    <td hlmTd><at-auction-status-badge [status]="bid.auctionStatus" /></td>
+                    <td hlmTd>
+                      @let st = standing(bid);
+                      <span class="rounded-full px-2.5 py-1 text-xs font-semibold" [class]="pillClass(st)">{{ st }}</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="mt-8" role="tabpanel">
+        @let w = winsState();
+        @if (!w) {
+          <hlm-skeleton class="h-48 w-full" />
+        } @else if (w.error) {
+          <p class="text-terracotta" role="alert">{{ w.error }}</p>
+        } @else if (w.items!.length === 0) {
+          <p class="text-muted-foreground">No won works yet. Your first win will appear here.</p>
+        } @else {
+          <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            @for (win of w.items; track win.id) {
+              <a [routerLink]="['/artworks', win.artwork.slug]" class="group block overflow-hidden rounded-md border bg-card">
+                <img [src]="win.artwork.imageUrl" [alt]="win.artwork.title" class="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-105" loading="lazy" />
+                <div class="space-y-1 p-5">
+                  <p class="font-display text-2xl leading-tight">{{ win.artwork.title }}</p>
+                  <p class="text-sm text-muted-foreground">{{ win.artwork.artistName }}</p>
+                  <p class="eyebrow pt-3 !tracking-[0.18em]">Final price</p>
+                  <p class="price text-xl font-semibold">{{ win.currentPrice | price }}</p>
+                </div>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>
