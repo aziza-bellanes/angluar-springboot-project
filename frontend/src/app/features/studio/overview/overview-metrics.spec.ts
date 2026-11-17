@@ -3,6 +3,8 @@ import {
   activityTotals,
   auctionsByStatusConfig,
   greeting,
+  inRange,
+  statusSlices,
   bidActivityConfig,
   compactEuro,
   shareOfTop,
@@ -41,20 +43,41 @@ describe('overview metrics', () => {
     expect(shortDay('2026-11-04')).toBe('04/11');
   });
 
-  it('builds the line dataset for each metric', () => {
+  it('combines a volume line with bid bars on separate axes', () => {
     const points = [
       { day: '2026-11-04', bids: 3, volume: 1200 },
-      { day: '2026-11-05', bids: 1, volume: 300 },
+      { day: '2026-11-05', bids: 0, volume: 0 },
     ];
-    expect(bidActivityConfig(points, 'volume').data.datasets[0].data).toEqual([1200, 300]);
-    expect(bidActivityConfig(points, 'bids').data.datasets[0].data).toEqual([3, 1]);
-    expect(bidActivityConfig(points, 'bids').data.labels).toEqual(['04/11', '05/11']);
+    const cfg = bidActivityConfig(points);
+    const [line, bars] = cfg.data.datasets;
+    expect(cfg.data.labels).toEqual(['04/11', '05/11']);
+    expect(line).toMatchObject({ type: 'line', data: [1200, 0], yAxisID: 'volume' });
+    expect(bars).toMatchObject({ type: 'bar', data: [3, 0], yAxisID: 'bids' });
+    expect((line as unknown as { pointRadius: number[] }).pointRadius).toEqual([3, 0]);
   });
 
-  it('builds the status bars in a fixed order with OPEN highlighted', () => {
-    const cfg = auctionsByStatusConfig({ SCHEDULED: 1, OPEN: 6, CLOSED: 2, CANCELLED: 0 });
-    expect(cfg.data.datasets[0].data).toEqual([1, 6, 2, 0]);
-    expect((cfg.data.datasets[0].backgroundColor as string[])[1]).toBe('#e7b84b');
+  it('keeps the most recent days of a range', () => {
+    const points = Array.from({ length: 14 }, (_, i) => ({
+      day: `2026-11-${String(i + 1).padStart(2, '0')}`,
+      bids: i,
+      volume: i,
+    }));
+    expect(inRange(points, 7).map((p) => p.bids)).toEqual([7, 8, 9, 10, 11, 12, 13]);
+    expect(inRange(points, 14)).toHaveLength(14);
+  });
+
+  it('slices auctions by status in a fixed order with shares', () => {
+    const slices = statusSlices({ SCHEDULED: 1, OPEN: 6, CLOSED: 3 });
+    expect(slices.map((s) => [s.label, s.count, s.percent])).toEqual([
+      ['Scheduled', 1, 10],
+      ['Open', 6, 60],
+      ['Closed', 3, 30],
+      ['Cancelled', 0, 0],
+    ]);
+    expect(statusSlices({}).every((s) => s.percent === 0)).toBe(true);
+    const cfg = auctionsByStatusConfig(slices);
+    expect(cfg.data.datasets[0].data).toEqual([1, 6, 3, 0]);
+    expect(cfg.data.datasets[0].backgroundColor).toEqual(slices.map((s) => s.colour));
   });
 });
 

@@ -24,7 +24,16 @@ const ROLES: { name: RoleName; hint: string }[] = [
 
 @Component({
   selector: 'at-studio-users-page',
-  imports: [ReactiveFormsModule, NgIcon, HlmBadge, HlmButton, HlmTableImports, LongDatePipe, CrudTable, FormSheet],
+  imports: [
+    ReactiveFormsModule,
+    NgIcon,
+    HlmBadge,
+    HlmButton,
+    HlmTableImports,
+    LongDatePipe,
+    CrudTable,
+    FormSheet,
+  ],
   providers: [provideIcons({ lucideShieldCheck })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './studio-users-page.html',
@@ -38,11 +47,15 @@ export default class StudioUsersPage {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly search = new FormControl('', { nonNullable: true });
-  private readonly term = toSignal(this.search.valueChanges.pipe(startWith('')), { initialValue: '' });
+  private readonly term = toSignal(this.search.valueChanges.pipe(startWith('')), {
+    initialValue: '',
+  });
   protected readonly visible = computed(() => {
     const term = this.term().trim().toLowerCase();
     return term
-      ? this.users().filter((u) => `${u.firstName} ${u.lastName} ${u.email}`.toLowerCase().includes(term))
+      ? this.users().filter((u) =>
+          `${u.firstName} ${u.lastName} ${u.email}`.toLowerCase().includes(term),
+        )
       : this.users();
   });
 
@@ -59,16 +72,19 @@ export default class StudioUsersPage {
   protected load(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.users().pipe(takeUntilDestroyed()).subscribe({
-      next: (users) => {
-        this.users.set(users);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set(messageOf(err));
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .users()
+      .pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (users) => {
+          this.users.set(users);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(messageOf(err));
+          this.loading.set(false);
+        },
+      });
   }
 
   protected isSelf(user: UserProfile): boolean {
@@ -85,7 +101,9 @@ export default class StudioUsersPage {
   }
 
   protected toggleRole(role: RoleName, checked: boolean): void {
-    this.selected.update((current) => (checked ? [...new Set([...current, role])] : current.filter((r) => r !== role)));
+    this.selected.update((current) =>
+      checked ? [...new Set([...current, role])] : current.filter((r) => r !== role),
+    );
   }
 
   /** Admins cannot drop their own ADMIN role (the server refuses it too). */
@@ -109,7 +127,12 @@ export default class StudioUsersPage {
 
   protected toggleEnabled(user: UserProfile): void {
     this.api.updateStatus(user.id, !user.enabled).subscribe({
-      next: (updated) => this.afterUpdate(updated, updated.enabled ? 'Account enabled.' : 'Account disabled.', false),
+      next: (updated) =>
+        this.afterUpdate(
+          updated,
+          updated.enabled ? 'Account enabled.' : 'Account disabled.',
+          false,
+        ),
       error: (err) => toast.error(messageOf(err)),
     });
   }

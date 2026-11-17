@@ -1,15 +1,32 @@
 <section class="grid gap-4">
   <at-crud-table
-    [search]="search" placeholder="Search artworks…" newLabel="New artwork"
-    [loading]="loading()" [error]="error()" [empty]="items().length === 0"
+    [search]="search"
+    placeholder="Search artworks…"
+    newLabel="New artwork"
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="items().length === 0"
     emptyText="No artworks match your filters."
-    [page]="page()" [totalPages]="totalPages()" [total]="total()"
-    (create)="openCreate()" (retry)="reload()" (pageChange)="goTo($event)">
+    [page]="page()"
+    [totalPages]="totalPages()"
+    [total]="total()"
+    (create)="openCreate()"
+    (retry)="reload()"
+    (pageChange)="goTo($event)"
+  >
     <label filters class="flex items-center gap-2 text-sm">
       <span class="text-muted-foreground">Status</span>
-      <select hlmInput class="w-auto" [value]="statusFilter()" (change)="setStatus($any($event.target).value)" aria-label="Filter by status">
+      <select
+        hlmInput
+        class="w-auto"
+        [value]="statusFilter()"
+        (change)="setStatus($any($event.target).value)"
+        aria-label="Filter by status"
+      >
         <option value="">All</option>
-        @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
       </select>
     </label>
     <table hlmTable>
@@ -19,7 +36,9 @@
           <th hlmTh>Artist</th>
           <th hlmTh>Status</th>
           <th hlmTh class="text-right">Estimate</th>
-          @if (auth.isAdmin()) { <th hlmTh class="text-right">Actions</th> }
+          @if (auth.isAdmin()) {
+            <th hlmTh class="text-right">Actions</th>
+          }
         </tr>
       </thead>
       <tbody hlmTBody>
@@ -27,26 +46,56 @@
           <tr hlmTr>
             <td hlmTd>
               <span class="flex items-center gap-3">
-                <img [src]="artwork.imageUrl" [alt]="artwork.title" class="size-12 rounded-md object-cover" loading="lazy" />
+                <img
+                  [src]="artwork.imageUrl"
+                  [alt]="artwork.title"
+                  class="size-12 rounded-md object-cover"
+                  loading="lazy"
+                />
                 <span>
                   <span class="block font-medium">{{ artwork.title }}</span>
-                  @if (artwork.exhibitionTitle) { <span class="text-xs text-muted-foreground">{{ artwork.exhibitionTitle }}</span> }
+                  @if (artwork.exhibitionTitle) {
+                    <span class="text-xs text-muted-foreground">{{ artwork.exhibitionTitle }}</span>
+                  }
                 </span>
               </span>
             </td>
             <td hlmTd>{{ artwork.artistName }}</td>
             <td hlmTd>
-              <span hlmBadge [variant]="artwork.status === 'PUBLISHED' ? 'default' : artwork.status === 'DRAFT' ? 'secondary' : 'outline'">
+              <span
+                hlmBadge
+                [variant]="
+                  artwork.status === 'PUBLISHED'
+                    ? 'default'
+                    : artwork.status === 'DRAFT'
+                      ? 'secondary'
+                      : 'outline'
+                "
+              >
                 {{ artwork.status }}
               </span>
             </td>
             <td hlmTd class="price text-right">{{ artwork.estimate | price }}</td>
             @if (auth.isAdmin()) {
               <td hlmTd class="text-right whitespace-nowrap">
-                <button hlmBtn variant="ghost" size="icon-sm" type="button" [attr.aria-label]="'Edit ' + artwork.title" (click)="openEdit(artwork)">
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="'Edit ' + artwork.title"
+                  (click)="openEdit(artwork)"
+                >
                   <ng-icon name="lucidePencil" />
                 </button>
-                <button hlmBtn variant="ghost" size="icon-sm" type="button" [attr.aria-label]="'Delete ' + artwork.title" (click)="toDelete.set(artwork)">
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="'Delete ' + artwork.title"
+                  (click)="toDelete.set(artwork)"
+                >
                   <ng-icon name="lucideTrash2" />
                 </button>
               </td>
@@ -59,20 +108,30 @@
 </section>
 
 <at-form-sheet
-  [open]="sheetOpen()" [form]="form" [saving]="saving()"
+  [open]="sheetOpen()"
+  [form]="form"
+  [saving]="saving()"
   [heading]="editing() ? 'Edit artwork' : 'New artwork'"
   [submitLabel]="editing() ? 'Save changes' : 'Create artwork'"
-  (closed)="closeSheet()" (submitted)="submit()">
+  (closed)="closeSheet()"
+  (submitted)="submit()"
+>
   <at-form-field label="Title" [control]="form.controls.title" [required]="true">
     <input hlmInput [formControl]="form.controls.title" />
   </at-form-field>
   <at-form-field label="Artist" [control]="form.controls.artistId" [required]="true">
     <select hlmInput [formControl]="form.controls.artistId">
       <option [ngValue]="null" disabled>Select an artist…</option>
-      @for (artist of artists(); track artist.id) { <option [ngValue]="artist.id">{{ artist.name }}</option> }
+      @for (artist of artists(); track artist.id) {
+        <option [ngValue]="artist.id">{{ artist.name }}</option>
+      }
     </select>
   </at-form-field>
-  <at-form-field label="Exhibition" [control]="form.controls.exhibitionId" hint="Only exhibitions of the chosen artist are listed.">
+  <at-form-field
+    label="Exhibition"
+    [control]="form.controls.exhibitionId"
+    hint="Only exhibitions of the chosen artist are listed."
+  >
     <select hlmInput [formControl]="form.controls.exhibitionId">
       <option [ngValue]="null">None</option>
       @for (exhibition of artistExhibitions(); track exhibition.id) {
@@ -84,14 +143,24 @@
     <input hlmInput type="url" [formControl]="form.controls.imageUrl" />
   </at-form-field>
   @if (preview()) {
-    <img [src]="preview()" alt="Preview of the artwork image" class="h-40 w-full rounded-lg border object-contain bg-muted" />
+    <img
+      [src]="preview()"
+      alt="Preview of the artwork image"
+      class="h-40 w-full rounded-lg border object-contain bg-muted"
+    />
   }
   <at-form-field label="Image credit" [control]="form.controls.imageCredit">
     <input hlmInput [formControl]="form.controls.imageCredit" />
   </at-form-field>
   <div class="grid gap-4 sm:grid-cols-2">
     <at-form-field label="Year" [control]="form.controls.yearCreated">
-      <input hlmInput type="number" min="1000" max="2100" [formControl]="form.controls.yearCreated" />
+      <input
+        hlmInput
+        type="number"
+        min="1000"
+        max="2100"
+        [formControl]="form.controls.yearCreated"
+      />
     </at-form-field>
     <at-form-field label="Estimate (EUR)" [control]="form.controls.estimate">
       <input hlmInput type="number" min="0" step="0.01" [formControl]="form.controls.estimate" />
@@ -107,7 +176,9 @@
   </div>
   <at-form-field label="Status" [control]="form.controls.status">
     <select hlmInput [formControl]="form.controls.status">
-      @for (s of statuses; track s) { <option [value]="s">{{ s }}</option> }
+      @for (s of statuses; track s) {
+        <option [value]="s">{{ s }}</option>
+      }
     </select>
   </at-form-field>
   <at-form-field label="Description" [control]="form.controls.description">
@@ -116,6 +187,14 @@
 </at-form-sheet>
 
 <at-confirm-dialog
-  [open]="toDelete() !== null" [pending]="deleting()" heading="Delete this artwork?"
-  [message]="'“' + toDelete()?.title + '” will be removed permanently. Artworks with auctions cannot be deleted.'"
-  (confirmed)="confirmDelete()" (cancelled)="toDelete.set(null)" />
+  [open]="toDelete() !== null"
+  [pending]="deleting()"
+  heading="Delete this artwork?"
+  [message]="
+    '“' +
+    toDelete()?.title +
+    '” will be removed permanently. Artworks with auctions cannot be deleted.'
+  "
+  (confirmed)="confirmDelete()"
+  (cancelled)="toDelete.set(null)"
+/>

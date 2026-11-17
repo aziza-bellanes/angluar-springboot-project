@@ -1,5 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBan, lucidePencil, lucideTrash2 } from '@ng-icons/lucide';
 import { Observable } from 'rxjs';
@@ -44,8 +50,18 @@ function endsAfterStart(control: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'at-studio-auctions-page',
   imports: [
-    ReactiveFormsModule, NgIcon, HlmButton, HlmInput, HlmTableImports, PricePipe, DateTimePipe,
-    AuctionStatusBadge, ConfirmDialog, CrudTable, FormField, FormSheet,
+    ReactiveFormsModule,
+    NgIcon,
+    HlmButton,
+    HlmInput,
+    HlmTableImports,
+    PricePipe,
+    DateTimePipe,
+    AuctionStatusBadge,
+    ConfirmDialog,
+    CrudTable,
+    FormField,
+    FormSheet,
   ],
   providers: [provideIcons({ lucideBan, lucidePencil, lucideTrash2 })],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,13 +89,19 @@ export default class StudioAuctionsPage extends CrudPage<Auction, AuctionRequest
   protected readonly artworkOptions = computed(() => {
     const current = this.editing()?.artwork;
     const list = this.published();
-    return current && !list.some((a) => a.id === current.id) ? [{ id: current.id, title: current.title }, ...list] : list;
+    return current && !list.some((a) => a.id === current.id)
+      ? [{ id: current.id, title: current.title }, ...list]
+      : list;
   });
 
   constructor() {
     super();
-    this.api.artworksByStatus('PUBLISHED', undefined, 0, 200).subscribe((p) => this.published.set(p.content));
-    this.form.controls.startsAt.valueChanges.subscribe(() => this.form.controls.endsAt.updateValueAndValidity());
+    this.api
+      .artworksByStatus('PUBLISHED', undefined, 0, 200)
+      .subscribe((p) => this.published.set(p.content));
+    this.form.controls.startsAt.valueChanges.subscribe(() =>
+      this.form.controls.endsAt.updateValueAndValidity(),
+    );
     this.init();
   }
 

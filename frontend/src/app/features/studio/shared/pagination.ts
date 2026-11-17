@@ -9,16 +9,33 @@ import { HlmButton } from '@spartan-ng/helm/button';
   providers: [provideIcons({ lucideChevronLeft, lucideChevronRight })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <nav class="flex items-center justify-between gap-3 text-sm text-muted-foreground" aria-label="Pagination">
+    <nav
+      class="flex items-center justify-between gap-3 text-sm text-muted-foreground"
+      aria-label="Pagination"
+    >
       <span>{{ total() }} {{ total() === 1 ? 'result' : 'results' }}</span>
       <span class="flex items-center gap-2">
-        <button hlmBtn variant="outline" size="icon-sm" type="button" aria-label="Previous page"
-          [disabled]="page() <= 0" (click)="pageChange.emit(page() - 1)">
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon-sm"
+          type="button"
+          aria-label="Previous page"
+          [disabled]="page() <= 0"
+          (click)="pageChange.emit(page() - 1)"
+        >
           <ng-icon name="lucideChevronLeft" />
         </button>
         <span>Page {{ page() + 1 }} of {{ totalPages() || 1 }}</span>
-        <button hlmBtn variant="outline" size="icon-sm" type="button" aria-label="Next page"
-          [disabled]="page() + 1 >= totalPages()" (click)="pageChange.emit(page() + 1)">
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon-sm"
+          type="button"
+          aria-label="Next page"
+          [disabled]="page() + 1 >= totalPages()"
+          (click)="pageChange.emit(page() + 1)"
+        >
           <ng-icon name="lucideChevronRight" />
         </button>
       </span>

@@ -17,11 +17,20 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
             <p class="text-sm text-muted-foreground">{{ description() }}</p>
           }
         </hlm-sheet-header>
-        <form [formGroup]="form()" (ngSubmit)="submitted.emit()" class="flex min-h-0 flex-1 flex-col" novalidate>
-          <div class="grid flex-1 content-start gap-4 overflow-y-auto px-4 pb-4"><ng-content /></div>
+        <form
+          [formGroup]="form()"
+          (ngSubmit)="submitted.emit()"
+          class="flex min-h-0 flex-1 flex-col"
+          novalidate
+        >
+          <div class="grid flex-1 content-start gap-4 overflow-y-auto px-4 pb-4">
+            <ng-content />
+          </div>
           <hlm-sheet-footer class="border-t sm:flex-row sm:justify-end">
             <button hlmBtn variant="outline" type="button" (click)="closed.emit()">Cancel</button>
-            <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : submitLabel() }}</button>
+            <button hlmBtn type="submit" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : submitLabel() }}
+            </button>
           </hlm-sheet-footer>
         </form>
       </hlm-sheet-content>

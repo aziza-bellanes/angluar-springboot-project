@@ -209,3 +209,8 @@
     animation: none;
   }
 }
+
+/* Studio figures: the display serif's old-style numerals read poorly in dashboards ("11" looks like "I I"). */
+.studio-root .font-display {
+  font-variant-numeric: lining-nums tabular-nums;
+}

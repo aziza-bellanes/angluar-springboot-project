@@ -1,10 +1,44 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, effect, inject, input, viewChild } from '@angular/core';
 import {
-  BarController, BarElement, CategoryScale, Chart, ChartConfiguration, ChartType, Filler, LineController,
-  LineElement, LinearScale, PointElement, Tooltip,
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  effect,
+  inject,
+  input,
+  viewChild,
+} from '@angular/core';
+import {
+  ArcElement,
+  BarController,
+  BarElement,
+  CategoryScale,
+  Chart,
+  ChartConfiguration,
+  ChartType,
+  DoughnutController,
+  Filler,
+  LineController,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Tooltip,
 } from 'chart.js';
 
-Chart.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Filler, Tooltip);
+Chart.register(
+  ArcElement,
+  BarController,
+  BarElement,
+  DoughnutController,
+  LineController,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Filler,
+  Tooltip,
+);
 
 /** Responsive Chart.js wrapper: fixed-height box, redraws when `config` changes, destroyed with the view. */
 @Component({
@@ -41,10 +75,16 @@ export class ChartCanvas<T extends ChartType = ChartType> {
 
   private prepared(): ChartConfiguration {
     const config = this.config() as unknown as ChartConfiguration;
-    const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced =
+      typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     return {
       ...config,
-      options: { ...config.options, responsive: true, maintainAspectRatio: false, ...(reduced ? { animation: false as const } : {}) },
+      options: {
+        ...config.options,
+        responsive: true,
+        maintainAspectRatio: false,
+        ...(reduced ? { animation: false as const } : {}),
+      },
     };
   }
 }

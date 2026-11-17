@@ -20,9 +20,18 @@ import { Pagination } from './pagination';
     <div class="mb-4 flex flex-wrap items-center gap-3">
       @if (search(); as searchControl) {
         <div class="relative min-w-52 flex-1 sm:max-w-sm">
-          <ng-icon name="lucideSearch" class="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
-          <input hlmInput type="search" class="w-full pl-9" [formControl]="searchControl" [placeholder]="placeholder()"
-            aria-label="Search" />
+          <ng-icon
+            name="lucideSearch"
+            class="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground"
+          />
+          <input
+            hlmInput
+            type="search"
+            class="w-full pl-9"
+            [formControl]="searchControl"
+            [placeholder]="placeholder()"
+            aria-label="Search"
+          />
         </div>
       }
       <ng-content select="[filters]" />
@@ -33,7 +42,9 @@ import { Pagination } from './pagination';
       }
     </div>
 
-    <div class="overflow-hidden rounded-xl border bg-card [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-muted/50 [&_[hlmBadge]]:inline-flex [&_[hlmBadge]]:items-center [&_[hlmBadge]]:gap-1.5 [&_[hlmBadge]]:before:size-1.5 [&_[hlmBadge]]:before:rounded-full [&_[hlmBadge]]:before:bg-current">
+    <div
+      class="overflow-hidden rounded-xl border bg-card [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-muted/50 [&_[hlmBadge]]:inline-flex [&_[hlmBadge]]:items-center [&_[hlmBadge]]:gap-1.5 [&_[hlmBadge]]:before:size-1.5 [&_[hlmBadge]]:before:rounded-full [&_[hlmBadge]]:before:bg-current"
+    >
       @if (loading()) {
         <div class="grid gap-3 p-5" aria-busy="true">
           @for (i of rows; track i) {
@@ -43,7 +54,9 @@ import { Pagination } from './pagination';
       } @else if (error()) {
         <div class="p-8 text-center">
           <p class="text-destructive">{{ error() }}</p>
-          <button hlmBtn variant="outline" class="mt-3" type="button" (click)="retry.emit()">Try again</button>
+          <button hlmBtn variant="outline" class="mt-3" type="button" (click)="retry.emit()">
+            Try again
+          </button>
         </div>
       } @else if (empty()) {
         <p class="p-10 text-center text-muted-foreground">{{ emptyText() }}</p>
@@ -53,7 +66,12 @@ import { Pagination } from './pagination';
     </div>
     @if (!loading() && !error() && !empty()) {
       <div class="mt-4">
-        <at-pagination [page]="page()" [totalPages]="totalPages()" [total]="total()" (pageChange)="pageChange.emit($event)" />
+        <at-pagination
+          [page]="page()"
+          [totalPages]="totalPages()"
+          [total]="total()"
+          (pageChange)="pageChange.emit($event)"
+        />
       </div>
     }
   `,

@@ -46,7 +46,9 @@ export abstract class CrudPage<T extends { id: number }, R> {
     return {};
   }
 
-  protected fetch(query: ListQuery & Record<string, string | number | undefined>): Observable<Page<T>> {
+  protected fetch(
+    query: ListQuery & Record<string, string | number | undefined>,
+  ): Observable<Page<T>> {
     return this.resource.list(query);
   }
 
@@ -71,7 +73,12 @@ export abstract class CrudPage<T extends { id: number }, R> {
   protected reload(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.fetch({ q: this.search.value.trim(), page: this.page(), size: PAGE_SIZE, ...this.extraQuery() })
+    this.fetch({
+      q: this.search.value.trim(),
+      page: this.page(),
+      size: PAGE_SIZE,
+      ...this.extraQuery(),
+    })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result) => {
@@ -120,7 +127,9 @@ export abstract class CrudPage<T extends { id: number }, R> {
     }
     const current = this.editing();
     const request = this.toRequest();
-    const call = current ? this.resource.update(current.id, request) : this.resource.create(request);
+    const call = current
+      ? this.resource.update(current.id, request)
+      : this.resource.create(request);
     this.saving.set(true);
     call.subscribe({
       next: () => {
