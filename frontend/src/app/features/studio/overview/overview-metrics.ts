@@ -19,7 +19,7 @@ const COBALT = '#315c91';
 /** Week-over-week change between two counters, ready for display. */
 export function trendOf(current: number, previous: number): Trend {
   if (current === previous) return { direction: 'flat', percent: 0, label: 'No change' };
-  if (previous === 0) return { direction: 'new', percent: 0, label: 'New' };
+  if (previous === 0) return { direction: 'new', percent: 0, label: `+${current}` };
   const percent = Math.round((Math.abs(current - previous) / previous) * 1000) / 10;
   const up = current > previous;
   return { direction: up ? 'up' : 'down', percent, label: `${up ? '▲' : '▼'} ${percent}%` };
@@ -42,7 +42,10 @@ export function compactEuro(value: number): string {
   return `${value} €`;
 }
 
-export function bidActivityConfig(points: BidActivityPoint[], metric: BidMetric): ChartConfiguration<'line'> {
+export function bidActivityConfig(
+  points: BidActivityPoint[],
+  metric: BidMetric,
+): ChartConfiguration<'line'> {
   const isVolume = metric === 'volume';
   return {
     type: 'line',
@@ -75,11 +78,17 @@ export function bidActivityConfig(points: BidActivityPoint[], metric: BidMetric)
       plugins: {
         legend: { display: false },
         tooltip: {
-          callbacks: { label: (item) => (isVolume ? formatPrice(item.parsed.y) : `${item.parsed.y} bids`) },
+          callbacks: {
+            label: (item) => (isVolume ? formatPrice(item.parsed.y) : `${item.parsed.y} bids`),
+          },
         },
       },
       scales: {
-        x: { grid: { display: false }, border: { display: false }, ticks: { color: 'rgba(244,237,222,0.4)', maxTicksLimit: 7 } },
+        x: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: 'rgba(244,237,222,0.4)', maxTicksLimit: 7 },
+        },
         y: {
           beginAtZero: true,
           grid: { color: 'rgba(244,237,222,0.08)' },
@@ -98,7 +107,9 @@ export function bidActivityConfig(points: BidActivityPoint[], metric: BidMetric)
 
 const STATUS_ORDER: AuctionStatus[] = ['SCHEDULED', 'OPEN', 'CLOSED', 'CANCELLED'];
 
-export function auctionsByStatusConfig(counts: Record<AuctionStatus, number>): ChartConfiguration<'bar'> {
+export function auctionsByStatusConfig(
+  counts: Record<AuctionStatus, number>,
+): ChartConfiguration<'bar'> {
   return {
     type: 'bar',
     data: {
@@ -118,10 +129,46 @@ export function auctionsByStatusConfig(counts: Record<AuctionStatus, number>): C
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { display: false }, border: { display: false }, ticks: { color: '#5d6273' } },
-        y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(27,34,56,0.08)' }, ticks: { color: '#5d6273', precision: 0, maxTicksLimit: 5 } },
+        y: {
+          beginAtZero: true,
+          border: { display: false },
+          grid: { color: 'rgba(27,34,56,0.08)' },
+          ticks: { color: '#5d6273', precision: 0, maxTicksLimit: 5 },
+        },
       },
     },
   };
+}
+
+export interface ActivityTotals {
+  bids: number;
+  volume: number;
+  averageBid: number;
+  /** Day with the most bids, or null when there were none. */
+  busiestDay: string | null;
+}
+
+/** Headline figures shown above the bid activity chart. */
+export function activityTotals(points: BidActivityPoint[]): ActivityTotals {
+  const bids = points.reduce((sum, p) => sum + p.bids, 0);
+  const volume = points.reduce((sum, p) => sum + p.volume, 0);
+  const busiest = points.reduce<BidActivityPoint | null>(
+    (best, p) => (p.bids > (best?.bids ?? 0) ? p : best),
+    null,
+  );
+  return {
+    bids,
+    volume,
+    averageBid: bids ? Math.round(volume / bids) : 0,
+    busiestDay: busiest ? shortDay(busiest.day) : null,
+  };
+}
+
+/** Time-of-day greeting for the studio header. */
+export function greeting(hour: number): string {
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
 }
 
 export function bidActivitySummary(points: BidActivityPoint[]): string {
@@ -133,4 +180,3 @@ export function bidActivitySummary(points: BidActivityPoint[]): string {
 export function auctionsSummary(counts: Record<AuctionStatus, number>): string {
   return `Bar chart of auctions by status: ${STATUS_ORDER.map((s) => `${counts[s] ?? 0} ${s.toLowerCase()}`).join(', ')}.`;
 }
-
