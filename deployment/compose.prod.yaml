@@ -1,0 +1,62 @@
+# Production stack on the VPS: application (psm.jar in a JRE image) + MySQL.
+# Nginx on the host terminates HTTPS and proxies to 127.0.0.1:8080 (see nginx/atelier.conf).
+#   docker compose -f deployment/compose.prod.yaml --env-file deployment/.env.prod up -d --build
+name: atelier-prod
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: smartsoft/atelier:${ATELIER_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}?serverTimezone=UTC
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:?Set BOOTSTRAP_ADMIN_EMAIL}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:?Set BOOTSTRAP_ADMIN_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL}
+      MAIL_FROM: ${MAIL_FROM}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_AUTH: ${SMTP_AUTH:-false}
+      SMTP_TLS: ${SMTP_TLS:-false}
+      CORS_ORIGINS: ${PUBLIC_URL:?Set PUBLIC_URL}
+      DEMO_DATA: ${DEMO_DATA:-true}
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4.13
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Local SMTP catcher; remove when a real SMTP provider is configured.
+  mailpit:
+    image: axllent/mailpit:v1.34.0
+    restart: unless-stopped
+    profiles: ["mailpit"]
+    ports:
+      - "127.0.0.1:8025:8025"
+
+volumes:
+  mysql_data:
