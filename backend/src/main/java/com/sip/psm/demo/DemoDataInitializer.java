@@ -91,11 +91,12 @@ public class DemoDataInitializer implements ApplicationRunner {
         User collectorB = account("patron@atelier.demo", "Jo", "Patron", RoleName.BIDDER);
 
         Map<String, Artist> artistsByKey = new HashMap<>();
-        for (DemoCatalog.ArtistEntry entry : catalog.artists()) {
-            artistsByKey.put(entry.key(), artists.save(toArtist(entry, curator)));
-        }
         Map<String, Exhibition> exhibitionsByArtist = new HashMap<>();
-        artistsByKey.forEach((key, artist) -> exhibitionsByArtist.put(key, exhibitions.save(exhibition(artist, curator))));
+        for (DemoCatalog.ArtistEntry entry : catalog.artists()) {
+            Artist artist = artists.save(toArtist(entry, curator));
+            artistsByKey.put(entry.key(), artist);
+            exhibitionsByArtist.put(entry.key(), exhibitions.save(exhibition(artist, entry.exhibition(), curator)));
+        }
 
         List<Artwork> saved = catalog.artworks().stream()
                 .map(entry -> artworks.save(toArtwork(entry, artistsByKey.get(entry.artistKey()),
@@ -137,16 +138,15 @@ public class DemoDataInitializer implements ApplicationRunner {
         return artist;
     }
 
-    private Exhibition exhibition(Artist artist, User curator) {
+    private Exhibition exhibition(Artist artist, DemoCatalog.ExhibitionEntry entry, User curator) {
         Exhibition exhibition = new Exhibition();
         exhibition.setArtist(artist);
-        exhibition.setTitle(artist.getName() + " — Light and Colour");
-        exhibition.setDescription("A focused presentation of works by " + artist.getName()
-                + ", exploring colour, brushwork and the changing light of the day.");
-        exhibition.setBudget(new BigDecimal("45000.00"));
-        exhibition.setDurationDays(45);
-        exhibition.setStartsOn(LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC).minusDays(10));
-        exhibition.setVenue("ATELIER — Main Hall");
+        exhibition.setTitle(entry.title());
+        exhibition.setDescription(entry.description());
+        exhibition.setBudget(entry.budget());
+        exhibition.setDurationDays(entry.durationDays());
+        exhibition.setStartsOn(LocalDate.ofInstant(clock.instant(), ZoneOffset.UTC).plusDays(entry.startOffsetDays()));
+        exhibition.setVenue(entry.venue());
         exhibition.setCreatedBy(curator);
         return exhibition;
     }
