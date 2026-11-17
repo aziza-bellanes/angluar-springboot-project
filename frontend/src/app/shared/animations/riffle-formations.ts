@@ -87,16 +87,18 @@ export function formation(
 function ring(index: number, count: number, m: LayoutMetrics): Pose {
   const t = progress(index, count);
   const angle = RING_START - t * RING_SWEEP;
-  const radius = Math.min(m.viewportWidth * (m.compact ? 0.3 : 0.27), m.viewportHeight * 0.3);
-  const x = Math.cos(angle) * radius;
-  const y = -Math.sin(angle) * radius;
+  // A slightly wide ellipse reads as a ring seen in perspective.
+  const radiusY = m.viewportHeight * (m.compact ? 0.24 : 0.31);
+  const radiusX = Math.min(m.viewportWidth * (m.compact ? 0.36 : 0.3), radiusY * 1.45);
+  const x = Math.cos(angle) * radiusX;
+  const y = -Math.sin(angle) * radiusY;
   return {
     x,
     y: y + m.viewportHeight * 0.05,
     z: (0.5 - t) * 420,
     rotationX: 8,
-    rotationY: (-x / radius) * 18,
-    rotationZ: jitter(index) * 9 - (x / radius) * 6,
+    rotationY: (-x / radiusX) * 18,
+    rotationZ: jitter(index) * 9 - (x / radiusX) * 6,
     scale: 1.18 - t * 0.38,
     opacity: 1,
   };

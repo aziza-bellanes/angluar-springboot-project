@@ -23,7 +23,7 @@ import { AuthStore } from '@app/core/auth/auth.store';
       type="button"
       [hlmDropdownMenuTrigger]="menu"
       align="end"
-      class="inline-flex items-center gap-2 rounded-full border border-ivory/20 py-1 pr-3 pl-1 text-sm transition-colors hover:border-ivory/50"
+      class="inline-flex items-center gap-2 rounded-full border border-midnight/15 py-1 pr-3 pl-1 text-sm transition-colors hover:border-midnight/40"
     >
       <span
         class="grid size-8 place-items-center rounded-full bg-sunflower text-xs font-bold text-midnight"
