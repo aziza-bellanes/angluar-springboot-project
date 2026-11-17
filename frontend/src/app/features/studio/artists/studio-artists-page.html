@@ -1,0 +1,93 @@
+<section class="grid gap-4">
+  <at-crud-table
+    [search]="search" placeholder="Search artists…" newLabel="New artist"
+    [loading]="loading()" [error]="error()" [empty]="items().length === 0"
+    emptyText="No artists match your search."
+    [page]="page()" [totalPages]="totalPages()" [total]="total()"
+    (create)="openCreate()" (retry)="reload()" (pageChange)="goTo($event)">
+    <table hlmTable>
+      <thead hlmTHead>
+        <tr hlmTr>
+          <th hlmTh>Artist</th>
+          <th hlmTh>Email</th>
+          <th hlmTh>Country</th>
+          <th hlmTh>Status</th>
+          <th hlmTh>Added</th>
+          @if (auth.isAdmin()) { <th hlmTh class="text-right">Actions</th> }
+        </tr>
+      </thead>
+      <tbody hlmTBody>
+        @for (artist of items(); track artist.id) {
+          <tr hlmTr>
+            <td hlmTd>
+              <span class="flex items-center gap-3">
+                @if (artist.photoUrl) {
+                  <img [src]="artist.photoUrl" [alt]="artist.name" class="size-9 rounded-full object-cover" loading="lazy" />
+                } @else {
+                  <span class="grid size-9 place-items-center rounded-full bg-muted text-xs font-semibold">{{ artist.name[0] }}</span>
+                }
+                <span class="font-medium">{{ artist.name }}</span>
+              </span>
+            </td>
+            <td hlmTd>{{ artist.email }}</td>
+            <td hlmTd>{{ artist.country || '—' }}</td>
+            <td hlmTd>
+              <span hlmBadge [variant]="artist.active ? 'secondary' : 'outline'">{{ artist.active ? 'Active' : 'Inactive' }}</span>
+            </td>
+            <td hlmTd>{{ artist.createdAt | longDate }}</td>
+            @if (auth.isAdmin()) {
+              <td hlmTd class="text-right whitespace-nowrap">
+                <button hlmBtn variant="ghost" size="icon-sm" type="button" [attr.aria-label]="'Edit ' + artist.name" (click)="openEdit(artist)">
+                  <ng-icon name="lucidePencil" />
+                </button>
+                <button hlmBtn variant="ghost" size="icon-sm" type="button" [attr.aria-label]="'Delete ' + artist.name" (click)="toDelete.set(artist)">
+                  <ng-icon name="lucideTrash2" />
+                </button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </at-crud-table>
+</section>
+
+<at-form-sheet
+  [open]="sheetOpen()" [form]="form" [saving]="saving()"
+  [heading]="editing() ? 'Edit artist' : 'New artist'"
+  description="Contact details stay private to the studio."
+  [submitLabel]="editing() ? 'Save changes' : 'Create artist'"
+  (closed)="closeSheet()" (submitted)="submit()">
+  <at-form-field label="Name" [control]="form.controls.name" [required]="true">
+    <input hlmInput [formControl]="form.controls.name" autocomplete="off" />
+  </at-form-field>
+  <at-form-field label="Email" [control]="form.controls.email" [required]="true">
+    <input hlmInput type="email" [formControl]="form.controls.email" autocomplete="off" />
+  </at-form-field>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <at-form-field label="Phone" [control]="form.controls.phone">
+      <input hlmInput [formControl]="form.controls.phone" />
+    </at-form-field>
+    <at-form-field label="Country" [control]="form.controls.country">
+      <input hlmInput [formControl]="form.controls.country" />
+    </at-form-field>
+  </div>
+  <at-form-field label="Address" [control]="form.controls.address">
+    <input hlmInput [formControl]="form.controls.address" />
+  </at-form-field>
+  <at-form-field label="Biography" [control]="form.controls.biography">
+    <textarea hlmInput rows="5" [formControl]="form.controls.biography"></textarea>
+  </at-form-field>
+  <at-form-field label="Photo URL" [control]="form.controls.photoUrl">
+    <input hlmInput type="url" [formControl]="form.controls.photoUrl" />
+  </at-form-field>
+  <label class="flex items-center gap-2 text-sm">
+    <input type="checkbox" class="size-4 accent-[var(--color-midnight)]" [formControl]="form.controls.active" />
+    Active (visible in the public gallery)
+  </label>
+</at-form-sheet>
+
+<at-confirm-dialog
+  [open]="toDelete() !== null" [pending]="deleting()" heading="Delete this artist?"
+  [message]="'“' + toDelete()?.name + '” will be removed. Artists that still have exhibitions or artworks cannot be deleted.'"
+  (confirmed)="confirmDelete()" (cancelled)="toDelete.set(null)" />

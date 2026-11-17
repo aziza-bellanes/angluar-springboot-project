@@ -1,0 +1,99 @@
+<div class="relative">
+  <div class="absolute -top-5 -right-5 -left-5 h-52 bg-gradient-to-br from-midnight to-cobalt lg:-top-8 lg:-right-8 lg:-left-8" aria-hidden="true"></div>
+
+  <div class="relative z-10">
+    <div class="mb-6 text-ivory">
+      <p class="eyebrow !text-ivory/70">SmartSoft Solutions · Gallery operations</p>
+      <p class="mt-1 max-w-xl text-sm text-ivory/80">A snapshot of artists, exhibitions, artworks and live auctions.</p>
+    </div>
+
+    @if (error(); as message) {
+      <div class="rounded-xl border bg-card p-8 text-center">
+        <p class="text-destructive">{{ message }}</p>
+        <button hlmBtn variant="outline" class="mt-3" type="button" (click)="overview.reload()">Try again</button>
+      </div>
+    } @else if (overview.isLoading() || !overview.value()) {
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-busy="true">
+        @for (i of [1, 2, 3, 4]; track i) { <hlm-skeleton class="h-28 rounded-xl" /> }
+      </div>
+    } @else {
+      @let o = overview.value()!;
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        @for (kpi of kpis(); track kpi.label) {
+          <article class="flex items-start justify-between rounded-xl border bg-card p-5 shadow-sm">
+            <div>
+              <p class="eyebrow">{{ kpi.label }}</p>
+              <p class="mt-2 font-display text-4xl font-semibold">{{ kpi.value }}</p>
+              @if (kpi.detail) { <p class="mt-1 text-xs text-muted-foreground">{{ kpi.detail }}</p> }
+            </div>
+            <span class="grid size-10 place-items-center rounded-lg bg-midnight text-ivory"><ng-icon [name]="kpi.icon" size="18" /></span>
+          </article>
+        }
+      </div>
+
+      <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article class="rounded-xl border bg-card p-5">
+          <p class="eyebrow">Bids placed</p>
+          <p class="mt-2 font-display text-3xl font-semibold">{{ o.bids }}</p>
+        </article>
+        <article class="rounded-xl border bg-card p-5">
+          <p class="eyebrow">Users</p>
+          <p class="mt-2 font-display text-3xl font-semibold">{{ o.users }}</p>
+        </article>
+        <article class="rounded-xl border bg-card p-5 sm:col-span-2">
+          <p class="eyebrow">Total exhibition budget</p>
+          <p class="price mt-2 font-display text-3xl font-semibold">{{ o.exhibitionBudget | price }}</p>
+        </article>
+      </div>
+
+      <div class="mt-6 grid gap-6 xl:grid-cols-3">
+        <section class="overflow-hidden rounded-xl border bg-card xl:col-span-2">
+          <h2 class="border-b px-5 py-4 font-display text-2xl font-semibold">Ending soon</h2>
+          @if (o.endingSoon.length === 0) {
+            <p class="p-8 text-center text-muted-foreground">No open auctions right now.</p>
+          } @else {
+            <div class="overflow-x-auto">
+              <table hlmTable>
+                <thead hlmTHead>
+                  <tr hlmTr>
+                    <th hlmTh>Artwork</th><th hlmTh>Status</th><th hlmTh class="text-right">Current</th>
+                    <th hlmTh class="text-right">Bids</th><th hlmTh>Ends</th>
+                  </tr>
+                </thead>
+                <tbody hlmTBody>
+                  @for (a of o.endingSoon; track a.id) {
+                    <tr hlmTr>
+                      <td hlmTd>
+                        <span class="flex items-center gap-3">
+                          <img [src]="a.artwork.imageUrl" [alt]="a.artwork.title" class="size-10 rounded-md object-cover" loading="lazy" />
+                          <span><span class="block font-medium">{{ a.artwork.title }}</span>
+                          <span class="text-xs text-muted-foreground">{{ a.artwork.artistName }}</span></span>
+                        </span>
+                      </td>
+                      <td hlmTd><at-auction-status-badge [status]="a.status" /></td>
+                      <td hlmTd class="price text-right">{{ a.currentPrice | price }}</td>
+                      <td hlmTd class="text-right">{{ a.bidCount }}</td>
+                      <td hlmTd class="whitespace-nowrap">{{ a.endsAt | dateTime }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+
+        <section class="rounded-xl border bg-card p-5">
+          <h2 class="font-display text-2xl font-semibold">Quick actions</h2>
+          <div class="mt-4 grid gap-2">
+            <a hlmBtn variant="outline" routerLink="/studio/artists" [queryParams]="{ new: 1 }"><ng-icon name="lucidePlus" /> New artist</a>
+            <a hlmBtn variant="outline" routerLink="/studio/exhibitions" [queryParams]="{ new: 1 }"><ng-icon name="lucidePlus" /> New exhibition</a>
+            <a hlmBtn variant="outline" routerLink="/studio/artworks" [queryParams]="{ new: 1 }"><ng-icon name="lucidePlus" /> New artwork</a>
+            @if (auth.isAdmin()) {
+              <a hlmBtn variant="outline" routerLink="/studio/auctions" [queryParams]="{ new: 1 }"><ng-icon name="lucidePlus" /> New auction</a>
+            }
+          </div>
+        </section>
+      </div>
+    }
+  </div>
+</div>

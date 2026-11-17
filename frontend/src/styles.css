@@ -1,77 +1,171 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/*
+ * ATELIER design system.
+ * Palette: Van Gogh, reimagined — night skies, cobalt pigment, sunflower gold, canvas ivory,
+ * cypress green and terracotta. Ivory for information-rich pages, midnight for cinematic
+ * sections (`.night`), gold reserved for primary calls to action.
+ */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+@import '@spartan-ng/brain/hlm-tailwind-preset.css';
 
-:root{font-family:Inter,Arial,sans-serif;color:#17243c;background:#f4f6fb}
-*,*::before,*::after{box-sizing:border-box}
-body{margin:0;background:#f4f6fb;color:#17243c;font-family:Inter,Arial,sans-serif}
-h1,h2,h3{font-weight:750;letter-spacing:-.035em}
-h1{font-size:2rem}
-h3{font-size:1.15rem;margin-bottom:1rem}
-.muted,.page-heading p{color:#718096}
-.eyebrow{color:#5265d7;letter-spacing:.16em;font-size:.72rem;font-weight:800;margin-bottom:.45rem}
-.sidebar{position:fixed;inset:0 auto 0 0;width:245px;background:#17233f;color:#fff;padding:28px 18px;display:flex;flex-direction:column;z-index:10}
-.brand{font-weight:800;font-size:1.48rem;margin:10px 14px 48px}
-.brand small{display:block;font-weight:500;font-size:.7rem;color:#aab9d3;margin-left:31px}
-.sidebar nav{display:flex;flex-direction:column;gap:7px}
-.sidebar nav a{color:#bfcce3;text-decoration:none;padding:13px 14px;border-radius:10px;font-weight:600;font-size:.89rem}
-.sidebar nav a:hover,.sidebar nav a.active{color:#fff;background:#344467}
-.sidebar-footer{margin-top:auto;display:flex;flex-direction:column;border-top:1px solid #334463;padding:18px 12px}
-.sidebar-footer small{color:#9baeca}
-.with-sidebar{margin-left:245px}
-.page{padding:38px;max-width:1500px;margin:auto}
-.page-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;gap:20px}
-.page-heading p{margin-bottom:0}
-.panel{background:#fff;padding:25px;border-radius:16px;box-shadow:0 6px 30px rgba(21,35,68,.045);border:1px solid #eef0f7}
-.kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-.kpi{position:relative}
-.kpi-icon{background:#edf0ff;color:#5968d8;border-radius:11px;width:40px;height:40px;display:grid;place-items:center;font-size:1.3rem;margin-bottom:17px}
-.kpi-value{font-size:2rem;font-weight:800;margin-top:3px}
-.dashboard-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(250px,1fr);gap:18px}
-.chart-row{display:grid;grid-template-columns:80px 1fr 32px;align-items:center;gap:12px;margin-top:18px;font-size:.84rem}
-.chart-track{height:12px;background:#edf0f6;border-radius:99px;overflow:hidden}
-.chart-bar{height:100%;border-radius:99px;min-width:0;transition:width .3s ease}
-.chart-bar.todo{background:#94a3b8}
-.chart-bar.active{background:#5968d8}
-.chart-bar.done{background:#25a56a}
-.alert-summary{display:flex;flex-direction:column;align-items:flex-start;background:linear-gradient(145deg,#fff,#fff5f5)}
-.deadline-number{font-size:3.5rem;line-height:1;font-weight:800;color:#b02929}
-.btn-primary{background:#5164d8;border-color:#5164d8}
-.btn-primary:hover{background:#4354bb}
-.form-control,.form-select{border-radius:9px;border-color:#dfe4ee;padding:10px 12px}
-.search{width:250px}
-.table>:not(caption)>*>*{padding:15px 10px;border-color:#edf0f5}
-.table thead{color:#68768b;font-size:.8rem}
-.status{border-radius:99px;background:#eef2ff;color:#4e5bb5;padding:5px 10px;font-size:.8rem;font-weight:700}
-.status.late{color:#b02929;background:#fff0f0}
-.detail-row{background:#f6f8fc!important;padding:20px!important}
-.auth-layout{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top left,#dce5ff,#f6f8fd 55%)}
-.auth-panel{background:#fff;width:min(450px,94vw);padding:42px;border-radius:20px;box-shadow:0 22px 80px #21345414}
-.auth-panel h1{margin:0}
-.auth-panel label{margin:17px 0 6px;display:block;font-size:.84rem;font-weight:600}
+@import '@fontsource-variable/manrope';
+@import '@fontsource/cormorant-garamond/400.css';
+@import '@fontsource/cormorant-garamond/500.css';
+@import '@fontsource/cormorant-garamond/600.css';
+@import '@fontsource/cormorant-garamond/400-italic.css';
 
-@media(max-width:900px){
-  .sidebar{width:75px;padding:16px 7px}
-  .brand{font-size:1rem;margin:16px 4px 40px}
-  .brand small,.sidebar-footer span,.sidebar-footer small{display:none}
-  .sidebar nav a{font-size:0;padding:14px}
-  .sidebar nav a::first-letter{font-size:1.3rem}
-  .with-sidebar{margin-left:75px}
-  .page{padding:22px}
-  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .dashboard-grid{grid-template-columns:1fr}
+@theme {
+  --color-midnight: #101d35;
+  --color-midnight-soft: #172849;
+  --color-cobalt: #315c91;
+  --color-sunflower: #e7b84b;
+  --color-sunflower-deep: #c99a2e;
+  --color-ivory: #f4edde;
+  --color-canvas: #fbf7ee;
+  --color-cypress: #405b48;
+  --color-terracotta: #a85c43;
+  --color-ink: #1b2238;
+
+  --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+  --font-sans: 'Manrope Variable', 'Segoe UI', system-ui, sans-serif;
+
+  --ease-gallery: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media(max-width:600px){
-  .sidebar{position:static;width:auto;height:auto;padding:10px}
-  .sidebar nav{flex-direction:row;flex-wrap:wrap}
-  .sidebar nav a{font-size:.78rem;padding:8px}
-  .brand{margin:5px}
-  .sidebar-footer{display:none}
-  .with-sidebar{margin-left:0}
-  .page{padding:15px}
-  .page-heading{flex-direction:column;align-items:flex-start}
-  .kpi-grid{grid-template-columns:1fr}
-  .search{width:100%}
-  .panel{padding:18px}
-  .chart-row{grid-template-columns:70px 1fr 24px}
-  .auth-panel{padding:28px 22px}
+:root {
+  color-scheme: light;
+  --radius: 0.5rem;
+
+  --background: #f4edde;
+  --foreground: #1b2238;
+  --card: #fbf7ee;
+  --card-foreground: #1b2238;
+  --popover: #fbf7ee;
+  --popover-foreground: #1b2238;
+  --primary: #101d35;
+  --primary-foreground: #f4edde;
+  --secondary: #eae1cd;
+  --secondary-foreground: #1b2238;
+  --muted: #ebe3d1;
+  --muted-foreground: #5d6273;
+  --accent: #e7b84b;
+  --accent-foreground: #101d35;
+  --destructive: #b4442f;
+  --border: #dccfb5;
+  --input: #d6c8ab;
+  --ring: #315c91;
+
+  --sidebar: #101d35;
+  --sidebar-foreground: #f4edde;
+  --sidebar-primary: #e7b84b;
+  --sidebar-primary-foreground: #101d35;
+  --sidebar-accent: #172849;
+  --sidebar-accent-foreground: #f4edde;
+  --sidebar-border: rgb(244 237 222 / 0.1);
+  --sidebar-ring: #e7b84b;
+
+  --chart-1: #315c91;
+  --chart-2: #e7b84b;
+  --chart-3: #405b48;
+  --chart-4: #a85c43;
+  --chart-5: #7c8aa8;
+}
+
+/* Cinematic sections: midnight canvas, ivory text, gold actions. */
+.night {
+  color-scheme: dark;
+  --background: #101d35;
+  --foreground: #f4edde;
+  --card: #16264a;
+  --card-foreground: #f4edde;
+  --popover: #16264a;
+  --popover-foreground: #f4edde;
+  --primary: #e7b84b;
+  --primary-foreground: #101d35;
+  --secondary: #1d3157;
+  --secondary-foreground: #f4edde;
+  --muted: #1a2b4f;
+  --muted-foreground: #aab3c7;
+  --border: rgb(244 237 222 / 0.14);
+  --input: rgb(244 237 222 / 0.2);
+  --ring: #e7b84b;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: 'ss01', 'tnum';
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Editorial eyebrow label above headings. */
+  .eyebrow {
+    @apply text-[0.7rem] font-semibold tracking-[0.28em] uppercase text-muted-foreground;
+  }
+
+  /* Primary call to action: sunflower gold, used sparingly. */
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-sunflower px-6 py-3 text-sm font-semibold text-midnight transition-colors duration-300 hover:bg-sunflower-deep focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-ghost-light {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ivory/30 px-6 py-3 text-sm font-semibold text-ivory transition-colors duration-300 hover:border-ivory/70 hover:bg-ivory/5;
+  }
+
+  /* Subtle canvas grain for ivory surfaces. */
+  .canvas-texture {
+    background-image:
+      radial-gradient(rgb(16 29 53 / 0.035) 1px, transparent 1px),
+      radial-gradient(rgb(168 92 67 / 0.03) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 2px;
+  }
+
+  .container-gallery {
+    @apply mx-auto w-full max-w-[1400px] px-5 sm:px-8 lg:px-12;
+  }
+
+  .price {
+    font-variant-numeric: tabular-nums;
+  }
 }
