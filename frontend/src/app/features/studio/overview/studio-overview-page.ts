@@ -115,7 +115,7 @@ export default class StudioOverviewPage {
   protected readonly hello = `${greeting(new Date().getHours())}, ${this.auth.user()?.firstName ?? 'there'}`;
   protected readonly today = new Date().toLocaleDateString('en-CA'); // local YYYY-MM-DD
 
-  protected readonly range = signal<ActivityRange>(14);
+  protected readonly range = signal<ActivityRange>(7);
   protected readonly ranges: ActivityRange[] = [7, 14];
 
   private readonly activity = computed(() =>

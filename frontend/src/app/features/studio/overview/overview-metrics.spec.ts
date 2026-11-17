@@ -4,6 +4,7 @@ import {
   auctionsByStatusConfig,
   greeting,
   inRange,
+  niceCeiling,
   statusSlices,
   bidActivityConfig,
   compactEuro,
@@ -43,17 +44,28 @@ describe('overview metrics', () => {
     expect(shortDay('2026-11-04')).toBe('04/11');
   });
 
-  it('combines a volume line with bid bars on separate axes', () => {
+  it('draws daily volume over a full-height track', () => {
     const points = [
-      { day: '2026-11-04', bids: 3, volume: 1200 },
+      { day: '2026-11-04', bids: 3, volume: 1000 },
       { day: '2026-11-05', bids: 0, volume: 0 },
     ];
     const cfg = bidActivityConfig(points);
-    const [line, bars] = cfg.data.datasets;
+    const [volume, track] = cfg.data.datasets;
     expect(cfg.data.labels).toEqual(['04/11', '05/11']);
-    expect(line).toMatchObject({ type: 'line', data: [1200, 0], yAxisID: 'volume' });
-    expect(bars).toMatchObject({ type: 'bar', data: [3, 0], yAxisID: 'bids' });
-    expect((line as unknown as { pointRadius: number[] }).pointRadius).toEqual([3, 0]);
+    expect(volume.data).toEqual([1000, 0]);
+    expect(track.data).toEqual([1200, 1200]);
+    expect(cfg.options?.scales?.['y']?.max).toBe(1200);
+  });
+
+  it('rounds the axis ceiling to a clean value', () => {
+    expect([niceCeiling(1050), niceCeiling(3_470_000), niceCeiling(7), niceCeiling(0)]).toEqual([
+      1200, 4_000_000, 8, 1,
+    ]);
+  });
+
+  it('keeps an axis when there is no volume at all', () => {
+    const cfg = bidActivityConfig([{ day: '2026-11-04', bids: 0, volume: 0 }]);
+    expect(cfg.data.datasets[1].data).toEqual([1]);
   });
 
   it('keeps the most recent days of a range', () => {
