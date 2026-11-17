@@ -6,6 +6,7 @@ import com.sip.psm.user.UserDtos.UserResponse;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,16 +25,19 @@ public class AdminUserController {
         this.service = service;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<UserResponse> list() {
         return service.list();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/roles")
     public UserResponse updateRoles(@PathVariable Long id, @Valid @RequestBody RolesUpdate body, Principal principal) {
         return service.updateRoles(id, body.roles(), principal.getName());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/status")
     public UserResponse updateStatus(@PathVariable Long id, @RequestBody StatusUpdate body, Principal principal) {
         return service.updateStatus(id, body.enabled(), principal.getName());

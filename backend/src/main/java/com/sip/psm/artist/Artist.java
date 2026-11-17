@@ -5,8 +5,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import com.sip.psm.exhibition.Exhibition;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -52,4 +58,13 @@ public class Artist extends AuditedEntity {
     /** activité */
     @Column(nullable = false)
     private boolean active = true;
+
+    /** Inverse side of the Client 1..* Projet association: the exhibitions staged for this artist. */
+    @OneToMany(mappedBy = "artist", fetch = FetchType.LAZY)
+    private List<Exhibition> exhibitions = new ArrayList<>();
+
+    /** Read-only view; exhibitions are attached through {@link Exhibition#setArtist(Artist)}. */
+    public List<Exhibition> getExhibitions() {
+        return Collections.unmodifiableList(exhibitions);
+    }
 }

@@ -138,6 +138,18 @@ ssh user@host 'cd /opt/atelier && docker compose -f deployment/compose.prod.yaml
 | 502 from Nginx | The container is not ready yet or `APP_PORT` differs from the Nginx upstream; `curl http://127.0.0.1:8080/actuator/health/readiness` on the VPS |
 | Deep links such as `/artworks/some-slug` return 404 | Requests are bypassing the app; all paths must be proxied to port 8080 |
 
+## Build psm.jar with Maven
+
+The opt-in `with-frontend` profile installs Node.js (into `backend/target/node-install`), runs `npm ci` and `npm run build` in `frontend/`, and copies `frontend/dist/atelier/browser/` into the jar under `BOOT-INF/classes/static/`. Nothing is written into `src/`.
+
+```bash
+cd backend
+./mvnw -Pwith-frontend -DskipTests package      # produces target/psm.jar with Angular included
+unzip -l target/psm.jar | grep BOOT-INF/classes/static/index.html
+```
+
+Without the profile (`./mvnw verify`, the `Dockerfile`) the build is unchanged and the jar contains only what is already in `src/main/resources/static/`.
+
 ## 9. Running `psm.jar` directly
 
 Without Docker you need Java 17, a MySQL 8 database and (for email) an SMTP server.
