@@ -67,13 +67,15 @@ Staff accounts cannot bid; use a bidder account.
 
 Sign in; you land in the **Studio** (`/studio`).
 
-1. **Overview**: the gradient header shows KPI cards (artists, exhibitions, open auctions, bids) with weekly trends. Below: a line chart of bid activity, a bar chart of auctions by status, recent bids, ending-soon auctions and a ranking of artists with progress bars. Use **Quick actions** to jump straight to a creation form.
+1. **Overview**: the gradient header shows KPI cards (artists, exhibitions, bids placed, users) with weekly trends; each card links to its section. Below: **Bid activity** shows daily bids as bars and volume as a line, with a 7/14-day switch; **Auctions by status** is a doughnut with counts and shares. Then come recent bids, ending-soon auctions and a ranking of artists with progress bars. Use **Quick actions** to jump straight to a creation form.
 2. **Artists** (the specification's *Clients*): search, view the list and open details; click **New artist** and fill name, email (required), phone, address, country, biography and photo URL.
 3. **Exhibitions** (*Projets*): view the list and create an exhibition with title, budget, duration in days, description, optional start date, venue, cover image and the artist.
 4. **Artworks**: view and create works; set the status (`DRAFT` stays hidden from the public, `PUBLISHED` is visible), the artist and optionally an exhibition of that same artist.
 5. **My profile**: update your name and phone, change your password.
 
 What is hidden from you: edit and delete actions, the **Auctions** page and the **Users** page. These are blocked by the server too, so opening their URLs shows an access-denied page.
+
+The sidebar can be collapsed to icons with the panel button in the top bar, or with **Collapse** at the bottom of the sidebar. Your choice is remembered in this browser, and hovering an icon shows its name.
 
 ## Administrator
 

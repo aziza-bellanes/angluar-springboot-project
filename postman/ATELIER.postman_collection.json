@@ -1237,6 +1237,49 @@
           ]
         },
         {
+          "name": "Collaborateur cannot delete exhibition (forbidden)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "studio",
+                "exhibitions",
+                "{{exhibitionId}}"
+              ],
+              "raw": "{{baseUrl}}/api/studio/exhibitions/{{exhibitionId}}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{curatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 403\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Artist with an exhibition cannot be deleted (409)",
           "request": {
             "method": "DELETE",
