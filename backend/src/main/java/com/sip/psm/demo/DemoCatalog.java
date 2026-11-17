@@ -7,7 +7,11 @@ import java.util.List;
 record DemoCatalog(List<ArtistEntry> artists, List<ArtworkEntry> artworks) {
 
     record ArtistEntry(String key, String name, String country, String biography, String email, String phone,
-                       String address) {
+                       String address, ExhibitionEntry exhibition) {
+    }
+
+    record ExhibitionEntry(String title, String venue, BigDecimal budget, int durationDays, int startOffsetDays,
+                           String description) {
     }
 
     record ArtworkEntry(String artistKey, String slug, String title, Integer yearCreated, String medium,

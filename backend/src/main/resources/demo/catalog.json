@@ -7,7 +7,15 @@
       "biography": "Vincent van Gogh (1853–1890) was a Dutch Post-Impressionist painter known for his expressive colour and vigorous brushwork. He produced most of his mature work in the last two years of his life, largely in southern France. His letters to his brother Theo are a major source on his life and ideas.",
       "email": "studio.van-gogh@atelier.demo",
       "phone": null,
-      "address": null
+      "address": null,
+      "exhibition": {
+        "title": "The Weight of Earth",
+        "venue": "Room I — North Light",
+        "budget": 62000,
+        "durationDays": 60,
+        "startOffsetDays": -12,
+        "description": "Peasant interiors and Provençal fields, from the dark Nuenen years to the olive groves of Saint-Rémy."
+      }
     },
     {
       "key": "cezanne",
@@ -16,7 +24,15 @@
       "biography": "Paul Cézanne (1839–1906) was a French painter whose structured approach to form influenced the development of Cubism and modern art. He worked mainly in Provence, returning repeatedly to subjects around Aix-en-Provence and Mont Sainte-Victoire. Although linked to the Impressionists in his early career, he developed a distinctive style of his own.",
       "email": "studio.cezanne@atelier.demo",
       "phone": null,
-      "address": null
+      "address": null,
+      "exhibition": {
+        "title": "Hortense, Patiently",
+        "venue": "Room II — The Salon",
+        "budget": 48000,
+        "durationDays": 45,
+        "startOffsetDays": -5,
+        "description": "Portraits of Hortense Fiquet beside the Provençal landscapes Cézanne kept repainting."
+      }
     },
     {
       "key": "gauguin",
@@ -25,7 +41,15 @@
       "biography": "Paul Gauguin (1848–1903) was a French Post-Impressionist painter and printmaker. He spent long periods in Brittany and then in the South Pacific, and his paintings from Tahiti depict Polynesian subjects. His use of flat colour and simplified form had a wide influence on later artists.",
       "email": "studio.gauguin@atelier.demo",
       "phone": null,
-      "address": null
+      "address": null,
+      "exhibition": {
+        "title": "Ia Orana",
+        "venue": "Room III — The Garden Room",
+        "budget": 52000,
+        "durationDays": 50,
+        "startOffsetDays": 3,
+        "description": "Paintings from Tahiti in saturated colour, made between 1891 and 1893."
+      }
     },
     {
       "key": "seurat",
@@ -34,7 +58,15 @@
       "biography": "Georges Seurat (1859–1891) was a French painter and the leading figure of Neo-Impressionism. He developed divisionism, applying separate dots of colour that the eye blends at a distance. He died at the age of 31, and his best-known work is A Sunday on La Grande Jatte.",
       "email": "studio.seurat@atelier.demo",
       "phone": null,
-      "address": null
+      "address": null,
+      "exhibition": {
+        "title": "Points of Departure",
+        "venue": "Room IV — Studio",
+        "budget": 39000,
+        "durationDays": 40,
+        "startOffsetDays": -20,
+        "description": "Studies and small panels from the years leading to A Sunday on La Grande Jatte."
+      }
     },
     {
       "key": "renoir",
@@ -43,7 +75,15 @@
       "biography": "Pierre-Auguste Renoir (1841–1919) was a French painter and one of the principal figures of Impressionism. He is known for his figures, portraits and landscapes, and for the warm, luminous quality of his colour. He continued to paint in his later years despite increasing physical limitations.",
       "email": "studio.renoir@atelier.demo",
       "phone": null,
-      "address": null
+      "address": null,
+      "exhibition": {
+        "title": "Faces of the Salon",
+        "venue": "Room V — East Gallery",
+        "budget": 41000,
+        "durationDays": 45,
+        "startOffsetDays": 8,
+        "description": "Portraits of sitters from the Paris salons of the 1870s and 1880s."
+      }
     },
     {
       "key": "pissarro",
@@ -52,7 +92,15 @@
       "biography": "Camille Pissarro (1830–1903) was a French Impressionist painter born on Saint Thomas in the Danish West Indies. He was the only painter to exhibit in all eight Impressionist exhibitions. He worked in the Paris region, Pontoise, Eragny and Rouen, and was known for his landscapes and scenes of rural and urban life.",
       "email": "studio.pissarro@atelier.demo",
       "phone": null,
-      "address": null
+      "address": null,
+      "exhibition": {
+        "title": "Weather Over Pontoise",
+        "venue": "Room VI — Long Gallery",
+        "budget": 47000,
+        "durationDays": 55,
+        "startOffsetDays": -2,
+        "description": "River barges, orchards and the Tuileries, painted in every season and every light."
+      }
     }
   ],
   "artworks": [
