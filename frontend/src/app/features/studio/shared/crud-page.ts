@@ -52,6 +52,10 @@ export abstract class CrudPage<T extends { id: number }, R> {
 
   /** Call once from the subclass constructor. */
   protected init(): void {
+    const initial = this.route.snapshot.queryParamMap.get('q');
+    if (initial) {
+      this.search.setValue(initial, { emitEvent: false });
+    }
     this.search.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {

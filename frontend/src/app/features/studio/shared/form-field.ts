@@ -48,6 +48,7 @@ export class FormField {
     if (errors['required']) return `${this.label()} is required.`;
     if (errors['email']) return 'Enter a valid email address.';
     if (errors['maxlength']) return `At most ${errors['maxlength'].requiredLength} characters.`;
+    if (errors['minlength']) return `At least ${errors['minlength'].requiredLength} characters.`;
     if (errors['min']) return `Must be at least ${errors['min'].min}.`;
     if (errors['max']) return `Must be at most ${errors['max'].max}.`;
     if (errors['future']) return 'Must be in the future.';

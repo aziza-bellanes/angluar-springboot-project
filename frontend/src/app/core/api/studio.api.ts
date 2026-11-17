@@ -13,6 +13,8 @@ import {
   Exhibition,
   ExhibitionRequest,
   Page,
+  PasswordRequest,
+  ProfileRequest,
   RoleName,
   StudioOverview,
   UserProfile,
@@ -94,5 +96,13 @@ export class StudioApi {
 
   updateStatus(id: number, enabled: boolean): Observable<UserProfile> {
     return this.http.put<UserProfile>(`/api/admin/users/${id}/status`, { enabled });
+  }
+
+  updateProfile(body: ProfileRequest): Observable<UserProfile> {
+    return this.http.put<UserProfile>('/api/account/profile', body);
+  }
+
+  changePassword(body: PasswordRequest): Observable<void> {
+    return this.http.put<void>('/api/account/password', body);
   }
 }

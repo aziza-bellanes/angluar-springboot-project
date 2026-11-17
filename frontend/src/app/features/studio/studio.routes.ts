@@ -43,6 +43,12 @@ export default [
         loadComponent: () => import('./auctions/studio-auctions-page'),
       },
       {
+        path: 'profile',
+        title: 'My profile · Studio',
+        data: { heading: 'My profile' },
+        loadComponent: () => import('./profile/studio-profile-page'),
+      },
+      {
         path: 'users',
         title: 'Users · Studio',
         data: { heading: 'Users' },
