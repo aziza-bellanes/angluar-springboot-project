@@ -24,7 +24,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
           </blockquote>
           <figcaption class="mt-4 text-sm tracking-[0.2em] text-ivory/60 uppercase">
             Vincent van Gogh ·
-            <span class="normal-case tracking-normal italic">Olive Trees, 1889</span>
+            <span class="normal-case tracking-normal italic">Olive Trees, 1890</span>
           </figcaption>
         </figure>
       </div>
