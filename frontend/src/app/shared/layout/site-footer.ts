@@ -13,14 +13,19 @@ import { PUBLIC_NAV } from './site-header';
         <div class="max-w-sm space-y-4">
           <at-brand-mark />
           <p class="text-sm leading-relaxed text-ivory/60">
-            An immersive gallery where artworks move, artists come forward and collectors bid in real time.
+            An immersive gallery where artworks move, artists come forward and collectors bid in
+            real time.
           </p>
-          <p class="text-xs tracking-[0.2em] text-ivory/45 uppercase">A SmartSoft Solutions platform</p>
+          <p class="text-xs tracking-[0.2em] text-ivory/45 uppercase">
+            A SmartSoft Solutions platform
+          </p>
         </div>
         <nav class="space-y-3 text-sm" aria-label="Footer">
           <p class="eyebrow">Explore</p>
           @for (item of nav; track item.path) {
-            <a [routerLink]="item.path" class="block text-ivory/70 hover:text-sunflower">{{ item.label }}</a>
+            <a [routerLink]="item.path" class="block text-ivory/70 hover:text-sunflower">{{
+              item.label
+            }}</a>
           }
         </nav>
         <div class="space-y-3 text-sm text-ivory/60">

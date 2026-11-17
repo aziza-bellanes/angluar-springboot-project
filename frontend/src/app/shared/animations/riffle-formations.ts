@@ -1,8 +1,14 @@
-/** Geometry of the four Riffle formations. Pure functions, unit tested, no DOM access. */
+/**
+ * Geometry of the Riffle opening. The collection moves through four formations while the visitor
+ * scrolls: an open ring floating in space, a shuffled pile, a receding corridor and a featured
+ * painting. Pure functions of the card index and viewport, with no DOM access.
+ */
 
-export type FormationName = 'fan' | 'deck' | 'grid' | 'featured';
+export type FormationName = 'ring' | 'pile' | 'corridor' | 'featured';
 
-export interface Formation {
+export const FORMATIONS: readonly FormationName[] = ['ring', 'pile', 'corridor', 'featured'];
+
+export interface Pose {
   x: number;
   y: number;
   z: number;
@@ -18,118 +24,140 @@ export interface LayoutMetrics {
   viewportHeight: number;
   cardWidth: number;
   cardHeight: number;
+  /** True below the tablet breakpoint, where formations are tightened. */
+  compact: boolean;
 }
 
-const CARD_RATIO = 1.25;
-const GRID_COLUMNS = 6;
-const GRID_SCALE = 0.72;
-const GRID_GAP = 22;
+const CARD_RATIO = 1.22;
+const COMPACT_BREAKPOINT = 768;
+const RING_START = Math.PI * 1.22;
+const RING_SWEEP = Math.PI * 1.62;
+const DEG = 180 / Math.PI;
 
 export function layoutMetrics(viewportWidth: number, viewportHeight: number): LayoutMetrics {
-  const byWidth = viewportWidth * 0.14;
-  const byHeight = (viewportHeight * 0.42) / CARD_RATIO;
-  const cardWidth = Math.round(Math.max(140, Math.min(byWidth, byHeight, 260)));
-  return { viewportWidth, viewportHeight, cardWidth, cardHeight: Math.round(cardWidth * CARD_RATIO) };
+  const compact = viewportWidth < COMPACT_BREAKPOINT;
+  const byWidth = viewportWidth * (compact ? 0.22 : 0.115);
+  const byHeight = viewportHeight * 0.17;
+  const cardWidth = Math.round(Math.max(84, Math.min(byWidth, byHeight, 190)));
+  return {
+    viewportWidth,
+    viewportHeight,
+    cardWidth,
+    cardHeight: Math.round(cardWidth * CARD_RATIO),
+    compact,
+  };
+}
+
+/** Largest scale any formation uses; cards are rendered at this size so they stay sharp. */
+export const RENDER_SCALE = 2.35;
+
+/** Deterministic -1 … 1 jitter so every card has its own character, identically on every render. */
+export function jitter(seed: number): number {
+  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+  return (value - Math.floor(value)) * 2 - 1;
+}
+
+/** 0 … 1 position of a card through the set. */
+function progress(index: number, count: number): number {
+  return count <= 1 ? 0 : index / (count - 1);
 }
 
 export function formation(
   name: FormationName,
   index: number,
   count: number,
-  featuredIndex: number,
   m: LayoutMetrics,
-): Formation {
+): Pose {
   switch (name) {
-    case 'fan':
-      return fan(index, count, m);
-    case 'deck':
-      return deck(index, count, m);
-    case 'grid':
-      return grid(index, count, m);
+    case 'ring':
+      return ring(index, count, m);
+    case 'pile':
+      return pile(index, count, m);
+    case 'corridor':
+      return corridor(index, count, m);
     case 'featured':
-      return featured(index, featuredIndex, m);
+      return featured(index, count, m);
   }
 }
 
-/** -1 … 1 position of a card across the set. */
-function spread(index: number, count: number): number {
-  return count <= 1 ? 0 : (index / (count - 1)) * 2 - 1;
-}
-
-/** A curved fan opening along a three-dimensional arc. */
-function fan(index: number, count: number, m: LayoutMetrics): Formation {
-  const t = spread(index, count);
+/**
+ * An open ring that starts close to the viewer at the lower left, arcs over the top and recedes
+ * down the right-hand side.
+ */
+function ring(index: number, count: number, m: LayoutMetrics): Pose {
+  const t = progress(index, count);
+  const angle = RING_START - t * RING_SWEEP;
+  const radius = Math.min(m.viewportWidth * (m.compact ? 0.3 : 0.27), m.viewportHeight * 0.3);
+  const x = Math.cos(angle) * radius;
+  const y = -Math.sin(angle) * radius;
   return {
-    x: t * m.viewportWidth * 0.36,
-    y: t * t * m.viewportHeight * 0.12 - m.viewportHeight * 0.06,
-    z: -Math.abs(t) * 240,
-    rotationX: 0,
-    rotationY: -t * 26,
-    rotationZ: t * 12,
-    scale: 1,
+    x,
+    y: y + m.viewportHeight * 0.05,
+    z: (0.5 - t) * 420,
+    rotationX: 8,
+    rotationY: (-x / radius) * 18,
+    rotationZ: jitter(index) * 9 - (x / radius) * 6,
+    scale: 1.18 - t * 0.38,
     opacity: 1,
   };
 }
 
-/** A tilted cascading deck, like canvases leaning against the studio wall. */
-function deck(index: number, count: number, m: LayoutMetrics): Formation {
-  const offset = index - (count - 1) / 2;
+/** The collection gathered into a single shuffled pile, the first card on top. */
+function pile(index: number, count: number, m: LayoutMetrics): Pose {
+  const t = progress(index, count);
   return {
-    x: offset * m.cardWidth * 0.34 + m.viewportWidth * 0.08,
-    y: -offset * m.cardHeight * 0.05 - m.viewportHeight * 0.04,
-    z: -offset * 30,
-    rotationX: 10,
-    rotationY: -38,
-    rotationZ: -4,
-    scale: 1.05,
-    opacity: 1,
-  };
-}
-
-/** An organised gallery wall. */
-function grid(index: number, count: number, m: LayoutMetrics): Formation {
-  const columns = Math.min(GRID_COLUMNS, count);
-  const rows = Math.ceil(count / columns);
-  const column = index % columns;
-  const row = Math.floor(index / columns);
-  const cellWidth = m.cardWidth * GRID_SCALE + GRID_GAP;
-  const cellHeight = m.cardHeight * GRID_SCALE + GRID_GAP;
-  return {
-    x: (column - (columns - 1) / 2) * cellWidth,
-    y: (row - (rows - 1) / 2) * cellHeight - m.viewportHeight * 0.08,
-    z: 0,
-    rotationX: 0,
+    x: jitter(index + 3) * m.cardWidth * 0.12 + t * m.cardWidth * 0.18,
+    y: -t * m.cardHeight * 0.16 + m.viewportHeight * 0.02,
+    z: (count - index) * 4,
+    rotationX: 6,
     rotationY: 0,
-    rotationZ: 0,
-    scale: GRID_SCALE,
+    rotationZ: jitter(index + 11) * 8 + t * 14,
+    scale: 1.2,
     opacity: 1,
   };
 }
 
-/** One painting comes forward, the others recede. */
-function featured(index: number, featuredIndex: number, m: LayoutMetrics): Formation {
-  if (index === featuredIndex) {
+/** A deep diagonal corridor: the first card nearest at the lower right, the last far at the top left. */
+function corridor(index: number, count: number, m: LayoutMetrics): Pose {
+  const t = progress(index, count);
+  const spanX = m.viewportWidth * (m.compact ? 0.32 : 0.36);
+  const spanY = m.viewportHeight * 0.36;
+  return {
+    x: spanX * (0.45 - t * 1.45),
+    y: spanY * (0.6 - t * 1.6),
+    z: 160 - t * 900,
+    rotationX: 10,
+    rotationY: -24,
+    rotationZ: -4,
+    scale: 1.25,
+    opacity: Math.max(0.25, 1 - t * 0.5),
+  };
+}
+
+/** The first painting comes forward; the corridor sinks back behind it. */
+function featured(index: number, count: number, m: LayoutMetrics): Pose {
+  if (index === 0) {
     return {
-      x: m.viewportWidth * 0.14,
-      y: m.viewportHeight * 0.04,
-      z: 240,
+      x: m.compact ? 0 : m.viewportWidth * 0.16,
+      y: m.compact ? -m.viewportHeight * 0.08 : -m.viewportHeight * 0.01,
+      z: 200,
       rotationX: 0,
-      rotationY: -8,
+      rotationY: m.compact ? 0 : -10,
       rotationZ: 0,
-      scale: 1.35,
+      scale: m.compact ? 2 : 2.35,
       opacity: 1,
     };
   }
-  const distance = index - featuredIndex;
-  const side = Math.sign(distance);
+  const back = corridor(index, count, m);
   return {
-    x: side * m.viewportWidth * 0.3 + distance * m.cardWidth * 0.35 + m.viewportWidth * 0.14,
-    y: m.viewportHeight * 0.06,
-    z: -700 - Math.abs(distance) * 40,
-    rotationX: 0,
-    rotationY: side * 30,
-    rotationZ: 0,
-    scale: 0.85,
-    opacity: Math.max(0.12, 0.45 - Math.abs(distance) * 0.06),
+    ...back,
+    x: back.x - m.viewportWidth * 0.12,
+    z: back.z - 700,
+    opacity: back.opacity * 0.45,
   };
+}
+
+/** Angle of a card along the ring, in degrees. */
+export function ringAngle(index: number, count: number): number {
+  return (RING_START - progress(index, count) * RING_SWEEP) * DEG;
 }

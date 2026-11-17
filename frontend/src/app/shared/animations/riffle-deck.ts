@@ -14,62 +14,54 @@ import { RouterLink } from '@angular/router';
 import { ArtworkCard } from '@app/core/models/api.models';
 import { FlipTransition } from './flip-transition.service';
 import { gsap } from './motion';
-import { NightSky } from './night-sky';
-import { Formation, FormationName, formation, layoutMetrics } from './riffle-formations';
+import { FORMATIONS, FormationName, RENDER_SCALE, formation, layoutMetrics } from './riffle-formations';
+
+const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
+const MAX_CARDS = 20;
+/** Keys that scroll the page; ignored while the opening shuffle plays. */
+const SCROLL_KEYS = new Set([' ', 'PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End']);
 
 interface Scene {
   name: FormationName;
-  eyebrow: string;
-  title: string;
+  label: string;
 }
 
 const SCENES: Scene[] = [
-  { name: 'fan', eyebrow: 'The immersive experience', title: 'Art is not meant to stand still.' },
-  { name: 'deck', eyebrow: 'From the studio', title: 'Every canvas carries a story.' },
-  { name: 'grid', eyebrow: 'The gallery', title: 'Browse by artist, era and medium.' },
-  { name: 'featured', eyebrow: 'Featured work', title: '' },
+  { name: 'ring', label: 'Collection' },
+  { name: 'pile', label: 'Shuffle' },
+  { name: 'corridor', label: 'Corridor' },
+  { name: 'featured', label: 'Featured' },
 ];
 
-const MOTION_QUERY = '(min-width: 768px) and (prefers-reduced-motion: no-preference)';
-
 /**
- * ATELIER's signature sequence. While the section is pinned, scrolling moves the artworks through
- * four formations: a curved fan, a cascading deck, an organised gallery and a featured painting.
+ * ATELIER's opening, after the Riffle motion study. The paintings arrive as a pile and riffle open
+ * into a ring floating in front of a gallery wall; while the section is pinned, scrolling gathers
+ * them into a shuffled pile, stretches them into a deep corridor and finally brings one painting
+ * forward.
  *
- * - Timeline scrubbed by ScrollTrigger and snapped to the four scenes.
- * - Only transforms and opacity are animated; positions are recomputed on resize.
- * - On phones or with reduced motion, a simple swipeable row is rendered instead.
- * - Everything is reverted on destroy so no ScrollTrigger survives a navigation.
+ * - The scroll timeline is created once the opening shuffle has finished, so both never animate the
+ *   same properties; scrolling is held for that second and a half only.
+ * - Poses are functions of the viewport and recomputed on refresh.
+ * - The plane leans toward a mouse pointer; touch and keyboard are unaffected.
+ * - With reduced motion a calm, swipeable row is shown instead.
  */
 @Component({
-  selector: 'at-riffle-gallery',
-  imports: [RouterLink, NightSky],
+  selector: 'at-riffle-deck',
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './riffle-gallery.html',
-  styles: `
-    .plane {
-      transform-style: preserve-3d;
-    }
-    .riffle-card {
-      width: var(--card-w);
-      height: var(--card-h);
-      margin-left: calc(var(--card-w) / -2);
-      margin-top: calc(var(--card-h) / -2);
-      backface-visibility: hidden;
-      will-change: transform, opacity;
-    }
-  `,
+  templateUrl: './riffle-deck.html',
+  styleUrl: './riffle-deck.css',
 })
-export class RiffleGallery {
+export class RiffleDeck {
   readonly artworks = input.required<ArtworkCard[]>();
 
   private readonly flip = inject(FlipTransition);
   private readonly stage = viewChild.required<ElementRef<HTMLElement>>('stage');
 
   protected readonly scenes = SCENES;
-  protected readonly cards = computed(() => this.artworks().slice(0, 12));
-  protected readonly featured = computed(() => this.cards()[Math.floor(this.cards().length / 2)]);
-  protected readonly activeScene = signal(0);
+  protected readonly cards = computed(() => this.artworks().slice(0, MAX_CARDS));
+  protected readonly lead = computed(() => this.cards()[0]);
+  protected readonly scene = signal(0);
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -86,71 +78,152 @@ export class RiffleGallery {
     this.flip.capture(slug, image);
   }
 
-  private choreograph(): void {
-    const stage = this.stage().nativeElement;
-    const cards = gsap.utils.toArray<HTMLElement>('.riffle-card', stage);
-    const captions = gsap.utils.toArray<HTMLElement>('.riffle-caption', stage);
-    if (cards.length === 0) {
-      return;
-    }
-    const count = cards.length;
-    const featuredIndex = Math.floor(count / 2);
-    const metrics = () => layoutMetrics(window.innerWidth, window.innerHeight);
-    const at = (name: FormationName, index: number): Formation =>
-      formation(name, index, count, featuredIndex, metrics());
-    const pose = (name: FormationName): gsap.TweenVars => ({
-      x: (i: number) => at(name, i).x,
-      y: (i: number) => at(name, i).y,
-      z: (i: number) => at(name, i).z,
-      rotationX: (i: number) => at(name, i).rotationX,
-      rotationY: (i: number) => at(name, i).rotationY,
-      rotationZ: (i: number) => at(name, i).rotationZ,
-      scale: (i: number) => at(name, i).scale,
-      opacity: (i: number) => at(name, i).opacity,
-    });
+  protected pad(value: number): string {
+    return String(value).padStart(2, '0');
+  }
 
+  private choreograph(): () => void {
+    const stage = this.stage().nativeElement;
+    const plane = stage.querySelector<HTMLElement>('.plane')!;
+    const cards = gsap.utils.toArray<HTMLElement>('.riffle-card', stage);
+    const count = cards.length;
+    if (count === 0) {
+      return () => undefined;
+    }
+
+    const metrics = () => layoutMetrics(window.innerWidth, window.innerHeight);
+    const pose = (name: FormationName): gsap.TweenVars => {
+      const at = (i: number) => formation(name, i, count, metrics());
+      return {
+        x: (i: number) => at(i).x,
+        y: (i: number) => at(i).y,
+        z: (i: number) => at(i).z,
+        rotationX: (i: number) => at(i).rotationX,
+        rotationY: (i: number) => at(i).rotationY,
+        rotationZ: (i: number) => at(i).rotationZ,
+        scale: (i: number) => at(i).scale / RENDER_SCALE,
+        opacity: (i: number) => at(i).opacity,
+      };
+    };
     const applyCardSize = () => {
       const { cardWidth, cardHeight } = metrics();
-      stage.style.setProperty('--card-w', `${cardWidth}px`);
-      stage.style.setProperty('--card-h', `${cardHeight}px`);
+      stage.style.setProperty('--card-w', `${cardWidth * RENDER_SCALE}px`);
+      stage.style.setProperty('--card-h', `${cardHeight * RENDER_SCALE}px`);
     };
     applyCardSize();
 
-    gsap.set(cards, pose('fan'));
-    gsap.set(captions, { autoAlpha: 0, y: 24 });
-    gsap.set(captions[0], { autoAlpha: 1, y: 0 });
+    let scroll: gsap.core.Timeline | null = null;
+    const buildScroll = () => {
+      scroll = gsap.timeline({
+        defaults: { duration: 1, ease: 'power2.inOut' },
+        scrollTrigger: {
+          trigger: stage,
+          pin: true,
+          start: 'top top',
+          end: () => `+=${window.innerHeight * 2.6}`,
+          scrub: 0.7,
+          invalidateOnRefresh: true,
+          snap: {
+            snapTo: 'labels',
+            duration: { min: 0.3, max: 0.8 },
+            delay: 0.06,
+            ease: 'power1.inOut',
+          },
+          onRefresh: applyCardSize,
+          onUpdate: (self) => this.scene.set(Math.round(self.progress * (SCENES.length - 1))),
+        },
+      });
+      scroll.addLabel(SCENES[0].name);
+      FORMATIONS.slice(1).forEach((name, step) => {
+        scroll!.to(
+          cards,
+          { ...pose(name), stagger: { each: 0.012, from: step === 0 ? 'end' : 'start' } },
+          `+=${step === 0 ? 0 : 0.15}`,
+        );
+        scroll!.addLabel(name);
+      });
+    };
 
-    // Entrance: the paintings rise into the fan once, independent of scrolling.
-    gsap.from(gsap.utils.toArray('.riffle-card img', stage), {
-      yPercent: 40,
+    // Opening: the collection lands as a pile, then riffles open into the ring.
+    const releaseInput = this.holdScrolling();
+    gsap.set(cards, {
+      ...pose('pile'),
       opacity: 0,
-      duration: 1.2,
-      ease: 'power3.out',
-      stagger: { each: 0.06, from: 'center' },
+      y: (i: number) => formation('pile', i, count, metrics()).y + 120,
     });
-
-    const timeline = gsap.timeline({
-      defaults: { duration: 1, ease: 'power2.inOut' },
-      scrollTrigger: {
-        trigger: stage,
-        pin: true,
-        start: 'top top',
-        end: () => `+=${window.innerHeight * 3}`,
-        scrub: 0.8,
-        invalidateOnRefresh: true,
-        snap: { snapTo: 'labels', duration: { min: 0.25, max: 0.7 }, ease: 'power1.inOut' },
-        onRefresh: applyCardSize,
-        onUpdate: (self) => this.activeScene.set(Math.round(self.progress * (SCENES.length - 1))),
+    const opening = gsap.timeline({
+      delay: 0.1,
+      onComplete: () => {
+        releaseInput();
+        buildScroll();
       },
     });
+    opening
+      .to(cards, {
+        y: pose('pile').y,
+        opacity: 1,
+        duration: 0.8,
+        ease: 'power3.out',
+        stagger: { each: 0.02, from: 'end' },
+      })
+      .to(
+        cards,
+        {
+          ...pose('ring'),
+          duration: 1.4,
+          ease: 'expo.inOut',
+          stagger: { each: 0.022, from: 'start' },
+        },
+        '+=0.05',
+      )
+      .fromTo(
+        stage.querySelectorAll('.deck-chrome'),
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', stagger: 0.08 },
+        '-=0.6',
+      );
 
-    timeline.addLabel('fan');
-    SCENES.slice(1).forEach((scene, step) => {
-      const position = `+=${step === 0 ? 0.2 : 0.3}`;
-      timeline.to(cards, { ...pose(scene.name), stagger: { each: 0.015, from: 'center' } }, position);
-      timeline.to(captions[step], { autoAlpha: 0, y: -24, duration: 0.4 }, '<');
-      timeline.to(captions[step + 1], { autoAlpha: 1, y: 0, duration: 0.5 }, '<0.5');
-      timeline.addLabel(scene.name);
-    });
+    // The whole plane leans gently toward a mouse pointer.
+    const tiltX = gsap.quickTo(plane, 'rotationX', { duration: 1, ease: 'power3.out' });
+    const tiltY = gsap.quickTo(plane, 'rotationY', { duration: 1, ease: 'power3.out' });
+    const onPointer = (event: PointerEvent) => {
+      if (event.pointerType === 'mouse') {
+        tiltY((event.clientX / window.innerWidth - 0.5) * 10);
+        tiltX((0.5 - event.clientY / window.innerHeight) * 7);
+      }
+    };
+    stage.addEventListener('pointermove', onPointer);
+
+    return () => {
+      releaseInput();
+      opening.kill();
+      scroll?.scrollTrigger?.kill();
+      scroll?.kill();
+      stage.removeEventListener('pointermove', onPointer);
+    };
+  }
+
+  /** Holds wheel, touch and keyboard scrolling while the opening plays, unless the page is already scrolled. */
+  private holdScrolling(): () => void {
+    if (window.scrollY > 4) {
+      return () => undefined;
+    }
+    const block = (event: Event) => event.preventDefault();
+    const blockKeys = (event: KeyboardEvent) =>
+      SCROLL_KEYS.has(event.key) && event.preventDefault();
+    const options: AddEventListenerOptions = { passive: false };
+    window.addEventListener('wheel', block, options);
+    window.addEventListener('touchmove', block, options);
+    window.addEventListener('keydown', blockKeys);
+    let released = false;
+    return () => {
+      if (released) {
+        return;
+      }
+      released = true;
+      window.removeEventListener('wheel', block);
+      window.removeEventListener('touchmove', block);
+      window.removeEventListener('keydown', blockKeys);
+    };
   }
 }

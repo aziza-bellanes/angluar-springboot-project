@@ -15,6 +15,7 @@
 @import '@fontsource/cormorant-garamond/500.css';
 @import '@fontsource/cormorant-garamond/600.css';
 @import '@fontsource/cormorant-garamond/400-italic.css';
+@import '@fontsource/jetbrains-mono/400.css';
 
 @theme {
   --color-midnight: #101d35;
@@ -30,6 +31,7 @@
 
   --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
   --font-sans: 'Manrope Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   --ease-gallery: cubic-bezier(0.22, 1, 0.36, 1);
 }

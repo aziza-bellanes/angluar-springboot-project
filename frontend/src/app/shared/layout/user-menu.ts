@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideGavel, lucideLayoutDashboard, lucideLogOut } from '@ng-icons/lucide';
+import {
+  lucideChevronDown,
+  lucideGavel,
+  lucideLayoutDashboard,
+  lucideLogOut,
+} from '@ng-icons/lucide';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { AuthStore } from '@app/core/auth/auth.store';
 
@@ -9,7 +14,9 @@ import { AuthStore } from '@app/core/auth/auth.store';
 @Component({
   selector: 'at-user-menu',
   imports: [RouterLink, NgIcon, HlmDropdownMenuImports],
-  providers: [provideIcons({ lucideChevronDown, lucideGavel, lucideLayoutDashboard, lucideLogOut })],
+  providers: [
+    provideIcons({ lucideChevronDown, lucideGavel, lucideLayoutDashboard, lucideLogOut }),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
@@ -18,7 +25,9 @@ import { AuthStore } from '@app/core/auth/auth.store';
       align="end"
       class="inline-flex items-center gap-2 rounded-full border border-ivory/20 py-1 pr-3 pl-1 text-sm transition-colors hover:border-ivory/50"
     >
-      <span class="grid size-8 place-items-center rounded-full bg-sunflower text-xs font-bold text-midnight">
+      <span
+        class="grid size-8 place-items-center rounded-full bg-sunflower text-xs font-bold text-midnight"
+      >
         {{ initials() }}
       </span>
       <span class="hidden sm:inline">{{ auth.user()?.firstName }}</span>

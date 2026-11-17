@@ -39,7 +39,15 @@ export class FlipTransition {
         scaleY: source.rect.height / last.height,
         transformOrigin: 'top left',
       },
-      { x: 0, y: 0, scaleX: 1, scaleY: 1, duration: 0.9, ease: 'power3.inOut', clearProps: 'transform' },
+      {
+        x: 0,
+        y: 0,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 0.9,
+        ease: 'power3.inOut',
+        clearProps: 'transform',
+      },
     );
     return true;
   }
