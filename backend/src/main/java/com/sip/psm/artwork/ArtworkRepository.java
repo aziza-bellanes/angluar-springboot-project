@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ArtworkRepository extends JpaRepository<Artwork, Long> {
 
+    boolean existsByCreatedById(Long userId);
+
     @EntityGraph(attributePaths = {"artist", "exhibition"})
     Optional<Artwork> findBySlugAndStatus(String slug, ArtworkStatus status);
 

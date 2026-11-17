@@ -2,7 +2,7 @@
   <at-crud-table
     [search]="search"
     placeholder="Search users…"
-    [canCreate]="false"
+    newLabel="New user"
     [loading]="loading()"
     [error]="error()"
     [empty]="visible().length === 0"
@@ -10,6 +10,7 @@
     [page]="0"
     [totalPages]="1"
     [total]="visible().length"
+    (create)="openCreate()"
     (retry)="load()"
   >
     <table hlmTable>
@@ -58,9 +59,27 @@
               </button>
             </td>
             <td hlmTd>{{ user.createdAt | longDate }}</td>
-            <td hlmTd class="text-right">
-              <button hlmBtn variant="outline" size="sm" type="button" (click)="openRoles(user)">
-                <ng-icon name="lucideShieldCheck" /> Roles
+            <td hlmTd class="text-right whitespace-nowrap">
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                [attr.aria-label]="'Edit ' + user.email"
+                (click)="openEdit(user)"
+              >
+                <ng-icon name="lucidePencil" />
+              </button>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                [attr.aria-label]="'Delete ' + user.email"
+                [disabled]="isSelf(user)"
+                (click)="toDelete.set(user)"
+              >
+                <ng-icon name="lucideTrash2" />
               </button>
             </td>
           </tr>
@@ -71,41 +90,82 @@
 </section>
 
 <at-form-sheet
-  [open]="editing() !== null"
+  [open]="sheetOpen()"
   [form]="form"
   [saving]="saving()"
-  heading="Edit roles"
-  [description]="
-    editing() ? editing()!.firstName + ' ' + editing()!.lastName + ' · ' + editing()!.email : ''
-  "
-  submitLabel="Save roles"
-  (closed)="closeRoles()"
-  (submitted)="saveRoles()"
+  [heading]="editing() ? 'Edit user' : 'New user'"
+  description="Accounts, roles and access to the studio."
+  [submitLabel]="editing() ? 'Save changes' : 'Create user'"
+  (closed)="closeSheet()"
+  (submitted)="submit()"
 >
+  <div class="grid gap-4 sm:grid-cols-2">
+    <at-form-field label="First name" [control]="form.controls.firstName" [required]="true">
+      <input hlmInput [formControl]="form.controls.firstName" autocomplete="off" />
+    </at-form-field>
+    <at-form-field label="Last name" [control]="form.controls.lastName" [required]="true">
+      <input hlmInput [formControl]="form.controls.lastName" autocomplete="off" />
+    </at-form-field>
+  </div>
+  <at-form-field label="Email" [control]="form.controls.email" [required]="true">
+    <input hlmInput type="email" [formControl]="form.controls.email" autocomplete="off" />
+  </at-form-field>
+  <at-form-field label="Phone" [control]="form.controls.phone">
+    <input hlmInput [formControl]="form.controls.phone" />
+  </at-form-field>
+  <at-form-field
+    label="Password"
+    [control]="form.controls.password"
+    [required]="!editing()"
+    [hint]="editing() ? 'Leave empty to keep the current password' : 'At least 8 characters'"
+  >
+    <input hlmInput type="password" [formControl]="form.controls.password" autocomplete="new-password" />
+  </at-form-field>
   <fieldset class="grid gap-3">
     <legend class="mb-1 text-sm font-medium">
       Roles <span class="text-terracotta" aria-hidden="true">*</span>
     </legend>
-    @for (role of roles; track role.name) {
+    @for (role of roleOptions; track role.name) {
       <label class="flex items-start gap-3 rounded-lg border p-3 text-sm">
         <input
           type="checkbox"
           class="mt-0.5 size-4 accent-[var(--color-midnight)]"
-          [checked]="selected().includes(role.name)"
-          [disabled]="locked(role.name)"
+          [checked]="hasRole(role.name)"
+          [disabled]="lockedRole(role.name)"
           (change)="toggleRole(role.name, $any($event.target).checked)"
         />
         <span>
-          <span class="block font-medium">{{ role.name }}</span>
+          <span class="block font-medium">{{ role.label }}</span>
           <span class="text-xs text-muted-foreground">{{ role.hint }}</span>
         </span>
       </label>
     }
-    @if (noRoles()) {
+    @if (form.controls.roles.invalid && form.controls.roles.touched) {
       <p class="text-xs text-destructive" role="alert">Select at least one role.</p>
     }
     @if (editing() && isSelf(editing()!)) {
-      <p class="text-xs text-muted-foreground">You cannot remove your own ADMIN role.</p>
+      <p class="text-xs text-muted-foreground">You cannot remove your own Admin role.</p>
     }
   </fieldset>
+  <label class="flex items-center gap-2 text-sm">
+    <input
+      type="checkbox"
+      class="size-4 accent-[var(--color-midnight)]"
+      [formControl]="form.controls.enabled"
+    />
+    Enabled (the user can sign in)
+  </label>
 </at-form-sheet>
+
+<at-confirm-dialog
+  [open]="toDelete() !== null"
+  [pending]="deleting()"
+  heading="Delete this user?"
+  [message]="
+    '“' +
+    toDelete()?.email +
+    '” will be removed. Users with bids or created content cannot be deleted; disable the account instead.'
+  "
+  (confirmed)="confirmDelete()"
+  (cancelled)="toDelete.set(null)"
+/>

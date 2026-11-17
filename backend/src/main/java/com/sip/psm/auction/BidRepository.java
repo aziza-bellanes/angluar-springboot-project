@@ -14,4 +14,6 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
     Page<Bid> findByBidderEmailIgnoreCaseOrderByCreatedAtDesc(String email, Pageable pageable);
 
     boolean existsByAuctionId(Long auctionId);
+
+    boolean existsByBidderId(Long bidderId);
 }

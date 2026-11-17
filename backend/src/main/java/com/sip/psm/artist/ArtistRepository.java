@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ArtistRepository extends JpaRepository<Artist, Long> {
 
+    boolean existsByCreatedById(Long userId);
+
     @Query("""
             select a from Artist a
             where (:activeOnly = false or a.active = true)

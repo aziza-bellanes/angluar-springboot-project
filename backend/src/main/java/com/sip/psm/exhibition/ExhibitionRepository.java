@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ExhibitionRepository extends JpaRepository<Exhibition, Long> {
 
+    boolean existsByCreatedById(Long userId);
+
     @EntityGraph(attributePaths = "artist")
     @Query("""
             select e from Exhibition e

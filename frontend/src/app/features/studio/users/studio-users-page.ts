@@ -1,26 +1,25 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideShieldCheck } from '@ng-icons/lucide';
+import { lucidePencil, lucideTrash2 } from '@ng-icons/lucide';
 import { startWith } from 'rxjs';
 import { toast } from '@spartan-ng/brain/sonner';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTableImports } from '@spartan-ng/helm/table';
-import { messageOf } from '@app/core/api/problem';
+import { messageOf, problemOf } from '@app/core/api/problem';
 import { StudioApi } from '@app/core/api/studio.api';
 import { AuthStore } from '@app/core/auth/auth.store';
 import { RoleName, UserProfile } from '@app/core/models/api.models';
 import { LongDatePipe } from '@app/core/util/format.pipes';
+import { ConfirmDialog } from '../shared/confirm-dialog';
 import { CrudTable } from '../shared/crud-table';
+import { applyServerError } from '../shared/form-errors';
+import { FormField } from '../shared/form-field';
 import { FormSheet } from '../shared/form-sheet';
-
-const ROLES: { name: RoleName; hint: string }[] = [
-  { name: 'ADMIN', hint: 'Full access, auctions and users.' },
-  { name: 'COLLABORATEUR', hint: 'Can view and create artists, exhibitions and artworks.' },
-  { name: 'BIDDER', hint: 'Can place bids in auctions.' },
-];
+import { ROLE_OPTIONS, toUserFormValue, toUserRequest, userErrorMessage } from './user-form';
 
 @Component({
   selector: 'at-studio-users-page',
@@ -29,20 +28,24 @@ const ROLES: { name: RoleName; hint: string }[] = [
     NgIcon,
     HlmBadge,
     HlmButton,
+    HlmInput,
     HlmTableImports,
     LongDatePipe,
+    ConfirmDialog,
     CrudTable,
+    FormField,
     FormSheet,
   ],
-  providers: [provideIcons({ lucideShieldCheck })],
+  providers: [provideIcons({ lucidePencil, lucideTrash2 })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './studio-users-page.html',
 })
 export default class StudioUsersPage {
   private readonly api = inject(StudioApi);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly auth = inject(AuthStore);
 
-  protected readonly roles = ROLES;
+  protected readonly roleOptions = ROLE_OPTIONS;
   protected readonly users = signal<UserProfile[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -59,11 +62,36 @@ export default class StudioUsersPage {
       : this.users();
   });
 
+  protected readonly sheetOpen = signal(false);
   protected readonly editing = signal<UserProfile | null>(null);
   protected readonly saving = signal(false);
-  protected readonly selected = signal<RoleName[]>([]);
-  protected readonly form = new FormGroup({});
-  protected readonly noRoles = computed(() => this.selected().length === 0);
+  protected readonly toDelete = signal<UserProfile | null>(null);
+  protected readonly deleting = signal(false);
+
+  protected readonly form = new FormGroup({
+    firstName: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(80)],
+    }),
+    lastName: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(80)],
+    }),
+    email: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.email, Validators.maxLength(190)],
+    }),
+    phone: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(30), Validators.pattern(/^[+0-9 ()-]*$/)],
+    }),
+    password: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.minLength(8), Validators.maxLength(72)],
+    }),
+    roles: new FormControl<RoleName[]>([], { nonNullable: true, validators: [Validators.required] }),
+    enabled: new FormControl(true, { nonNullable: true }),
+  });
 
   constructor() {
     this.load();
@@ -74,7 +102,7 @@ export default class StudioUsersPage {
     this.error.set(null);
     this.api
       .users()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (users) => {
           this.users.set(users);
@@ -91,56 +119,107 @@ export default class StudioUsersPage {
     return user.id === this.auth.user()?.id;
   }
 
-  protected openRoles(user: UserProfile): void {
+  protected openCreate(): void {
+    this.open(null);
+  }
+
+  protected openEdit(user: UserProfile): void {
+    this.open(user);
+  }
+
+  private open(user: UserProfile | null): void {
     this.editing.set(user);
-    this.selected.set([...user.roles]);
-  }
-
-  protected closeRoles(): void {
-    this.editing.set(null);
-  }
-
-  protected toggleRole(role: RoleName, checked: boolean): void {
-    this.selected.update((current) =>
-      checked ? [...new Set([...current, role])] : current.filter((r) => r !== role),
+    this.form.reset(toUserFormValue(user));
+    const password = this.form.controls.password;
+    password.setValidators(
+      user
+        ? [Validators.minLength(8), Validators.maxLength(72)]
+        : [Validators.required, Validators.minLength(8), Validators.maxLength(72)],
     );
+    password.updateValueAndValidity();
+    this.sheetOpen.set(true);
   }
 
-  /** Admins cannot drop their own ADMIN role (the server refuses it too). */
-  protected locked(role: RoleName): boolean {
+  protected closeSheet(): void {
+    this.sheetOpen.set(false);
+  }
+
+  protected hasRole(role: RoleName): boolean {
+    return this.form.controls.roles.value.includes(role);
+  }
+
+  /** Admins cannot drop their own Admin role or disable themselves (the server refuses it too). */
+  protected lockedRole(role: RoleName): boolean {
     const user = this.editing();
     return role === 'ADMIN' && !!user && this.isSelf(user);
   }
 
-  protected saveRoles(): void {
-    const user = this.editing();
-    if (!user || this.noRoles()) return;
+  protected toggleRole(role: RoleName, checked: boolean): void {
+    const control = this.form.controls.roles;
+    control.setValue(
+      checked ? [...new Set([...control.value, role])] : control.value.filter((r) => r !== role),
+    );
+    control.markAsTouched();
+  }
+
+  protected submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const current = this.editing();
+    const request = toUserRequest(this.form.getRawValue());
+    const call = current ? this.api.updateUser(current.id, request) : this.api.createUser(request);
     this.saving.set(true);
-    this.api.updateRoles(user.id, this.selected()).subscribe({
-      next: (updated) => this.afterUpdate(updated, 'Roles updated.', true),
+    call.subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.sheetOpen.set(false);
+        toast.success(current ? 'User updated.' : 'User created.');
+        this.load();
+      },
       error: (err) => {
         this.saving.set(false);
-        toast.error(messageOf(err));
+        const problem = problemOf(err);
+        if (problem.status === 400) {
+          applyServerError(this.form, err);
+        } else if (problem.code === 'email_taken') {
+          const email = this.form.controls.email;
+          email.setErrors({ server: userErrorMessage(problem.code, '') });
+          email.markAsTouched();
+        } else {
+          toast.error(userErrorMessage(problem.code, messageOf(err)));
+        }
+      },
+    });
+  }
+
+  protected confirmDelete(): void {
+    const target = this.toDelete();
+    if (!target) return;
+    this.deleting.set(true);
+    this.api.deleteUser(target.id).subscribe({
+      next: () => {
+        this.deleting.set(false);
+        this.toDelete.set(null);
+        toast.success('User deleted.');
+        this.load();
+      },
+      error: (err) => {
+        this.deleting.set(false);
+        this.toDelete.set(null);
+        toast.error(userErrorMessage(problemOf(err).code, messageOf(err)));
       },
     });
   }
 
   protected toggleEnabled(user: UserProfile): void {
     this.api.updateStatus(user.id, !user.enabled).subscribe({
-      next: (updated) =>
-        this.afterUpdate(
-          updated,
-          updated.enabled ? 'Account enabled.' : 'Account disabled.',
-          false,
-        ),
-      error: (err) => toast.error(messageOf(err)),
+      next: (updated) => {
+        this.users.update((list) => list.map((u) => (u.id === updated.id ? updated : u)));
+        toast.success(updated.enabled ? 'Account enabled.' : 'Account disabled.');
+      },
+      error: (err) => toast.error(userErrorMessage(problemOf(err).code, messageOf(err))),
     });
-  }
-
-  private afterUpdate(updated: UserProfile, message: string, closeSheet: boolean): void {
-    this.users.update((list) => list.map((u) => (u.id === updated.id ? updated : u)));
-    this.saving.set(false);
-    if (closeSheet) this.editing.set(null);
-    toast.success(message);
   }
 }
