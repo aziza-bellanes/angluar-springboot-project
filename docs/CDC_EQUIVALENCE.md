@@ -63,7 +63,7 @@ The Angular UI mirrors the matrix (it is a convenience, not a security boundary)
 
 | CDC item | ATELIER implementation | Where in code |
 |---|---|---|
-| 11. Build `psm.jar` containing the Angular distribution in `static/` | The `Dockerfile` builds Angular in a Node stage, copies `dist/atelier/browser/` to `src/main/resources/static/` and runs `./mvnw package`; the jar is named `psm.jar`. `SpaWebConfig` forwards client-side routes to `index.html` | `Dockerfile`, `backend/pom.xml` (final name), `BE/web/SpaWebConfig.java` |
+| 11. Build `psm.jar` containing the Angular distribution in `static/` | The `Dockerfile` builds Angular in a Node stage, copies `dist/atelier/browser/` to `src/main/resources/static/` and runs `./mvnw package`; the jar is named `psm.jar`. Maven alone can also do it: `cd backend && ./mvnw -Pwith-frontend -DskipTests package` (opt-in `with-frontend` profile: Node install, `npm ci`, `npm run build`, copy of `dist/atelier/browser/` into `static/` inside the jar). `SpaWebConfig` forwards client-side routes to `index.html` | `Dockerfile`, `backend/pom.xml` (final name), `BE/web/SpaWebConfig.java` |
 | 12. Deploy to the VPS | Production stack (app + MySQL) with Docker Compose, host Nginx terminating HTTPS with WebSocket upgrade, one-command `deployment/deploy.sh user@host` with smoke checks | `deployment/compose.prod.yaml`, `deployment/nginx/atelier.conf`, `deployment/deploy.sh`, [DEPLOYMENT.md](DEPLOYMENT.md) |
 | Identical versions for the team | Development stack in Docker (MySQL 8.4.13, Mailpit, JDK 17, Node 22.23.2) and `.nvmrc` | `compose.yaml`, `.nvmrc`, `.env.example` |
 

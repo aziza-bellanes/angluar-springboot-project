@@ -1,5 +1,6 @@
 package com.sip.psm.studio;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,7 @@ public class StudioOverviewController {
         this.service = service;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','COLLABORATEUR')")
     @GetMapping
     public StudioOverview overview() {
         return service.overview();
