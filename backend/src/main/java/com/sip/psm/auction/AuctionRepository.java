@@ -15,6 +15,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
+    boolean existsByWinnerIdOrLeadingBidderId(Long winnerId, Long leadingBidderId);
+
     /** Row-level lock ({@code SELECT ... FOR UPDATE}) that serialises concurrent bids on one auction. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from Auction a where a.id = :id")

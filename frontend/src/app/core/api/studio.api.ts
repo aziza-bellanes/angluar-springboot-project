@@ -15,9 +15,11 @@ import {
   Page,
   PasswordRequest,
   ProfileRequest,
+  RoleInfo,
   RoleName,
   StudioOverview,
   UserProfile,
+  UserRequest,
 } from '../models/api.models';
 import { toParams } from './http-params';
 
@@ -88,6 +90,26 @@ export class StudioApi {
 
   users(): Observable<UserProfile[]> {
     return this.http.get<UserProfile[]>('/api/admin/users');
+  }
+
+  getUser(id: number): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`/api/admin/users/${id}`);
+  }
+
+  createUser(body: UserRequest): Observable<UserProfile> {
+    return this.http.post<UserProfile>('/api/admin/users', body);
+  }
+
+  updateUser(id: number, body: UserRequest): Observable<UserProfile> {
+    return this.http.put<UserProfile>(`/api/admin/users/${id}`, body);
+  }
+
+  deleteUser(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/admin/users/${id}`);
+  }
+
+  roles(): Observable<RoleInfo[]> {
+    return this.http.get<RoleInfo[]>('/api/admin/roles');
   }
 
   updateRoles(id: number, roles: RoleName[]): Observable<UserProfile> {

@@ -13,6 +13,7 @@ import com.sip.psm.exhibition.Exhibition;
 import com.sip.psm.support.IntegrationTest;
 import com.sip.psm.support.TestFixtures;
 import com.sip.psm.user.RoleName;
+import com.sip.psm.user.User;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -114,6 +115,20 @@ class SecurityMatrixIT {
                     """.formatted(f.artwork().getId(), now.plus(Duration.ofHours(1)), now.plus(Duration.ofHours(2))));
         }, 401, 403, 403, 201));
         list.add(new Endpoint("GET /api/admin/users", f -> get("/api/admin/users"), 401, 403, 403, 200));
+        list.add(new Endpoint("GET /api/admin/users/{id}",
+                f -> get("/api/admin/users/{id}", f.user(RoleName.BIDDER).getId()), 401, 403, 403, 200));
+        list.add(new Endpoint("POST /api/admin/users", f -> json(post("/api/admin/users"), """
+                {"firstName":"Matrix","lastName":"User","email":"%s@test.local","password":"Password123!","roles":["BIDDER"]}
+                """.formatted(java.util.UUID.randomUUID())), 401, 403, 403, 201));
+        list.add(new Endpoint("PUT /api/admin/users/{id}", f -> {
+            User user = f.user(RoleName.BIDDER);
+            return json(put("/api/admin/users/{id}", user.getId()), """
+                    {"firstName":"Matrix","lastName":"User","email":"%s","roles":["BIDDER"],"enabled":true}
+                    """.formatted(user.getEmail()));
+        }, 401, 403, 403, 200));
+        list.add(new Endpoint("DELETE /api/admin/users/{id}",
+                f -> delete("/api/admin/users/{id}", f.user(RoleName.BIDDER).getId()), 401, 403, 403, 204));
+        list.add(new Endpoint("GET /api/admin/roles", f -> get("/api/admin/roles"), 401, 403, 403, 200));
         list.add(new Endpoint("POST /api/auctions/{id}/bids", f -> {
             Auction auction = f.openAuction(new BigDecimal("100.00"), new BigDecimal("10.00"));
             return json(post("/api/auctions/{id}/bids", auction.getId()), "{\"amount\":100.00}");

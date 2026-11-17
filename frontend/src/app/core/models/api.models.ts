@@ -21,6 +21,22 @@ export interface UserProfile {
   createdAt: string;
 }
 
+/** Body of the administrator create and update calls; an empty password on update keeps the current one. */
+export interface UserRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  password?: string | null;
+  roles: RoleName[];
+  enabled: boolean;
+}
+
+export interface RoleInfo {
+  id: number;
+  name: RoleName;
+}
+
 export interface AuthResponse {
   token: string;
   expiresAt: string;
