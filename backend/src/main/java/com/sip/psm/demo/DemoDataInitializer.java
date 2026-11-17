@@ -174,7 +174,7 @@ public class DemoDataInitializer implements ApplicationRunner {
     private void seedAuctions(List<Artwork> works, User collectorA, User collectorB) {
         Instant now = clock.instant();
         for (int i = 0; i < Math.min(8, works.size()); i++) {
-            Auction auction = newAuction(works.get(i));
+            Auction auction = auctions.save(newAuction(works.get(i), now));
             if (i == 6) {
                 window(auction, now.plus(Duration.ofHours(2)), now.plus(Duration.ofDays(3)), now);
             } else if (i == 7) {
@@ -192,13 +192,15 @@ public class DemoDataInitializer implements ApplicationRunner {
         }
     }
 
-    private static Auction newAuction(Artwork artwork) {
+    private static Auction newAuction(Artwork artwork, Instant now) {
         BigDecimal start = startingPrice(artwork);
         Auction auction = new Auction();
         auction.setArtwork(artwork);
         auction.setStartingPrice(start);
         auction.setCurrentPrice(start);
         auction.setMinimumIncrement(start.divide(BigDecimal.TEN, 0, RoundingMode.UP).max(BigDecimal.ONE));
+        auction.setStartsAt(now);
+        auction.setEndsAt(now.plus(Duration.ofDays(1)));
         return auction;
     }
 

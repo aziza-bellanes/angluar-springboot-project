@@ -49,7 +49,7 @@ atelier:
     allowed-origins: ${CORS_ORIGINS:http://localhost:4200}
   mail:
     admin-address: ${ADMIN_EMAIL:admin@atelier.local}
-    from-address: ${MAIL_FROM:noreply@atelier.local}
+    from-address: ${MAIL_FROM:noreply@smartsoft-solutions.local}
   bootstrap:
     admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}
     admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
