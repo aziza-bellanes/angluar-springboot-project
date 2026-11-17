@@ -55,10 +55,7 @@
         class="caption-in absolute inset-x-6 bottom-10 z-20 max-w-md sm:left-10 md:top-1/2 md:bottom-auto md:-translate-y-1/2"
       >
         <p class="font-mono text-[11px] tracking-[0.3em] text-midnight/55 uppercase">
-          N° 01 — {{ art.artistName }}
-          @if (art.yearCreated) {
-            , {{ art.yearCreated }}
-          }
+          N° 01 — {{ byline() }}
         </p>
         <p class="mt-4 font-display text-4xl leading-[1.05] italic md:text-6xl">{{ art.title }}</p>
         <div class="mt-7 flex flex-wrap gap-3">

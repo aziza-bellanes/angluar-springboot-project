@@ -61,6 +61,10 @@ export class RiffleDeck {
   protected readonly scenes = SCENES;
   protected readonly cards = computed(() => this.artworks().slice(0, MAX_CARDS));
   protected readonly lead = computed(() => this.cards()[0]);
+  protected readonly byline = computed(() => {
+    const art = this.lead();
+    return art ? [art.artistName, art.yearCreated].filter(Boolean).join(', ') : '';
+  });
   protected readonly scene = signal(0);
 
   constructor() {
