@@ -1,3 +1,3 @@
-                    | Initial total        | 682.63 kB |               156.74 kB
-Application bundle generation complete. [6.857 seconds] - 2026-11-18T08:28:50.866Z
+                    | Initial total        | 684.58 kB |               158.71 kB
+Application bundle generation complete. [5.401 seconds] - 2026-11-18T11:42:08.037Z
 Output location: /home/aymmzn/Documents/projects/springbootzaaa/angluar-springboot-project/frontend/dist/atelier

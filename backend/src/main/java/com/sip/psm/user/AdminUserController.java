@@ -67,7 +67,7 @@ public class AdminUserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/roles")
     public UserResponse updateRoles(@PathVariable Long id, @Valid @RequestBody RolesUpdate body, Principal principal) {
-        return service.updateRoles(id, body.roles(), principal.getName());
+        return service.updateRoles(id, body, principal.getName());
     }
 
     @PreAuthorize("hasRole('ADMIN')")

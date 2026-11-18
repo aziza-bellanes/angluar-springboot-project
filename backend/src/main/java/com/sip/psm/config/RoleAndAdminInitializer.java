@@ -42,7 +42,7 @@ public class RoleAndAdminInitializer implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         Arrays.stream(RoleName.values())
-                .filter(name -> roles.findByLibelle(name).isEmpty())
+                .filter(name -> roles.findBySystemKey(name).isEmpty())
                 .forEach(name -> roles.save(new Role(name)));
 
         String email = bootstrap.adminEmail();

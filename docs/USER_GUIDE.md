@@ -91,9 +91,19 @@ Everything a Collaborateur can do, plus:
 3. The auction becomes **Open** automatically at its start time and **Closed** at its end, when the leading bidder is recorded as the winner.
 4. You can **edit** an auction until the first bid arrives, **cancel** a scheduled or open auction at any time, and **delete** an auction that has no bids (auctions with bids can only be cancelled).
 
-### Users and roles
+### Roles
+
+![Administrator role catalogue](evidence/screenshots/studio-roles.png)
+
+1. Open **Studio → Roles** as an administrator. The list shows the name, permission profile, system status and user count.
+2. Click **New role**, enter a unique name of up to 32 characters, select `ADMIN`, `COLLABORATEUR` or `BIDDER` as its permission profile, and save.
+3. Edit a role to rename it. Renaming does not change anyone’s permissions. You may change a custom role’s profile only while it has no assigned users.
+4. Assign the named role from **Users**. The choice comes from the API catalogue, so new roles appear without a code change.
+5. To delete a custom role, remove it from all users first. The three required system roles cannot be deleted and their profiles stay fixed. Their names remain editable.
+
+### Users and assignments
 1. Open **Users** to see every account.
-2. Click **New user** to create an account: first and last name, email, optional phone, a password of at least 8 characters, one or more roles, and the **Enabled** switch. This is how a new staff member gets Studio access: the administrator creates a Collaborateur account.
+2. Click **New user** to create an account: first and last name, email, optional phone, a password of at least 8 characters, one or more named roles from the live catalogue (each shows its permission profile), and the **Enabled** switch. This is how a new staff member gets Studio access: the administrator creates a Collaborateur account.
 3. Click the **pencil** on a row to edit the names, email, phone, roles and the **Enabled** switch. The password is optional: leave it empty to keep the current one, or type a new one (at least 8 characters).
 4. Use the switch to **enable or disable** an account; a disabled user cannot sign in. Disabling is how you retire an account that has history.
 5. Click the **trash** icon on a row to delete a user. A confirmation dialog asks you to confirm first. Deletion is refused, with a clear message, in three cases:

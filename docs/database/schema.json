@@ -16,10 +16,25 @@
           "nullable": false,
           "default": "-",
           "key": "UQ"
+        },
+        {
+          "name": "profile",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "system_key",
+          "type": "VARCHAR(32)",
+          "nullable": true,
+          "default": "-",
+          "key": "UQ"
         }
       ],
       "constraints": [
-        "CONSTRAINT uk_roles_libelle UNIQUE (libelle)"
+        "CONSTRAINT uk_roles_libelle UNIQUE (libelle)",
+        "CONSTRAINT uk_roles_system_key UNIQUE (system_key)"
       ],
       "pk": [
         "id"

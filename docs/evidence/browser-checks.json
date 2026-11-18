@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://127.0.0.1:18081",
-  "date": "2026-11-18T08:41:55.237Z",
+  "date": "2026-11-18T11:46:21.358Z",
   "checks": [
     {
       "name": "Public gallery and anonymous guard",
@@ -20,6 +20,26 @@
     },
     {
       "name": "Admin user management screen",
+      "status": "passed"
+    },
+    {
+      "name": "Admin creates a named role with a permission profile",
+      "status": "passed"
+    },
+    {
+      "name": "Users form assigns custom database roles and preserves the selection",
+      "status": "passed"
+    },
+    {
+      "name": "Custom Collaborateur role grants only catalogue read and create access",
+      "status": "passed"
+    },
+    {
+      "name": "Assigned role can be renamed while profile and deletion remain protected",
+      "status": "passed"
+    },
+    {
+      "name": "Admin unassigns a role then changes its profile and deletes it",
       "status": "passed"
     },
     {

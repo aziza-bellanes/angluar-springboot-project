@@ -33,6 +33,8 @@ Location: `backend/src/test/java/com/sip/psm/`. Unit tests are `*Test` (Surefire
 | `account/ProfileIT` | Profile update, invalid profile rejected, password change requires the current password and then allows login with the new one, anonymous access refused |
 | `studio/StudioOverviewIT` | Dashboard aggregates: trends, two weeks of daily activity, rankings, recent bids |
 | `user/AdminUserIT` | Admin creates, reads, updates and deletes users under `/api/admin/users`: duplicate email 409 `email_taken`, invalid create rejected, update changes fields and the login uses the new password, empty password keeps the current one, taken email refused on update, deletion of a user without activity, own account refused (`cannot_delete_self`), user with bids refused (`user_has_activity`), Collaborateur forbidden on the new endpoints, role list |
+| `user/AdminRoleIT` | Role CRUD, duplicate/reserved labels, required system-role guards, assigned custom-role guards, dynamic user role-ID assignment and authorization by profile |
+| `user/RoleMigrationIT` | Migrates populated V2 MySQL data to V3, preserves role IDs and user assignments, populates profile/system keys, and verifies rename/custom-role persistence |
 | `demo/DemoDataIT` | The demonstration gallery loads completely, with auctions in every state |
 
 ### Running
@@ -60,6 +62,7 @@ Specs sit next to the code (`*.spec.ts`) and run with Angular's test builder (Vi
 | `core/api/http-params.spec.ts` | Query parameter building: skips null/empty, keeps `0` and `false`, repeats array keys |
 | `core/util/format.spec.ts` | Countdown formatting and euro price formatting |
 | `features/studio/overview/overview-metrics.spec.ts` | Trend percentages, shares for ranking progress bars, compact euro ticks, chart datasets and status bar order |
+| `features/studio/users/user-form.spec.ts` | User form validation, optional edit password and dynamic role-ID selection |
 | `shared/animations/riffle-formations.spec.ts` | Riffle poses: compact on phones, deterministic bounded jitter, ring, pile, corridor and featured formations, finite poses for all sizes |
 
 ```bash
@@ -86,7 +89,7 @@ Prerequisites: the backend running with `DEMO_DATA=true` (the development Docker
 npx newman run postman/ATELIER.postman_collection.json --env-var baseUrl=http://localhost:8080
 ```
 
-Folder 6 also covers user administration: it creates a temporary Collaborateur with a unique email, checks the duplicate-email refusal (409 `email_taken`), reads and updates the user, checks that a Collaborateur cannot create users (403), checks that an admin cannot delete their own account (409 `cannot_delete_self`), deletes the temporary user (204), and lists the roles.
+Folder 6 also covers user administration: it creates a temporary Collaborateur with a unique email, checks the duplicate-email refusal (409 `email_taken`), reads and updates the user, checks that a Collaborateur cannot create users (403), checks that an admin cannot delete their own account (409 `cannot_delete_self`), deletes the temporary user (204), and exercises the role catalogue. Role scenarios create, read, rename and delete a custom role, assign it by ID, reject deletion/profile changes while assigned, preserve system roles and reject unauthorized access.
 
 The collection exercises the CDC checklist: login and registration, Client (Artist) and Projet (Exhibition) resources before and after security, role restrictions (collaborateur cannot update or delete, bidder cannot use the studio), and the security checks that anonymous calls are refused.
 
@@ -124,15 +127,18 @@ Start the stack (`docker compose up`) and use the accounts listed in the [README
 - [ ] `/studio` shows the access-denied page.
 
 ### Collaborateur (`curator@atelier.demo`)
-- [ ] Signs in and lands in the Studio; sidebar shows Overview, Artists, Exhibitions, Artworks (no Auctions, no Users).
+- [ ] Signs in and lands in the Studio; sidebar shows Overview, Artists, Exhibitions, Artworks (no Auctions, no Users, no Roles).
 - [ ] Dashboard shows KPI cards, trends, the line and bar charts and ranking tables.
 - [ ] Can view and add an artist, an exhibition and an artwork; no edit or delete buttons are shown.
-- [ ] Navigating by URL to `/studio/auctions` or `/studio/users` is denied.
+- [ ] Navigating by URL to `/studio/auctions`, `/studio/users` or `/studio/roles` is denied.
 
 ### Administrator (`admin@atelier.local`)
 - [ ] Edit and delete artists, exhibitions and artworks; deleting an artist that still has exhibitions shows a clear conflict message.
 - [ ] Create an auction for a published artwork; a second live auction for the same artwork is refused; edit it before bids; cancel it; delete one without bids; an auction with bids cannot be deleted.
 - [ ] Users page: change a user's roles; disable and re-enable an account (a disabled user cannot sign in); trying to remove your own admin role or disable yourself is refused.
+- [ ] Roles page: create a named role with a permission profile, read it, rename it and delete it when unassigned. Assign a custom role in Users and confirm the assigned name appears.
+- [ ] Assigned custom roles reject profile changes and deletion until unassigned. System roles reject profile changes and deletion but accept renaming. Restart keeps renamed system labels.
+- [ ] Collaborateur, bidder and anonymous requests cannot manage roles. Reserved profile names cannot be assigned to custom roles. Changing an ordinary display label never grants admin access.
 - [ ] Profile page updates name and phone.
 
 ### Cross-cutting

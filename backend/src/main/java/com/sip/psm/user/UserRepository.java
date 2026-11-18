@@ -13,6 +13,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
 
-    @Query("select count(u) from User u join u.roles r where r.libelle = :role and u.enabled = true")
+    @Query("select count(distinct u) from User u join u.roles r where r.profile = :role and u.enabled = true")
     long countEnabledWithRole(@Param("role") RoleName role);
+    @Query("select count(u) from User u join u.roles r where r.id = :roleId")
+    long countByRoleId(@Param("roleId") Long roleId);
 }

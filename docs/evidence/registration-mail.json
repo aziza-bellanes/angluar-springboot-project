@@ -1,7 +1,15 @@
 {
   "source": "isolated local Mailpit",
-  "count": 1,
+  "count": 2,
   "messages": [
+    {
+      "from": "noreply@smartsoft-solutions.local",
+      "to": [
+        "admin@atelier.local"
+      ],
+      "subject": "[SmartSoft Solutions \u00b7 ATELIER] New registration: Postman Tester",
+      "created": "2026-11-18T11:42:03.461Z"
+    },
     {
       "from": "noreply@smartsoft-solutions.local",
       "to": [

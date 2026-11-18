@@ -16,6 +16,7 @@ import {
   PasswordRequest,
   ProfileRequest,
   RoleInfo,
+  RoleRequest,
   RoleName,
   StudioOverview,
   UserProfile,
@@ -68,7 +69,10 @@ export class StudioApi {
   /** Specification "Clients". */
   readonly artists = new CrudResource<Artist, ArtistRequest>(this.http, '/api/studio/artists');
   /** Specification "Projets". */
-  readonly exhibitions = new CrudResource<Exhibition, ExhibitionRequest>(this.http, '/api/studio/exhibitions');
+  readonly exhibitions = new CrudResource<Exhibition, ExhibitionRequest>(
+    this.http,
+    '/api/studio/exhibitions',
+  );
   readonly artworks = new CrudResource<Artwork, ArtworkRequest>(this.http, '/api/studio/artworks');
   readonly auctions = new CrudResource<Auction, AuctionRequest>(this.http, '/api/studio/auctions');
 
@@ -77,15 +81,24 @@ export class StudioApi {
   }
 
   auctionsByStatus(status: AuctionStatus[], page = 0, size = 20): Observable<Page<Auction>> {
-    return this.http.get<Page<Auction>>('/api/studio/auctions', { params: toParams({ status, page, size }) });
+    return this.http.get<Page<Auction>>('/api/studio/auctions', {
+      params: toParams({ status, page, size }),
+    });
   }
 
   cancelAuction(id: number): Observable<Auction> {
     return this.http.post<Auction>(`/api/studio/auctions/${id}/cancel`, {});
   }
 
-  artworksByStatus(status?: ArtworkStatus, q?: string, page = 0, size = 20): Observable<Page<Artwork>> {
-    return this.http.get<Page<Artwork>>('/api/studio/artworks', { params: toParams({ status, q, page, size }) });
+  artworksByStatus(
+    status?: ArtworkStatus,
+    q?: string,
+    page = 0,
+    size = 20,
+  ): Observable<Page<Artwork>> {
+    return this.http.get<Page<Artwork>>('/api/studio/artworks', {
+      params: toParams({ status, q, page, size }),
+    });
   }
 
   users(): Observable<UserProfile[]> {
@@ -110,6 +123,22 @@ export class StudioApi {
 
   roles(): Observable<RoleInfo[]> {
     return this.http.get<RoleInfo[]>('/api/admin/roles');
+  }
+
+  getRole(id: number): Observable<RoleInfo> {
+    return this.http.get<RoleInfo>(`/api/admin/roles/${id}`);
+  }
+
+  createRole(body: RoleRequest): Observable<RoleInfo> {
+    return this.http.post<RoleInfo>('/api/admin/roles', body);
+  }
+
+  updateRole(id: number, body: RoleRequest): Observable<RoleInfo> {
+    return this.http.put<RoleInfo>(`/api/admin/roles/${id}`, body);
+  }
+
+  deleteRole(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/admin/roles/${id}`);
   }
 
   updateRoles(id: number, roles: RoleName[]): Observable<UserProfile> {

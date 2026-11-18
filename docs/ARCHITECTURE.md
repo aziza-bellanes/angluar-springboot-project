@@ -45,7 +45,7 @@ Base package: `backend/src/main/java/com/sip/psm/`. Each feature owns its entity
 | Package | Responsibility |
 |---|---|
 | `auth` | Registration, login, `/api/auth/me`, `UserRegisteredEvent`, `RegistrationMailListener` |
-| `user` | `User`, `Role`, `RoleName`, user administration (`AdminUserController`, `UserService`) |
+| `user` | `User`, `Role`, `RoleName`, user and role administration (`AdminUserController`, `AdminRoleController`, `UserService`, `RoleService`) |
 | `account` | Self-service: profile, password, own bids, won auctions |
 | `artist` | Artists (CDC *Client*): public and studio controllers, DTOs with public/private projections |
 | `exhibition` | Exhibitions (CDC *Projet*) |
@@ -58,7 +58,7 @@ Base package: `backend/src/main/java/com/sip/psm/`. Each feature owns its entity
 | `demo` | `DemoDataInitializer` and `DemoCatalog` (loaded when `DEMO_DATA=true`) |
 | `web` | `SpaWebConfig`: serves the Angular build and falls back to `index.html` for deep links |
 
-Database schema is owned by Flyway (`backend/src/main/resources/db/migration`: `V1__core_schema.sql`, `V2__artworks_auctions_bids.sql`); Hibernate runs with `ddl-auto: validate`.
+Database schema is owned by Flyway (`backend/src/main/resources/db/migration`: `V1__core_schema.sql`, `V2__artworks_auctions_bids.sql`, `V3__dynamic_roles.sql`); Hibernate runs with `ddl-auto: validate`.
 
 ## Domain model
 
@@ -75,7 +75,9 @@ classDiagram
     }
     class Role {
         Long id
-        RoleName libelle
+        String libelle
+        RoleName profile
+        RoleName systemKey
     }
     class RoleName {
         <<enumeration>>
@@ -270,15 +272,15 @@ app/
     ├── home, gallery, artwork-detail, artists, exhibitions
     ├── auctions (list, room, bid panel, bid history)
     ├── auth (login, register), account, errors
-    └── studio (layout, overview, artists, exhibitions, artworks, auctions, users, profile, shared CRUD helpers)
+    └── studio (layout, overview, artists, exhibitions, artworks, auctions, users, roles, profile, shared CRUD helpers)
 ```
 
 - **Two shells**: `PublicLayout` (art-first, cinematic) and `StudioLayout` (clear, Argon-inspired sidebar and ivory content area, under `/studio`).
 - **State**: signals only. `AuthStore` holds the session (token in `localStorage` under `atelier.session`, expired sessions ignored at startup) and exposes `isAuthenticated`, `isAdmin`, `isStaff`, `hasRole`.
-- **Guards**: `authGuard`, `roleGuard(...roles)`, `guestGuard` (see `core/auth/guards.ts`). `/studio` requires `ADMIN` or `COLLABORATEUR`; Auctions and Users require `ADMIN`.
+- **Guards**: `authGuard`, `roleGuard(...roles)`, `guestGuard` (see `core/auth/guards.ts`). `/studio` requires `ADMIN` or `COLLABORATEUR`; Auctions, Users and Roles require `ADMIN`.
 - **Interceptor**: `authInterceptor` adds the bearer token to `/api/` calls and logs out on a 401 (except on login/register).
 - **Realtime**: `AuctionSocket` keeps one shared STOMP connection to `/ws`, opened by the first subscriber and closed by the last, with automatic re-subscription after reconnects. `auction(id)` and `all()` return observables; `state` is a signal (`idle`, `connecting`, `live`, `reconnecting`).
-- **Studio CRUD**: `features/studio/shared/` (`crud-page`, `crud-table`, `form-sheet`, `form-field`, `confirm-dialog`, `pagination`) keeps the artist, exhibition, artwork, auction and user pages consistent; Chart.js is wrapped by `chart-canvas.ts`.
+- **Studio CRUD**: `features/studio/shared/` (`crud-page`, `crud-table`, `form-sheet`, `form-field`, `confirm-dialog`, `pagination`) keeps the artist, exhibition, artwork, auction, user and role pages consistent; Chart.js is wrapped by `chart-canvas.ts`.
 - **Styling**: Tailwind CSS 4 with tokens in `src/styles.css` (`midnight`, `cobalt`, `sunflower`, `ivory`, `canvas`, `cypress`, `terracotta`, `ink`; fonts Cormorant Garamond, Manrope, JetBrains Mono).
 
 ## Motion system
@@ -306,3 +308,11 @@ Every error is an RFC 9457 `application/problem+json` document with a stable mac
 ```
 
 Validation failures add a `fields` map. The frontend turns them into messages with `core/api/problem.ts` (`problemOf`, `messageOf`). Codes are listed in [API.md](API.md#error-format).
+
+## Editable roles and stable permissions
+
+`Role.libelle` is an editable unique label. `Role.profile` keeps one of the three permission profiles (`ADMIN`, `COLLABORATEUR`, `BIDDER`). V3 adds the non-null profile and nullable unique `system_key`. The initializer finds the three required roles by their system key, so a label change survives restarts and never creates a replacement system role.
+
+`RoleService` owns role CRUD and its integrity checks. Required roles retain their profile and cannot be deleted. Assigned custom roles retain their profile and cannot be deleted until unassigned. Renaming remains available. These rules preserve existing account authority while administrators manage the catalogue.
+
+Users hold actual catalogue rows through `user_roles`. Administration accepts `roleIds` and retains the legacy profile-array contract. Responses expose `roleIds` for selection and deduplicated effective `roles` for security. JWT authorities, server access rules and Angular guards check profiles. A label such as “ADMIN” alone grants no authority. The ADMIN-only `/studio/roles` page manages the catalogue; the Users page loads it dynamically.

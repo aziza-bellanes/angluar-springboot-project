@@ -1,6 +1,6 @@
 # Rebuilding the document set
 
-The guide and report adapt the BigDataZaaa HTML-to-PDF workflow to ATELIER's exact application colors: midnight `#101d35`, cobalt `#315c91`, sunflower `#e7b84b` and ivory `#f4edde`. Their text and page structure live in `build/content.mjs`; `build/render.mjs` embeds Archivo/Poppins fonts and prints the PDFs with Playwright. The database reference generates its dictionary directly from Flyway V1 and V2.
+The guide and report adapt the BigDataZaaa HTML-to-PDF workflow to ATELIER's exact application colors: midnight `#101d35`, cobalt `#315c91`, sunflower `#e7b84b` and ivory `#f4edde`. Their text and page structure live in `build/content.mjs`; `build/render.mjs` embeds Archivo/Poppins fonts and prints the PDFs with Playwright. The database reference generates its dictionary directly from Flyway V1, V2 and V3, including ALTER TABLE changes.
 
 ## Install the documentation dependencies
 
@@ -28,7 +28,7 @@ python3 docs/database/generate.py
 node docs/database/render.mjs
 ```
 
-This regenerates `docs/DATABASE.md`, the complete `docs/database/schema.json`, its editable HTML/CSS, relationship graph and `docs/database.pdf`. The main graph under `docs/diagrams/` can be rebuilt with `dot -Tsvg docs/diagrams/database.dot -o docs/diagrams/database.svg` and the analogous PNG command. `python3 docs/build/diagrams.py` regenerates the detailed ER graphs under `docs/diagrams/` directly from the SQL. The simplified `cdc-overview.dot` diagram can be rendered with the same Graphviz commands.
+The shared `database/schema.py` parser reads CREATE TABLE and V3 ADD/MODIFY COLUMN / ADD CONSTRAINT statements in migration order. Both dictionary and detailed graph generators use that schema. Unsupported ALTER clauses fail explicitly. This regenerates `docs/DATABASE.md`, the complete `docs/database/schema.json`, its editable HTML/CSS, relationship graph and `docs/database.pdf`. The main graph under `docs/diagrams/` can be rebuilt with `dot -Tsvg docs/diagrams/database.dot -o docs/diagrams/database.svg` and the analogous PNG command. `python3 docs/build/diagrams.py` regenerates the detailed ER graphs under `docs/diagrams/` directly from the SQL. The simplified `cdc-overview.dot` diagram can be rendered with the same Graphviz commands.
 
 ## Browser evidence
 
@@ -46,4 +46,4 @@ See [slides/README.md](slides/README.md). Its `build.mjs` uses the official Code
 
 ## Review and evidence
 
-Keep the date and test results aligned with the actual recorded run. Do not infer VPS deployment or real SMTP delivery from local results. Render all final PDF pages to images with `pdftoppm`, inspect them, and regenerate any document whose content changed.
+The guide/report, schema reference and deck read `docs/evidence/verification.json` for measured suite totals. Keep the date and test results aligned with the actual recorded run. Do not infer VPS deployment or real SMTP delivery from local results. Render all final PDF pages to images with `pdftoppm`, inspect them, and regenerate any document whose content changed.

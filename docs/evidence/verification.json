@@ -18,7 +18,7 @@
   },
   "failsafe": {
     "totals": {
-      "tests": 129,
+      "tests": 140,
       "failures": 0,
       "errors": 0,
       "skipped": 0
@@ -88,8 +88,22 @@
         "skipped": 0
       },
       {
+        "name": "com.sip.psm.user.AdminRoleIT",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
         "name": "com.sip.psm.user.AdminUserIT",
         "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.user.RoleMigrationIT",
+        "tests": 1,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -98,12 +112,12 @@
   },
   "newman": {
     "requests": {
-      "total": 77,
+      "total": 103,
       "pending": 0,
       "failed": 0
     },
     "assertions": {
-      "total": 136,
+      "total": 175,
       "pending": 0,
       "failed": 0
     },
@@ -111,7 +125,7 @@
   },
   "frontend": {
     "files": 10,
-    "tests": 61,
+    "tests": 64,
     "failures": 0
   },
   "date": "2026-11-18",
@@ -120,12 +134,24 @@
     "productionJava": "17 (Docker)",
     "node": "22.23.2",
     "mysql": "8.4.13",
-    "productionImage": "smartsoft/atelier:audit-20261118",
+    "productionImage": "smartsoft/atelier:roles-20261118",
     "liveVps": "not verified"
   },
-  "sourceCodeCommit": "0d7104f",
+  "databaseUpgrade": {
+    "fromVersion": "2",
+    "toVersion": "3",
+    "roleIdsPreserved": true,
+    "userAssignmentsPreserved": true,
+    "existingUserCountPreserved": true
+  },
+  "browser": {
+    "scenarios": 14,
+    "failures": 0,
+    "pageErrors": 0
+  },
+  "sourceCodeCommit": "2ca172f",
   "ci": {
-    "run": "https://github.com/aziza-bellanes/angluar-springboot-project/actions/runs/44268274452",
+    "run": "https://github.com/aziza-bellanes/angluar-springboot-project/actions/runs/44297908011",
     "backendJava17": "passed",
     "frontend": "passed",
     "productionImage": "passed"
