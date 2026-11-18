@@ -195,3 +195,9 @@ java -jar psm.jar
 | `DEMO_DATA` | `false` | Load the demonstration gallery |
 
 To run as a service, create a systemd unit with `ExecStart=/usr/bin/java -jar /opt/atelier/psm.jar`, an `EnvironmentFile=` holding the variables above, and a dedicated unprivileged user. Put Nginx in front exactly as in section 4.
+
+## Upgrading an existing V2 database
+
+The application applies `V3__dynamic_roles.sql` through Flyway at startup. It adds `roles.profile` and `roles.system_key`, fills them from the existing built-in labels, then makes `profile` mandatory. Existing role IDs and `user_roles` assignments remain intact. `RoleMigrationIT` exercises this populated V2-to-V3 path against MySQL. Keep V1 and V2 unchanged and back up the database before the normal deployment upgrade.
+
+After upgrade, administrators manage named roles under **Studio → Roles** and assign them from the live catalogue in **Users**. Renamed system roles retain stable system keys and permission profiles across restarts. No manual SQL rename or role recreation is required.

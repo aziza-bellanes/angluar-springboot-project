@@ -34,7 +34,7 @@ A ready-to-run collection is available in [`postman/ATELIER.postman_collection.j
 { "token": "eyJ...", "expiresAt": "2026-11-17T22:00:00Z", "user": { /* UserResponse */ } }
 // UserResponse
 { "id": 1, "firstName": "Atelier", "lastName": "Admin", "email": "admin@atelier.local",
-  "phone": null, "enabled": true, "roles": ["ADMIN"], "createdAt": "2026-11-17T10:00:00Z" }
+  "phone": null, "enabled": true, "roles": ["ADMIN"], "roleIds": [1], "createdAt": "2026-11-17T10:00:00Z" }
 ```
 
 Errors: register 409 `email_taken`; login 401 `invalid_credentials` (wrong password or disabled account). A successful registration creates a `BIDDER` and emails `ADMIN_EMAIL`.
@@ -194,9 +194,8 @@ Trends compare the last seven days with the seven days before.
 | POST | `/api/admin/users` | `CreateUserRequest` | 201 `UserResponse` |
 | PUT | `/api/admin/users/{id}` | `UpdateUserRequest` | 200 `UserResponse` |
 | DELETE | `/api/admin/users/{id}` | — | 204 |
-| PUT | `/api/admin/users/{id}/roles` | `{ "roles": ["COLLABORATEUR"] }` (non-empty set of `ADMIN`, `COLLABORATEUR`, `BIDDER`) | 200 `UserResponse` |
+| PUT | `/api/admin/users/{id}/roles` | `{ "roleIds": [2] }` (non-empty role catalogue IDs) | 200 `UserResponse` |
 | PUT | `/api/admin/users/{id}/status` | `{ "enabled": false }` | 200 `UserResponse` |
-| GET | `/api/admin/roles` | — | 200 `RoleResponse[]` |
 
 Unknown ids return 404 `not_found`.
 
@@ -204,15 +203,15 @@ Unknown ids return 404 `not_found`.
 // CreateUserRequest
 { "firstName": "required, max 80", "lastName": "required, max 80", "email": "required, valid, max 190",
   "phone": "optional, max 30, digits and + ( ) - only", "password": "required, 8 to 72 chars",
-  "roles": ["COLLABORATEUR"] /* required, non-empty */, "enabled": true /* optional, default true */ }
+  "roleIds": [2] /* required, non-empty catalogue IDs */, "enabled": true /* optional, default true */ }
 
 // UpdateUserRequest (send the whole profile)
 { "firstName": "required, max 80", "lastName": "required, max 80", "email": "required, valid, max 190",
   "phone": "optional, max 30", "password": "optional: omit or leave empty to keep the current one, otherwise 8 to 72 chars",
-  "roles": ["COLLABORATEUR"] /* required, non-empty */, "enabled": true /* required */ }
+  "roleIds": [2] /* required, non-empty catalogue IDs */, "enabled": true /* required */ }
 
-// RoleResponse (GET /api/admin/roles)
-{ "id": 2, "name": "COLLABORATEUR" }
+// UserResponse.roles contains effective permission profiles.
+// UserResponse.roleIds contains the selected catalogue role IDs.
 ```
 
 Rules:
@@ -225,6 +224,32 @@ Rules:
   - `cannot_delete_self`: the caller's own account;
   - `last_admin`: the last enabled administrator;
   - `user_has_activity`: the user has placed bids, won or leads an auction, or has created artists, exhibitions or artworks. Disable the account with `PUT /{id}/status` instead.
+
+## Role administration — `/api/admin/roles` (`ADMIN`)
+
+| Method | Path | Request | Success |
+|---|---|---|---|
+| GET | `/api/admin/roles` | — | 200 `RoleResponse[]` |
+| GET | `/api/admin/roles/{id}` | — | 200 `RoleResponse` |
+| POST | `/api/admin/roles` | `RoleRequest` | 201 `RoleResponse` |
+| PUT | `/api/admin/roles/{id}` | `RoleRequest` | 200 `RoleResponse` |
+| DELETE | `/api/admin/roles/{id}` | — | 204 |
+
+```jsonc
+// RoleRequest
+{ "name": "Guest curator", "profile": "COLLABORATEUR" }
+// RoleResponse
+{ "id": 4, "name": "Guest curator", "profile": "COLLABORATEUR", "system": false, "userCount": 0 }
+```
+
+Names are trimmed, required, unique without case distinction and at most 32 characters. The three profile names are reserved for their corresponding system roles. `profile` is one of `ADMIN`, `COLLABORATEUR`, `BIDDER`. Profiles define permissions. Renaming a role never changes its authority. Unknown IDs return 404 `not_found`.
+
+- Conflicts return 409: `role_name_taken` for a duplicate or reserved label, `system_role` for a forbidden system-role change, `role_in_use` while assigned, and `unknown_role` for an unknown assignment ID.
+- The three required system roles can be renamed. Their profiles cannot change and they cannot be deleted.
+- Custom roles support create, read, update and delete. An assigned custom role can be renamed. Unassign it from all users before changing its profile or deleting it.
+- The Users screen loads this catalogue and submits `roleIds`. User create, update and role-assignment APIs also accept the legacy `roles` array of permission profiles for compatibility. Prefer `roleIds` for dynamic role selection.
+- When `roleIds` is present it takes precedence over the legacy `roles` field and must be non-empty.
+- JWT authorities and Angular guards use effective profiles from `UserResponse.roles`. Actual assignment identity comes from `UserResponse.roleIds`.
 
 ## Health
 
@@ -295,4 +320,5 @@ Validation failure (400) adds a `fields` object:
 | 409 | `integrity_violation` | Record still referenced (for example an artist with exhibitions) |
 | 409 | `email_taken`, `wrong_password`, `self_demotion`, `self_disable`, `last_admin`, `password_too_short`, `cannot_delete_self`, `user_has_activity` | Account rules |
 | 409 | `exhibition_artist_mismatch`, `artwork_not_published`, `invalid_window`, `auction_overlap`, `auction_locked`, `artwork_change`, `auction_finished`, `auction_has_bids` | Catalogue and auction rules |
+| 409 | `role_name_taken`, `system_role`, `role_in_use`, `unknown_role` | Role catalogue and assignment rules |
 | 409 | `auction_not_open`, `already_leading`, `bid_too_low` | Bidding rules |

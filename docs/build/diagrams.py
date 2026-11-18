@@ -7,26 +7,11 @@ import subprocess
 root = Path(__file__).resolve().parents[2]
 out = root / "docs/diagrams"
 out.mkdir(exist_ok=True)
-sql = "\n".join(p.read_text() for p in sorted((root / "backend/src/main/resources/db/migration").glob("*.sql")))
-tables = {}
-edges = []
-for name, body in re.findall(r"CREATE TABLE (\w+) \((.*?)\) ENGINE", sql, re.S):
-    columns = []
-    fks = {c: (t, tc) for c, t, tc in re.findall(r"FOREIGN KEY \((\w+)\) REFERENCES (\w+) \((\w+)\)", body)}
-    composite = re.search(r"PRIMARY KEY \(([^)]+)\)", body)
-    primary = composite.group(1).replace(" ", "").split(",") if composite else ["id"]
-    for line in body.splitlines():
-        m = re.match(r"\s*(\w+)\s+(BIGINT|VARCHAR\(\d+\)|DECIMAL\(\d+,\s*\d+\)|INT|BOOLEAN|TIMESTAMP\(\d+\)|DATE)(.*)", line)
-        if not m:
-            continue
-        col, typ, rest = m.groups()
-        required = "NOT NULL" in rest or col in primary
-        columns.append((col, typ, required, col in primary, col in fks))
-        if col in fks:
-            parent, parent_col = fks[col]
-            action = re.search(r"FOREIGN KEY \(" + col + r"\)[^\n]*?(ON DELETE (?:CASCADE|SET NULL))", body)
-            edges.append((parent, name, col, required, action.group(1) if action else "RESTRICT"))
-    tables[name] = columns
+import sys
+sys.path.insert(0,str(root / 'docs/database'))
+from schema import tables as schema_tables, fks
+tables={t['name']:[(c['name'],c['type'],not c['nullable'],c['name'] in t['pk'],any(f['child']==t['name'] and f['col']==c['name'] for f in fks)) for c in t['columns']] for t in schema_tables}
+edges=[(f['parent'],f['child'],f['col'],not f['optional'],f['delete']) for f in fks]
 
 def dot_for(names, audit=True):
     lines = ['digraph Database {', 'graph [rankdir=LR, bgcolor="white", nodesep=0.5, ranksep=1.0, pad=0.3, splines=polyline];',

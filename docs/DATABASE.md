@@ -1,6 +1,6 @@
 # Database schema and cardinalities
 
-Generated from Flyway V1 and V2 by `python3 docs/database/generate.py`. SQL is authoritative. Full printable reference: [database.pdf](database.pdf); editable source: [database/database.html](database/database.html).
+Generated from Flyway V1, V2 and V3 by `python3 docs/database/generate.py`. SQL is authoritative. Full printable reference: [database.pdf](database.pdf); editable source: [database/database.html](database/database.html).
 
 ![All 13 database relationships](database/relationships.svg)
 
@@ -34,17 +34,20 @@ ON UPDATE is unspecified and restrictive for all FKs. Default ON DELETE RESTRICT
 
 ## roles
 
-Fixed application labels: ADMIN, COLLABORATEUR, BIDDER. JPA stores the enum as text. SQL has no CHECK limiting the labels; the unique key prevents duplicate labels. The API exposes a read-only catalogue, an explicit adaptation of broad CDC CRUD wording.
+Editable unique labels are independent from permission profiles ADMIN, COLLABORATEUR and BIDDER. profile is NOT NULL. Nullable unique system_key identifies required roles independently of renamed labels. Multiple custom roles may have NULL system_key. SQL has no CHECK limiting profile membership. ADMIN role CRUD preserves system profiles and blocks deletion or profile changes for assigned custom roles.
 
 | Column | SQL type | Nullable | Default / identity | Key |
 |---|---|---|---|---|
 | `id` | `BIGINT` | False | `AUTO_INCREMENT` | PK |
 | `libelle` | `VARCHAR(32)` | False | `-` | UQ |
+| `profile` | `VARCHAR(32)` | False | `-` | - |
+| `system_key` | `VARCHAR(32)` | True | `-` | UQ |
 
 Primary key: `(id)`.
 
 ```sql
 CONSTRAINT uk_roles_libelle UNIQUE (libelle)
+CONSTRAINT uk_roles_system_key UNIQUE (system_key)
 ```
 
 ## users
@@ -232,4 +235,4 @@ CONSTRAINT uk_bids_auction_amount UNIQUE (auction_id, amount)
 
 Primary and unique keys also create indexes. InnoDB creates missing FK supporting indexes. See page 14 of the PDF for expected names and prefix reuse.
 
-Totals: 8 tables; 70 columns; 13 FKs; 4 UNIQUE constraints; 4 CHECK constraints; 5 explicit secondary indexes.
+Totals: 8 tables; 72 columns; 13 FKs; 5 UNIQUE constraints; 4 CHECK constraints; 5 explicit secondary indexes.

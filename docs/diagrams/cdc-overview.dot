@@ -4,7 +4,7 @@ digraph Core {
   edge [dir=none, color="#315c91", fontname="DejaVu Sans", fontsize=16, labeldistance=2.0];
   users [label="User\nPK id\nemail"];
   user_roles [label="user_roles\nPK / FK user_id\nPK / FK role_id"];
-  roles [label="Role\nPK id\nlibelle"];
+  roles [label="Role\nPK id\nlibelle (editable)\nprofile, system_key"];
   artists [label="Artist (Client)\nPK id\nname"];
   exhibitions [label="Exhibition (Projet)\nPK id\nFK artist_id required"];
   users -> user_roles [taillabel="1", headlabel="0..*", label="role assignments"];

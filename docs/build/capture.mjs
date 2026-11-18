@@ -39,9 +39,14 @@ function field(page, label, type = 'input') {
   return page.locator('at-form-field').filter({ hasText: new RegExp(label.source.replace('^', '')) }).locator(type);
 }
 async function check(name, fn) {
-  await fn();
-  checks.push({ name, status: 'passed' });
-  console.log('PASS', name);
+  try {
+    await fn();
+    checks.push({ name, status: 'passed' });
+    console.log('PASS', name);
+  } catch (error) {
+    checks.push({ name, status: 'failed', error: String(error) });
+    throw error;
+  }
 }
 try {
   const visitor = await pageFor();
@@ -104,6 +109,80 @@ try {
     await expect(admin.getByText('admin@atelier.local', { exact: true })).toBeVisible();
     await shot(admin, 'studio-users');
   });
+  const suffix = Date.now().toString().slice(-6);
+  const customRole = 'Assistant curator ' + suffix;
+  const renamedRole = 'Senior curator ' + suffix;
+  const managedEmail = `role-ui-${suffix}@test.local`;
+  await check('Admin creates a named role with a permission profile', async () => {
+    await go(admin, '/studio/roles');
+    await admin.getByRole('button', { name: 'New role', exact: true }).click();
+    await field(admin, /^Name/).fill(customRole);
+    await field(admin, /^Permission profile/, 'select').selectOption('COLLABORATEUR');
+    await shot(admin, 'role-form');
+    await admin.getByRole('button', { name: 'Create role', exact: true }).click();
+    await expect(admin.getByRole('button', { name: 'Create role', exact: true })).toBeHidden();
+    await expect(admin.getByText(customRole, { exact: true })).toBeVisible();
+    await shot(admin, 'studio-roles');
+    await expect(admin.getByRole('button', { name: 'Delete role ADMIN', exact: true })).toBeDisabled();
+  });
+  await check('Users form assigns custom database roles and preserves the selection', async () => {
+    await go(admin, '/studio/users');
+    await admin.getByRole('button', { name: 'New user', exact: true }).click();
+    await field(admin, /^First name/).fill('Role');
+    await field(admin, /^Last name/).fill('Curator');
+    await field(admin, /^Email/).fill(managedEmail);
+    await field(admin, /^Password/).fill('Password123!');
+    await admin.getByRole('checkbox', { name: /^BIDDER/ }).uncheck();
+    await admin.getByRole('checkbox', { name: new RegExp('^' + customRole) }).check();
+    await shot(admin, 'user-role-form');
+    await admin.getByRole('button', { name: 'Create user', exact: true }).click();
+    await expect(admin.getByRole('button', { name: 'Create user', exact: true })).toBeHidden();
+    await expect(admin.getByText(managedEmail, { exact: true })).toBeVisible();
+    await admin.getByRole('button', { name: 'Edit ' + managedEmail, exact: true }).click();
+    await expect(admin.getByRole('checkbox', { name: new RegExp('^' + customRole) })).toBeChecked();
+    await expect(admin.getByRole('checkbox', { name: /^COLLABORATEUR/ })).not.toBeChecked();
+    await admin.getByRole('button', { name: 'Cancel', exact: true }).click();
+  });
+  await check('Custom Collaborateur role grants only catalogue read and create access', async () => {
+    const custom = await login(managedEmail, 'Password123!');
+    await go(custom, '/studio/artists');
+    await expect(custom.getByRole('button', { name: 'New artist', exact: true })).toBeVisible();
+    await expect(custom.getByRole('button', { name: /^Edit / })).toHaveCount(0);
+    await go(custom, '/studio/roles');
+    await expect(custom).toHaveURL(/\/forbidden/);
+  });
+  await check('Assigned role can be renamed while profile and deletion remain protected', async () => {
+    await go(admin, '/studio/roles');
+    await expect(admin.getByRole('button', { name: 'Delete role ' + customRole, exact: true })).toBeDisabled();
+    await admin.getByRole('button', { name: 'Edit role ' + customRole, exact: true }).click();
+    await expect(field(admin, /^Permission profile/, 'select')).toBeDisabled();
+    await field(admin, /^Name/).fill(renamedRole);
+    await admin.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await expect(admin.getByRole('button', { name: 'Save changes', exact: true })).toBeHidden();
+    await go(admin, '/studio/users');
+    await expect(admin.getByText(renamedRole, { exact: true })).toBeVisible();
+    await shot(admin, 'studio-users');
+  });
+  await check('Admin unassigns a role then changes its profile and deletes it', async () => {
+    await admin.getByRole('button', { name: 'Edit ' + managedEmail, exact: true }).click();
+    await admin.getByRole('checkbox', { name: new RegExp('^' + renamedRole) }).uncheck();
+    await admin.getByRole('checkbox', { name: /^BIDDER/ }).check();
+    await admin.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await expect(admin.getByRole('button', { name: 'Save changes', exact: true })).toBeHidden();
+    await go(admin, '/studio/roles');
+    await admin.getByRole('button', { name: 'Edit role ' + renamedRole, exact: true }).click();
+    await expect(field(admin, /^Permission profile/, 'select')).toBeEnabled();
+    await field(admin, /^Permission profile/, 'select').selectOption('BIDDER');
+    await admin.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await expect(admin.getByRole('button', { name: 'Save changes', exact: true })).toBeHidden();
+    await admin.getByRole('button', { name: 'Delete role ' + renamedRole, exact: true }).click();
+    await admin.getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(admin.getByText(renamedRole, { exact: true })).toBeHidden();
+    await go(admin, '/studio/users');
+    await admin.getByRole('button', { name: 'Delete ' + managedEmail, exact: true }).click();
+    await admin.getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(admin.getByText(managedEmail, { exact: true })).toBeHidden();
+  });
   const curator = await login('curator@atelier.demo', 'Atelier2026!');
   await check('Collaborateur create access and hidden edit delete actions', async () => {
     await go(curator, '/studio/artists');
@@ -114,6 +193,8 @@ try {
     await go(curator, '/studio/users');
     await expect(curator).toHaveURL(/\/forbidden/);
     await shot(curator, 'forbidden');
+    await go(curator, '/studio/roles');
+    await expect(curator).toHaveURL(/\/forbidden/);
   });
   const bidder = await login('collector@atelier.demo', 'Atelier2026!');
   await check('Bidder account and studio guard', async () => {
@@ -147,6 +228,9 @@ try {
     await admin.setViewportSize({ width: 390, height: 844 });
     await go(admin, '/studio');
     await shot(admin, 'mobile-studio');
+    await go(admin, '/studio/roles');
+    await expect(admin.getByRole('button', { name: 'New role', exact: true })).toBeVisible();
+    await shot(admin, 'mobile-roles');
     for (const p of [visitor, admin]) {
       if (await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) throw new Error('Horizontal page overflow');
     }

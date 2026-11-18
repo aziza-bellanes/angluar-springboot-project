@@ -1,9 +1,9 @@
 
-#30 exporting to image
-#30 exporting layers
-#30 exporting layers 0.9s done
-#30 writing image sha256:4fb131a2c2caa57f882ecbf6fcdac21652c9e83d4fb0508cf0cc1be47ec5e06e done
-#30 naming to docker.io/smartsoft/atelier:audit-20261118 done
-#30 DONE 0.9s
+#27 exporting to image
+#27 exporting layers
+#27 exporting layers 1.0s done
+#27 writing image sha256:a08eddf7d41e30b5700dcc09f015ed2ab916aebeb3dc9093a277ecc8919f1b4b 0.0s done
+#27 naming to docker.io/smartsoft/atelier:roles-20261118 done
+#27 DONE 1.1s
 
-View build details: docker-desktop://dashboard/build/default/default/sj45zdnulibidk4dopmeumgjb
+View build details: docker-desktop://dashboard/build/default/default/pfykyuzhnznwnppzu4k3c8rje

@@ -67,6 +67,7 @@ Handy commands:
 - **Money** is `BigDecimal` (`DECIMAL(14,2)`), never `double`.
 - **Time** comes from the injected `Clock` (`TimeConfig`), never `Instant.now()`, so tests can control it; timestamps are UTC.
 - **Security**: authorization lives in `SecurityConfig`; update the matrix, `SecurityMatrixIT` and the docs together.
+- **Roles**: use `Role.libelle` for display and `Role.profile` for authority. Create assignments with catalogue `roleIds`; retain effective profiles in auth responses. Never derive authority or system identity from a mutable label. V3 owns editable roles; append new migrations.
 - **Transactions** in services; keep `open-in-view` off. Use optimistic `@Version` for editable records and pessimistic locks only where contention matters (bids).
 - **Flyway**: schema changes are new files `V<n>__description.sql`. **A migration is never edited after it has been merged**; fix forward with a new version. Hibernate only validates the schema.
 - **Tests**: domain logic gets plain unit tests; HTTP behaviour gets `*IT` tests using `TestFixtures`.
@@ -89,7 +90,7 @@ Handy commands:
 
 Example: a new `Collection` entity managed in the Studio and shown publicly.
 
-1. **Migration**: add `backend/src/main/resources/db/migration/V3__collections.sql` (table, keys, indexes). Never touch V1 or V2.
+1. **Migration**: add `backend/src/main/resources/db/migration/V4__collections.sql` (table, keys, indexes). Never touch V1, V2 or V3.
 2. **Backend feature package** `com/sip/psm/collection/`:
    - `Collection` entity extending `AuditedEntity` (add `@Version`), `CollectionRepository`;
    - `CollectionDtos` with `CollectionRequest`, `CollectionResponse` (studio) and `CollectionSummary` (public);
