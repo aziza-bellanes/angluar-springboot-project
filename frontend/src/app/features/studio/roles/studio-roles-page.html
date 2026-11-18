@@ -1,0 +1,141 @@
+<section class="grid min-w-0 gap-4">
+  <p class="text-sm text-muted-foreground">
+    Create named roles and choose their permissions. Required system roles keep registration and
+    administrator access available.
+  </p>
+  <at-crud-table
+    class="min-w-0"
+    [search]="search"
+    placeholder="Search roles…"
+    newLabel="New role"
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="visible().length === 0"
+    emptyText="No roles match your search."
+    [page]="0"
+    [totalPages]="1"
+    [total]="visible().length"
+    (create)="open(null)"
+    (retry)="load()"
+  >
+    <table hlmTable>
+      <thead hlmTHead>
+        <tr hlmTr>
+          <th hlmTh>Role</th>
+          <th hlmTh>Permission profile</th>
+          <th hlmTh>Assigned users</th>
+          <th hlmTh class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody hlmTBody>
+        @for (role of visible(); track role.id) {
+          <tr hlmTr>
+            <td hlmTd>
+              <span class="block font-medium">{{ role.name }}</span>
+              <span class="text-xs text-muted-foreground">{{
+                role.system ? 'Required system role' : 'Custom role'
+              }}</span>
+            </td>
+            <td hlmTd>
+              <span hlmBadge [variant]="role.profile === 'ADMIN' ? 'default' : 'secondary'">{{
+                profiles[role.profile].label
+              }}</span>
+              <span class="mt-1 block text-xs text-muted-foreground">{{
+                profiles[role.profile].hint
+              }}</span>
+            </td>
+            <td hlmTd>{{ role.userCount }}</td>
+            <td hlmTd class="text-right whitespace-nowrap">
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                [attr.aria-label]="'Edit role ' + role.name"
+                (click)="open(role)"
+              >
+                <ng-icon name="lucidePencil" />
+              </button>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                [attr.aria-label]="'Delete role ' + role.name"
+                [disabled]="role.system || role.userCount > 0"
+                [title]="
+                  role.system
+                    ? 'Required system roles cannot be deleted'
+                    : role.userCount > 0
+                      ? 'Unassign this role from users before deleting it'
+                      : 'Delete role'
+                "
+                (click)="toDelete.set(role)"
+              >
+                <ng-icon name="lucideTrash2" />
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </at-crud-table>
+</section>
+
+<at-form-sheet
+  [open]="sheetOpen()"
+  [form]="form"
+  [saving]="saving()"
+  [heading]="editing() ? 'Edit role' : 'New role'"
+  description="The name identifies the role. Its permission profile determines access."
+  [submitLabel]="editing() ? 'Save changes' : 'Create role'"
+  (closed)="sheetOpen.set(false)"
+  (submitted)="submit()"
+>
+  <at-form-field
+    label="Name"
+    [control]="form.controls.name"
+    [required]="true"
+    hint="Up to 32 characters. Names must be unique."
+  >
+    <input hlmInput [formControl]="form.controls.name" autocomplete="off" />
+  </at-form-field>
+  <at-form-field label="Permission profile" [control]="form.controls.profile" [required]="true">
+    <select hlmInput [formControl]="form.controls.profile">
+      @for (profile of profileNames; track profile) {
+        <option [value]="profile">{{ profiles[profile].label }}</option>
+      }
+    </select>
+  </at-form-field>
+  <div class="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
+    @if (editing()?.system) {
+      <p>
+        This role is required by the application. You can rename it. Its permission profile stays
+        unchanged.
+      </p>
+    } @else if (editing() && editing()!.userCount > 0) {
+      <p>
+        This role is assigned to users. You can rename it. Unassign it from every user before
+        changing its permissions or deleting it.
+      </p>
+    } @else {
+      <p>
+        Admin grants full access, including users and roles. Collaborateur allows catalogue viewing
+        and creation. Bidder allows auction bids.
+      </p>
+    }
+  </div>
+</at-form-sheet>
+
+<at-confirm-dialog
+  [open]="toDelete() !== null"
+  [pending]="deleting()"
+  heading="Delete this role?"
+  [message]="
+    '“' +
+    toDelete()?.name +
+    '” will be removed. Only custom roles with no assigned users can be deleted.'
+  "
+  (confirmed)="confirmDelete()"
+  (cancelled)="toDelete.set(null)"
+/>

@@ -8,7 +8,8 @@ import com.sip.psm.auction.AuctionRepository;
 import com.sip.psm.auction.BidRepository;
 import com.sip.psm.exhibition.ExhibitionRepository;
 import com.sip.psm.user.UserDtos.CreateUserRequest;
-import com.sip.psm.user.UserDtos.RoleResponse;
+import com.sip.psm.user.UserDtos.RoleSelection;
+import com.sip.psm.user.UserDtos.RolesUpdate;
 import com.sip.psm.user.UserDtos.UpdateUserRequest;
 import com.sip.psm.user.UserDtos.UserResponse;
 import java.util.List;
@@ -48,11 +49,6 @@ public class UserService {
         this.artworks = artworks;
     }
 
-    @Transactional(readOnly = true)
-    public List<RoleResponse> listRoles() {
-        return roles.findAll(Sort.by("id")).stream().map(RoleResponse::from).toList();
-    }
-
     public UserResponse create(CreateUserRequest request) {
         String email = normalize(request.email());
         if (users.existsByEmailIgnoreCase(email)) {
@@ -65,24 +61,27 @@ public class UserService {
         user.setPhone(blankToNull(request.phone()));
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setEnabled(request.enabled() == null || request.enabled());
-        user.setRoles(resolve(request.roles()));
+        user.setRoles(resolve(request));
         return UserResponse.from(users.save(user));
     }
 
     public UserResponse update(Long id, UpdateUserRequest request, String actingEmail) {
+        lockAdminInvariant();
         User user = require(id);
+        Set<Role> requested = resolve(request);
+        boolean willBeAdmin = hasAdminProfile(requested);
         String email = normalize(request.email());
         if (users.existsByEmailIgnoreCaseAndIdNot(email, id)) {
             throw emailTaken();
         }
         boolean self = user.getEmail().equalsIgnoreCase(actingEmail);
-        if (self && !request.roles().contains(RoleName.ADMIN)) {
+        if (self && !willBeAdmin) {
             throw new BusinessRuleException("self_demotion", "You cannot remove your own administrator role");
         }
         if (self && !request.enabled()) {
             throw new BusinessRuleException("self_disable", "You cannot disable your own account");
         }
-        if (isEnabledAdmin(user) && (!request.roles().contains(RoleName.ADMIN) || !request.enabled())) {
+        if (isEnabledAdmin(user) && (!willBeAdmin || !request.enabled())) {
             requireAnotherAdmin();
         }
         if (request.password() != null && !request.password().isEmpty()) {
@@ -96,12 +95,13 @@ public class UserService {
         user.setEmail(email);
         user.setPhone(blankToNull(request.phone()));
         user.setEnabled(request.enabled());
-        user.setRoles(resolve(request.roles()));
+        user.setRoles(requested);
         return UserResponse.from(user);
     }
 
     /** Deletes an account that has no recorded activity; accounts with history must be disabled instead. */
     public void delete(Long id, String actingEmail) {
+        lockAdminInvariant();
         User user = require(id);
         if (user.getEmail().equalsIgnoreCase(actingEmail)) {
             throw new BusinessRuleException("cannot_delete_self", "You cannot delete your own account");
@@ -128,8 +128,29 @@ public class UserService {
         }
     }
 
-    private Set<Role> resolve(Set<RoleName> names) {
-        return names.stream().map(roles::require).collect(Collectors.toSet());
+    private Set<Role> resolve(RoleSelection selection) {
+        Set<Long> ids = selection.roleIds();
+        if (ids == null) {
+            if (selection.roles() == null || selection.roles().isEmpty()) {
+                throw new IllegalArgumentException("Select at least one role");
+            }
+            ids = selection.roles().stream().map(roles::require).map(Role::getId).collect(Collectors.toSet());
+        }
+        if (ids.isEmpty() || ids.contains(null)) throw new IllegalArgumentException("Select at least one valid role");
+        List<Role> selected = roles.lockByIds(ids);
+        if (selected.size() != ids.size()) {
+            throw new BusinessRuleException("unknown_role", "One or more selected roles no longer exist");
+        }
+        return new java.util.HashSet<>(selected);
+    }
+
+    private static boolean hasAdminProfile(Set<Role> selected) {
+        return selected.stream().anyMatch(role -> role.getProfile() == RoleName.ADMIN);
+    }
+
+    // Serialize account mutations that can remove the final administrator, including custom ADMIN profiles.
+    private void lockAdminInvariant() {
+        roles.lockBySystemKey(RoleName.ADMIN).orElseThrow();
     }
 
     private static BusinessRuleException emailTaken() {
@@ -159,19 +180,23 @@ public class UserService {
         return users.findByEmailIgnoreCase(email).orElseThrow(() -> new NotFoundException("User", email));
     }
 
-    public UserResponse updateRoles(Long id, Set<RoleName> requested, String actingEmail) {
+    public UserResponse updateRoles(Long id, RolesUpdate selection, String actingEmail) {
+        lockAdminInvariant();
         User user = require(id);
-        if (user.getEmail().equalsIgnoreCase(actingEmail) && !requested.contains(RoleName.ADMIN)) {
+        Set<Role> requested = resolve(selection);
+        boolean willBeAdmin = hasAdminProfile(requested);
+        if (user.getEmail().equalsIgnoreCase(actingEmail) && !willBeAdmin) {
             throw new BusinessRuleException("self_demotion", "You cannot remove your own administrator role");
         }
-        if (isEnabledAdmin(user) && !requested.contains(RoleName.ADMIN)) {
+        if (isEnabledAdmin(user) && !willBeAdmin) {
             requireAnotherAdmin();
         }
-        user.setRoles(resolve(requested));
+        user.setRoles(requested);
         return UserResponse.from(user);
     }
 
     public UserResponse updateStatus(Long id, boolean enabled, String actingEmail) {
+        lockAdminInvariant();
         User user = require(id);
         if (user.getEmail().equalsIgnoreCase(actingEmail) && !enabled) {
             throw new BusinessRuleException("self_disable", "You cannot disable your own account");

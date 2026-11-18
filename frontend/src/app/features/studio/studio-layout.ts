@@ -23,6 +23,7 @@ import {
   lucidePanelLeftClose,
   lucidePanelLeftOpen,
   lucideSearch,
+  lucideShieldCheck,
   lucideUser,
   lucideUsers,
 } from '@ng-icons/lucide';
@@ -85,8 +86,16 @@ const NAV: NavItem[] = [
   {
     path: '/studio/users',
     label: 'Users',
-    caption: 'Roles',
+    caption: 'Accounts',
     icon: 'lucideUsers',
+    tone: 'users',
+    adminOnly: true,
+  },
+  {
+    path: '/studio/roles',
+    label: 'Roles',
+    caption: 'Permissions',
+    icon: 'lucideShieldCheck',
     tone: 'users',
     adminOnly: true,
   },
@@ -119,6 +128,7 @@ const NAV: NavItem[] = [
       lucidePanelLeftClose,
       lucidePanelLeftOpen,
       lucideSearch,
+      lucideShieldCheck,
       lucideUser,
       lucideUsers,
     }),

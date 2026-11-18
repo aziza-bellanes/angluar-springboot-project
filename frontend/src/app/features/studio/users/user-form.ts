@@ -1,15 +1,5 @@
-import { RoleName, UserProfile, UserRequest } from '@app/core/models/api.models';
+import { RoleInfo, UserProfile, UserRequest } from '@app/core/models/api.models';
 import { blankToNull } from '../shared/form-errors';
-
-export const ROLE_OPTIONS: { name: RoleName; label: string; hint: string }[] = [
-  { name: 'ADMIN', label: 'Admin', hint: 'Full access, auctions and users.' },
-  {
-    name: 'COLLABORATEUR',
-    label: 'Collaborateur',
-    hint: 'Can view and create artists, exhibitions and artworks.',
-  },
-  { name: 'BIDDER', label: 'Bidder', hint: 'Can place bids in auctions.' },
-];
 
 const ERROR_MESSAGES: Record<string, string> = {
   email_taken: 'An account already exists for this email.',
@@ -32,7 +22,7 @@ export interface UserFormValue {
   email: string;
   phone: string;
   password: string;
-  roles: RoleName[];
+  roleIds: number[];
   enabled: boolean;
 }
 
@@ -44,19 +34,30 @@ export function toUserRequest(value: UserFormValue): UserRequest {
     email: value.email.trim(),
     phone: blankToNull(value.phone),
     password: value.password ? value.password : null,
-    roles: value.roles,
+    roleIds: value.roleIds,
     enabled: value.enabled,
   };
 }
 
-export function toUserFormValue(user: UserProfile | null): UserFormValue {
+export function assignedRoleIds(user: UserProfile, catalogue: RoleInfo[]): number[] {
+  return (
+    user.roleIds ??
+    catalogue
+      .filter((role) => role.system && user.roles.includes(role.profile))
+      .map((role) => role.id)
+  );
+}
+
+export function toUserFormValue(user: UserProfile | null, catalogue: RoleInfo[]): UserFormValue {
   return {
     firstName: user?.firstName ?? '',
     lastName: user?.lastName ?? '',
     email: user?.email ?? '',
     phone: user?.phone ?? '',
     password: '',
-    roles: user ? [...user.roles] : ['BIDDER'],
+    roleIds: user
+      ? [...assignedRoleIds(user, catalogue)]
+      : catalogue.filter((role) => role.system && role.profile === 'BIDDER').map((role) => role.id),
     enabled: user?.enabled ?? true,
   };
 }

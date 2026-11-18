@@ -4,7 +4,7 @@ import { StudioLayout } from './studio-layout';
 
 /**
  * Management studio (ADMIN and COLLABORATEUR). Specification menu: Clients → Artists,
- * Projets → Exhibitions, Users. Auctions and Users are ADMIN only.
+ * Projets → Exhibitions, Users. Auctions, Users and Roles are ADMIN only.
  */
 export default [
   {
@@ -47,6 +47,13 @@ export default [
         title: 'My profile · Studio',
         data: { heading: 'My profile' },
         loadComponent: () => import('./profile/studio-profile-page'),
+      },
+      {
+        path: 'roles',
+        title: 'Roles · Studio',
+        data: { heading: 'Roles' },
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () => import('./roles/studio-roles-page'),
       },
       {
         path: 'users',

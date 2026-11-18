@@ -18,6 +18,8 @@ export interface UserProfile {
   phone?: string;
   enabled: boolean;
   roles: RoleName[];
+  /** Assigned database roles. Optional only for sessions restored from older releases. */
+  roleIds?: number[];
   createdAt: string;
 }
 
@@ -28,13 +30,21 @@ export interface UserRequest {
   email: string;
   phone: string | null;
   password?: string | null;
-  roles: RoleName[];
+  roleIds: number[];
   enabled: boolean;
 }
 
 export interface RoleInfo {
   id: number;
-  name: RoleName;
+  name: string;
+  profile: RoleName;
+  system: boolean;
+  userCount: number;
+}
+
+export interface RoleRequest {
+  name: string;
+  profile: RoleName;
 }
 
 export interface AuthResponse {
