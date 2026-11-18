@@ -23,6 +23,14 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
+      - name: Bootstrap Maven wrapper with download retries
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            ./mvnw -B --version && break
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep 5
+          done
       - name: Unit and integration tests
         run: ./mvnw -B verify
 
