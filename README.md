@@ -139,7 +139,7 @@ The guide, report, database reference and slides follow the BigDataZaaa document
 
 ## Deployable JAR
 
-After successful GitHub Actions tests and image build, the `atelier-psm-jar` workflow artifact contains `psm.jar` (with Angular included) and its SHA-256 checksum. Private configuration and database data are transferred separately as described in [Deployment](docs/DEPLOYMENT.md).
+After successful GitHub Actions tests and image build, the `atelier-psm-jar` workflow artifact contains `psm.jar` (with Angular included) and its SHA-256 checksum. For a presentation-only update, the manually triggered **Package JAR** workflow builds the same artifact without rerunning the test suites. Private configuration and database data are transferred separately as described in [Deployment](docs/DEPLOYMENT.md).
 
 ## Team
 

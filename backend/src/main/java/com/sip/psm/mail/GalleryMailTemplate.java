@@ -32,14 +32,14 @@ public class GalleryMailTemplate {
         StringBuilder plain = new StringBuilder(content.title()).append("\n\n")
                 .append(content.greeting()).append("\n\n");
         for (String paragraph : content.paragraphs()) {
-            paragraphs.append("<p style=\"margin:0 0 18px;font-size:16px;line-height:1.7;color:#34445b\">")
+            paragraphs.append("<p style=\"margin:0 0 18px;font:15px/1.8 Arial,Helvetica,sans-serif;color:#34445b\">")
                     .append(escape(paragraph)).append("</p>");
             plain.append(paragraph).append("\n\n");
         }
         for (Detail detail : content.details()) {
-            details.append("<tr><td style=\"padding:10px 12px;border-bottom:1px solid #ddd5c7;color:#526078;font-size:13px;vertical-align:top;width:32%\">")
+            details.append("<tr><td style=\"padding:14px 16px;border-bottom:1px solid #e5dccd;color:#526078;font:12px/1.6 Arial,sans-serif;vertical-align:top;width:33%\">")
                     .append(escape(detail.label()))
-                    .append("</td><td style=\"padding:10px 12px;border-bottom:1px solid #ddd5c7;color:#101d35;font-size:14px;font-weight:bold;word-break:break-word\">")
+                    .append("</td><td style=\"padding:14px 16px;border-bottom:1px solid #e5dccd;color:#101d35;font:600 14px/1.5 Arial,sans-serif;word-break:break-word\">")
                     .append(escape(detail.value())).append("</td></tr>");
             plain.append(detail.label()).append(": ").append(detail.value()).append('\n');
         }

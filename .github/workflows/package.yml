@@ -1,0 +1,36 @@
+name: Package JAR
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Build deployable psm.jar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: atelier:package
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Extract the JAR and checksum
+        run: |
+          mkdir -p release
+          docker create --name atelier-artifact atelier:package
+          docker cp atelier-artifact:/app/psm.jar release/psm.jar
+          docker rm atelier-artifact
+          sha256sum release/psm.jar > release/psm.jar.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: atelier-psm-jar
+          path: release/
+          retention-days: 30
+          if-no-files-found: error

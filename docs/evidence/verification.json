@@ -169,7 +169,7 @@
     "productionJava": "17 (Docker)",
     "node": "22.23.2",
     "mysql": "8.4.13",
-    "productionImage": "smartsoft/atelier:mail-20261118",
+    "productionImage": "smartsoft/atelier:mail-design-20261118",
     "liveVps": "not verified"
   },
   "databaseUpgrade": {
@@ -195,7 +195,24 @@
       "email-smoke.json",
       "email-provider.json",
       "backup-restore.json"
-    ]
+    ],
+    "design": {
+      "scope": "visual refresh after functional verification",
+      "artwork": "Vincent van Gogh, Oleanders (1888), Metropolitan Museum of Art, CC0",
+      "transport": "bundled inline CID JPEG",
+      "previewWidths": [
+        760,
+        375
+      ],
+      "reviewedMessages": [
+        "welcome",
+        "winner",
+        "administrator result"
+      ],
+      "overflowOrMissingImages": false,
+      "suitesRerun": false
+    },
+    "functionalImage": "smartsoft/atelier:mail-20261118"
   },
   "sourceCodeBaseCommit": "2ca172f",
   "previousCi": {
@@ -205,11 +222,16 @@
     "productionImage": "passed"
   },
   "ci": {
-    "status": "pending push of this change set",
-    "actions": "https://github.com/aziza-bellanes/angluar-springboot-project/actions"
+    "run": "https://github.com/aziza-bellanes/angluar-springboot-project/actions/runs/44355446300",
+    "sourceCodeCommit": "7fad9b0daa09b627179fc49fdeb4b8e788a829ca",
+    "backendJava17": "passed",
+    "frontend": "passed",
+    "productionImage": "passed",
+    "note": "Final mail-only visual refresh uses packaging without rerunning suites, as requested."
   },
   "historicalChecks": {
     "newman": "103 requests/175 assertions from prior role-CRUD release; API shapes unchanged",
     "browser": "14 scenarios from prior role-CRUD release; new mail paths tested separately in email-smoke.json"
-  }
+  },
+  "sourceCodeCommit": "7fad9b0daa09b627179fc49fdeb4b8e788a829ca"
 }

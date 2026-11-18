@@ -2,6 +2,10 @@
 
 ATELIER sends multipart email with an HTML design and a plain-text alternative. The templates use midnight (`#101d35`), cobalt (`#315c91`), sunflower (`#e7b84b`) and ivory (`#f4edde`). Links use `PUBLIC_URL`, the browser origin of this instance.
 
+## Artwork and image display
+
+The shared HTML design features Vincent van Gogh’s *Oleanders* (1888), from The Metropolitan Museum of Art, Gift of Mr. and Mrs. John L. Loeb, 1962 (Open Access / CC0). The bundled artwork is attached as an inline image and referenced by a `cid:` URL; email display does not require downloading it from the application host. Email clients may still hide images. The plain-text alternative preserves the message and action link without the illustration.
+
 ## Account messages
 
 Public registration sends a welcome message to the new collector and a registration notification to `ADMIN_EMAIL`. Creating an enabled account in **Studio → Users** also sends that user a welcome message and an administrator notification, including accounts with staff roles. Editing an existing user or assigning a role does not resend it. Welcome messages contain no password or authentication token; the administrator must communicate any initial password separately.
@@ -41,3 +45,5 @@ PUBLIC_URL=https://atelier.example.com
 Use the account's app password rather than its normal login password. `MAIL_FROM` must be accepted by the SMTP provider, usually the authenticated Gmail address. For another provider, use its host, port and authentication settings. `SMTP_TLS` enables STARTTLS; these settings describe port 587, not implicit TLS on port 465.
 
 After updating configuration, recreate the backend/app container so it receives the new environment. Verify with a fresh account and a controlled auction, check the recipient inbox and spam folder, and inspect application logs without sharing credentials. Mailpit evidence and SMTP acceptance alone do not establish external inbox delivery. Private SMTP credentials are excluded from Git. The recorded production-image check captured 17 themed multipart messages in Mailpit; a controlled Gmail check accepted five messages for welcome, bid, winner and administrator flows. SMTP acceptance does not establish inbox placement. See [email-smoke.json](evidence/email-smoke.json) and [email-provider.json](evidence/email-provider.json). Synthetic desktop/mobile previews are in [emails/](emails/).
+
+The recorded functional checks above precede the final visual refresh. That refresh changes presentation and inline artwork only; its desktop/mobile previews are reviewed separately from the earlier functional and SMTP evidence.
