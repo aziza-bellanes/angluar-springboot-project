@@ -50,7 +50,7 @@ public class AuthService {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setPhone(blankToNull(request.phone()));
-        user.setRoles(Set.of(roles.require(RoleName.BIDDER)));
+        user.setRoles(Set.of(roles.lockBySystemKey(RoleName.BIDDER).orElseThrow()));
         users.save(user);
         events.publishEvent(new UserRegisteredEvent(user.getId(),
                 user.getFirstName() + " " + user.getLastName(), user.getEmail()));

@@ -1,9 +1,16 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucidePencil, lucideTrash2 } from '@ng-icons/lucide';
-import { startWith } from 'rxjs';
+import { forkJoin, startWith } from 'rxjs';
 import { toast } from '@spartan-ng/brain/sonner';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -12,14 +19,15 @@ import { HlmTableImports } from '@spartan-ng/helm/table';
 import { messageOf, problemOf } from '@app/core/api/problem';
 import { StudioApi } from '@app/core/api/studio.api';
 import { AuthStore } from '@app/core/auth/auth.store';
-import { RoleName, UserProfile } from '@app/core/models/api.models';
+import { RoleInfo, UserProfile } from '@app/core/models/api.models';
 import { LongDatePipe } from '@app/core/util/format.pipes';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { CrudTable } from '../shared/crud-table';
 import { applyServerError } from '../shared/form-errors';
 import { FormField } from '../shared/form-field';
 import { FormSheet } from '../shared/form-sheet';
-import { ROLE_OPTIONS, toUserFormValue, toUserRequest, userErrorMessage } from './user-form';
+import { assignedRoleIds, toUserFormValue, toUserRequest, userErrorMessage } from './user-form';
+import { ROLE_PROFILES } from '../roles/role-form';
 
 @Component({
   selector: 'at-studio-users-page',
@@ -45,7 +53,8 @@ export default class StudioUsersPage {
   private readonly destroyRef = inject(DestroyRef);
   protected readonly auth = inject(AuthStore);
 
-  protected readonly roleOptions = ROLE_OPTIONS;
+  protected readonly roleOptions = signal<RoleInfo[]>([]);
+  protected readonly profileHints = ROLE_PROFILES;
   protected readonly users = signal<UserProfile[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -89,7 +98,10 @@ export default class StudioUsersPage {
       nonNullable: true,
       validators: [Validators.minLength(8), Validators.maxLength(72)],
     }),
-    roles: new FormControl<RoleName[]>([], { nonNullable: true, validators: [Validators.required] }),
+    roleIds: new FormControl<number[]>([], {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     enabled: new FormControl(true, { nonNullable: true }),
   });
 
@@ -100,12 +112,12 @@ export default class StudioUsersPage {
   protected load(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api
-      .users()
+    forkJoin({ users: this.api.users(), roles: this.api.roles() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (users) => {
+        next: ({ users, roles }) => {
           this.users.set(users);
+          this.roleOptions.set(roles);
           this.loading.set(false);
         },
         error: (err) => {
@@ -129,7 +141,7 @@ export default class StudioUsersPage {
 
   private open(user: UserProfile | null): void {
     this.editing.set(user);
-    this.form.reset(toUserFormValue(user));
+    this.form.reset(toUserFormValue(user, this.roleOptions()));
     const password = this.form.controls.password;
     password.setValidators(
       user
@@ -144,18 +156,30 @@ export default class StudioUsersPage {
     this.sheetOpen.set(false);
   }
 
-  protected hasRole(role: RoleName): boolean {
-    return this.form.controls.roles.value.includes(role);
+  protected assignedRoles(user: UserProfile): RoleInfo[] {
+    const ids = assignedRoleIds(user, this.roleOptions());
+    return this.roleOptions().filter((role) => ids.includes(role.id));
+  }
+
+  protected hasRole(id: number): boolean {
+    return this.form.controls.roleIds.value.includes(id);
   }
 
   /** Admins cannot drop their own Admin role or disable themselves (the server refuses it too). */
-  protected lockedRole(role: RoleName): boolean {
+  protected lockedRole(role: RoleInfo): boolean {
     const user = this.editing();
-    return role === 'ADMIN' && !!user && this.isSelf(user);
+    return (
+      role.profile === 'ADMIN' &&
+      !!user &&
+      this.isSelf(user) &&
+      this.hasRole(role.id) &&
+      this.roleOptions().filter((option) => option.profile === 'ADMIN' && this.hasRole(option.id))
+        .length === 1
+    );
   }
 
-  protected toggleRole(role: RoleName, checked: boolean): void {
-    const control = this.form.controls.roles;
+  protected toggleRole(role: number, checked: boolean): void {
+    const control = this.form.controls.roleIds;
     control.setValue(
       checked ? [...new Set([...control.value, role])] : control.value.filter((r) => r !== role),
     );

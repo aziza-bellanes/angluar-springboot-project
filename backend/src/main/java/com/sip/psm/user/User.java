@@ -70,7 +70,7 @@ public class User {
     }
 
     public Set<RoleName> roleNames() {
-        return roles.stream().map(Role::getLibelle).collect(Collectors.toSet());
+        return roles.stream().map(Role::getProfile).collect(Collectors.toSet());
     }
 
     public boolean hasRole(RoleName role) {

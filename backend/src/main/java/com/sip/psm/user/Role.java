@@ -12,7 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** Specification entity Role (id, libellé), with the libellé stored as an enumeration. */
+/** A named role delegates permissions to a fixed security profile. */
 @Getter
 @Entity
 @Table(name = "roles")
@@ -23,11 +23,29 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true, length = 32)
-    private RoleName libelle;
+    private String libelle;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private RoleName profile;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "system_key", unique = true, length = 32)
+    private RoleName systemKey;
 
     public Role(RoleName libelle) {
-        this.libelle = libelle;
+        this.libelle = libelle.name();
+        this.profile = libelle;
+        this.systemKey = libelle;
+    }
+    public Role(String name, RoleName profile) {
+        this.libelle = name.trim();
+        this.profile = profile;
+    }
+
+    public void update(String name, RoleName profile) {
+        this.libelle = name.trim();
+        this.profile = profile;
     }
 }

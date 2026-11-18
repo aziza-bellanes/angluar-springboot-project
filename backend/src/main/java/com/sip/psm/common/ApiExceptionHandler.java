@@ -1,6 +1,8 @@
 package com.sip.psm.common;
 
 import java.util.Map;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,17 @@ public class ApiExceptionHandler {
                         (first, second) -> first));
         ProblemDetail detail = problem(HttpStatus.BAD_REQUEST, "validation_failed", "Some fields are invalid");
         detail.setProperty("fields", fields);
+        return detail;
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ProblemDetail unreadable(HttpMessageNotReadableException ex) {
+        ProblemDetail detail = problem(HttpStatus.BAD_REQUEST, "validation_failed", "Some fields are invalid");
+        Throwable cause = ex.getMostSpecificCause();
+        if (cause instanceof InvalidFormatException invalid && !invalid.getPath().isEmpty()) {
+            String field = invalid.getPath().get(0).getFieldName();
+            if (field != null) detail.setProperty("fields", Map.of(field, "must contain a valid value"));
+        }
         return detail;
     }
 
