@@ -1,0 +1,23 @@
+digraph ER { graph [rankdir=TB,bgcolor="transparent",pad="0.2",nodesep="0.65",ranksep="0.9"]; node [shape=box,style="rounded,filled",fillcolor="#f4edde",color="#315c91",fontname="DejaVu Sans",fontsize=15,margin="0.18"]; edge [color="#315c91",fontname="DejaVu Sans",fontsize=13,arrowsize=0.6];
+roles [label="roles\n2 columns"];
+users [label="users\n8 columns"];
+user_roles [label="user_roles\n2 columns"];
+artists [label="artists\n12 columns"];
+exhibitions [label="exhibitions\n12 columns"];
+artworks [label="artworks\n16 columns"];
+auctions [label="auctions\n13 columns"];
+bids [label="bids\n5 columns"];
+users -> user_roles [label="user_id\n1 : 0..*",style=solid];
+roles -> user_roles [label="role_id\n1 : 0..*",style=solid];
+users -> artists [label="created_by_id\n0..1 : 0..*",style=dashed];
+artists -> exhibitions [label="artist_id\n1 : 0..*",style=solid];
+users -> exhibitions [label="created_by_id\n0..1 : 0..*",style=dashed];
+artists -> artworks [label="artist_id\n1 : 0..*",style=solid];
+exhibitions -> artworks [label="exhibition_id\n0..1 : 0..*",style=dashed];
+users -> artworks [label="created_by_id\n0..1 : 0..*",style=dashed];
+artworks -> auctions [label="artwork_id\n1 : 0..*",style=solid];
+users -> auctions [label="leading_bidder_id\n0..1 : 0..*",style=dashed];
+users -> auctions [label="winner_id\n0..1 : 0..*",style=dashed];
+auctions -> bids [label="auction_id\n1 : 0..*",style=solid];
+users -> bids [label="bidder_id\n1 : 0..*",style=solid];
+}

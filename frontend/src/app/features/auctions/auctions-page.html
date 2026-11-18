@@ -1,0 +1,91 @@
+<section class="canvas-texture pt-28 pb-24">
+  <div class="container-gallery">
+    <p class="eyebrow">Auctions</p>
+    <h1 class="mt-3 font-display text-5xl leading-[1.05] md:text-7xl">Live auctions</h1>
+    <p class="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+      Bid in real time on works from our artists. All amounts are demonstration money: nothing is charged and nothing
+      is shipped, so feel free to play.
+    </p>
+
+    <div class="mt-10 flex flex-wrap items-center justify-between gap-4">
+      <div role="tablist" aria-label="Auction status" class="inline-flex rounded-full border bg-card p-1">
+        @for (t of tabs; track t.status) {
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="tab() === t.status"
+            class="rounded-full px-5 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+            [class]="tab() === t.status ? 'bg-midnight text-ivory' : 'text-muted-foreground hover:text-foreground'"
+            (click)="select(t.status)"
+          >
+            {{ t.label }}
+          </button>
+        }
+      </div>
+      <p class="flex items-center gap-2 text-xs tracking-[0.14em] text-muted-foreground uppercase" aria-live="polite">
+        <span
+          class="size-2 rounded-full"
+          [class]="socket.state() === 'live' ? 'animate-pulse bg-cypress' : 'bg-muted-foreground/40'"
+        ></span>
+        {{ socket.state() === 'live' ? 'Live updates on' : socket.state() === 'idle' ? 'Live updates off' : 'Connecting…' }}
+      </p>
+    </div>
+
+    <div class="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      @if (loading()) {
+        @for (n of [1, 2, 3]; track n) {
+          <hlm-skeleton class="h-96 w-full" />
+        }
+      } @else if (error()) {
+        <p class="text-terracotta sm:col-span-2 lg:col-span-3" role="alert">{{ error() }}</p>
+      } @else {
+        @for (auction of auctions(); track auction.id) {
+          <a [routerLink]="['/auctions', auction.id]" class="group block overflow-hidden rounded-md border bg-card">
+            <div class="relative overflow-hidden">
+              <img
+                [src]="auction.artwork.imageUrl"
+                [alt]="auction.artwork.title"
+                class="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-105"
+                loading="lazy"
+              />
+              <div class="absolute top-3 left-3"><at-auction-status-badge [status]="auction.status" /></div>
+            </div>
+            <div class="space-y-3 p-5">
+              <div>
+                <p class="font-display text-2xl leading-tight">{{ auction.artwork.title }}</p>
+                <p class="text-sm text-muted-foreground">{{ auction.artwork.artistName }}</p>
+              </div>
+              <div class="flex items-end justify-between border-t pt-3">
+                <div>
+                  <p class="eyebrow !tracking-[0.18em]">{{ auction.status === 'CLOSED' ? 'Final price' : 'Current bid' }}</p>
+                  <p class="price text-xl font-semibold">{{ auction.currentPrice | price }}</p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ auction.bidCount }} {{ auction.bidCount === 1 ? 'bid' : 'bids' }}
+                  </p>
+                </div>
+                <div class="text-right text-sm text-muted-foreground">
+                  @switch (auction.status) {
+                    @case ('OPEN') {
+                      <p class="eyebrow !tracking-[0.18em]">Ends in</p>
+                      <at-countdown [until]="auction.endsAt" />
+                    }
+                    @case ('SCHEDULED') {
+                      <p class="eyebrow !tracking-[0.18em]">Starts in</p>
+                      <at-countdown [until]="auction.startsAt" />
+                    }
+                    @case ('CLOSED') {
+                      <p class="eyebrow !tracking-[0.18em]">Won by</p>
+                      <p class="font-semibold text-foreground">{{ auction.winner ?? 'No winner' }}</p>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          </a>
+        } @empty {
+          <p class="text-muted-foreground sm:col-span-2 lg:col-span-3">{{ current().empty }}</p>
+        }
+      }
+    </div>
+  </div>
+</section>

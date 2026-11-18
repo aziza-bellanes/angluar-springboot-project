@@ -1,0 +1,191 @@
+<section class="grid gap-4">
+  <div class="flex flex-wrap gap-1.5" role="tablist" aria-label="Filter auctions by status">
+    @for (t of tabs; track t.value) {
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="tab() === t.value"
+        class="rounded-full border px-4 py-1.5 text-sm transition-colors"
+        [class]="
+          tab() === t.value ? 'border-midnight bg-midnight text-ivory' : 'bg-card hover:bg-muted'
+        "
+        (click)="setTab(t.value)"
+      >
+        {{ t.label }}
+      </button>
+    }
+  </div>
+
+  <at-crud-table
+    newLabel="New auction"
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="items().length === 0"
+    emptyText="No auctions in this view."
+    [page]="page()"
+    [totalPages]="totalPages()"
+    [total]="total()"
+    (create)="openCreate()"
+    (retry)="reload()"
+    (pageChange)="goTo($event)"
+  >
+    <table hlmTable>
+      <thead hlmTHead>
+        <tr hlmTr>
+          <th hlmTh>Artwork</th>
+          <th hlmTh>Status</th>
+          <th hlmTh class="text-right">Current price</th>
+          <th hlmTh class="text-right">Bids</th>
+          <th hlmTh>Starts</th>
+          <th hlmTh>Ends</th>
+          <th hlmTh class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody hlmTBody>
+        @for (auction of items(); track auction.id) {
+          <tr hlmTr>
+            <td hlmTd>
+              <span class="flex items-center gap-3">
+                <img
+                  [src]="auction.artwork.imageUrl"
+                  [alt]="auction.artwork.title"
+                  class="size-12 rounded-md object-cover"
+                  loading="lazy"
+                />
+                <span>
+                  <span class="block font-medium">{{ auction.artwork.title }}</span>
+                  <span class="text-xs text-muted-foreground">{{
+                    auction.artwork.artistName
+                  }}</span>
+                </span>
+              </span>
+            </td>
+            <td hlmTd><at-auction-status-badge [status]="auction.status" /></td>
+            <td hlmTd class="price text-right">{{ auction.currentPrice | price }}</td>
+            <td hlmTd class="text-right">{{ auction.bidCount }}</td>
+            <td hlmTd class="whitespace-nowrap">{{ auction.startsAt | dateTime }}</td>
+            <td hlmTd class="whitespace-nowrap">{{ auction.endsAt | dateTime }}</td>
+            <td hlmTd class="text-right whitespace-nowrap">
+              @if (auth.isAdmin()) {
+                @if (editable(auction)) {
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon-sm"
+                    type="button"
+                    [attr.aria-label]="'Edit auction for ' + auction.artwork.title"
+                    (click)="openEdit(auction)"
+                  >
+                    <ng-icon name="lucidePencil" />
+                  </button>
+                }
+                @if (live(auction)) {
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon-sm"
+                    type="button"
+                    [attr.aria-label]="'Cancel auction for ' + auction.artwork.title"
+                    (click)="toCancel.set(auction)"
+                  >
+                    <ng-icon name="lucideBan" />
+                  </button>
+                }
+                @if (auction.bidCount === 0) {
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon-sm"
+                    type="button"
+                    [attr.aria-label]="'Delete auction for ' + auction.artwork.title"
+                    (click)="toDelete.set(auction)"
+                  >
+                    <ng-icon name="lucideTrash2" />
+                  </button>
+                }
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </at-crud-table>
+</section>
+
+<at-form-sheet
+  [open]="sheetOpen()"
+  [form]="form"
+  [saving]="saving()"
+  [heading]="editing() ? 'Edit auction' : 'New auction'"
+  description="Times are in your local timezone."
+  [submitLabel]="editing() ? 'Save changes' : 'Schedule auction'"
+  (closed)="closeSheet()"
+  (submitted)="submit()"
+>
+  <at-form-field
+    label="Artwork"
+    [control]="form.controls.artworkId"
+    [required]="true"
+    hint="Only published artworks can be auctioned."
+  >
+    <select hlmInput [formControl]="form.controls.artworkId">
+      <option [ngValue]="null" disabled>Select an artwork…</option>
+      @for (artwork of artworkOptions(); track artwork.id) {
+        <option [ngValue]="artwork.id">{{ artwork.title }}</option>
+      }
+    </select>
+  </at-form-field>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <at-form-field
+      label="Starting price (EUR)"
+      [control]="form.controls.startingPrice"
+      [required]="true"
+    >
+      <input
+        hlmInput
+        type="number"
+        min="1"
+        step="0.01"
+        [formControl]="form.controls.startingPrice"
+      />
+    </at-form-field>
+    <at-form-field
+      label="Minimum increment (EUR)"
+      [control]="form.controls.minimumIncrement"
+      [required]="true"
+    >
+      <input
+        hlmInput
+        type="number"
+        min="1"
+        step="0.01"
+        [formControl]="form.controls.minimumIncrement"
+      />
+    </at-form-field>
+  </div>
+  <at-form-field label="Starts at" [control]="form.controls.startsAt" [required]="true">
+    <input hlmInput type="datetime-local" [formControl]="form.controls.startsAt" />
+  </at-form-field>
+  <at-form-field label="Ends at" [control]="form.controls.endsAt" [required]="true">
+    <input hlmInput type="datetime-local" [formControl]="form.controls.endsAt" />
+  </at-form-field>
+</at-form-sheet>
+
+<at-confirm-dialog
+  [open]="toDelete() !== null"
+  [pending]="deleting()"
+  heading="Delete this auction?"
+  message="Only auctions without bids can be deleted."
+  (confirmed)="confirmDelete()"
+  (cancelled)="toDelete.set(null)"
+/>
+
+<at-confirm-dialog
+  [open]="toCancel() !== null"
+  [pending]="cancelling()"
+  heading="Cancel this live auction?"
+  message="Bidding stops immediately and the auction is marked as cancelled. This cannot be undone."
+  confirmLabel="Cancel auction"
+  (confirmed)="confirmCancel()"
+  (cancelled)="toCancel.set(null)"
+/>

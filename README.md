@@ -1,94 +1,138 @@
-# PSM Smart Manager
+# ATELIER
 
-Application de gestion des clients et projets — Spring Boot 3, Angular 18, MySQL et JWT.
+**SmartSoft Solutions · ATELIER** — an immersive digital art gallery with live auctions.
 
-**Statut de livraison : builds Maven et Angular, tests API/sécurité et JAR unifié vérifiés.**
+ATELIER is a SmartSoft Solutions product. SmartSoft Solutions builds and operates the platform: a public gallery where visitors browse artworks in a cinematic scroll experience, and collectors bid in real time in live auction rooms. Behind it sits the **Studio**, SmartSoft's back-office tool to manage the gallery's clients (**Artists**) and projects (**Exhibitions**), as well as artworks, auctions and users.
 
-## Prérequis
-- JDK 17 ou 21, Maven 3.9+
-- Node.js 20.11+ ou version compatible avec Angular 18, npm
-- MySQL 8 (ou Docker Desktop)
+The project also fulfils a course specification (cahier des charges) that asks for a "PSM" application with `User`, `Role`, `Client` and `Projet`. Every requirement is kept, with a documented equivalent, in [docs/CDC_EQUIVALENCE.md](docs/CDC_EQUIVALENCE.md).
 
-## 1. Base de données et serveur SMTP de développement
+## Features
 
-Depuis la racine :
+**Public gallery**
+- Riffle-style homepage: a scroll-driven sequence (pile, ring, corridor, featured painting) built with GSAP ScrollTrigger, with a calm fallback for reduced motion.
+- Searchable gallery of published artworks, artist profiles and exhibitions.
+- Artwork-to-detail transition animated with GSAP Flip.
+
+**Live auctions**
+- Auction rooms with countdown, bid history (bidder names masked) and quick-bid buttons.
+- Real-time updates over STOMP/WebSocket: price, leader and status change instantly for everyone.
+- Bids placed under a pessimistic row lock; a soft close extends an auction when a bid lands near the end.
+- A scheduler opens and closes auctions on time and records the winner.
+
+**Accounts**
+- Public registration creates a collector (`BIDDER`) account and emails the administrator (async, after commit).
+- Stateless JWT authentication, "My collection" page with bids and won works, profile and password change.
+
+**Studio (back-office)**
+- Argon-inspired dashboard: gradient header with KPI cards and weekly trends, Chart.js line and bar charts, ranking tables with progress bars.
+- Artists (Clients), Exhibitions (Projets), Artworks, Auctions, Users, profile page.
+- Role-based access: `ADMIN` has full CRUD; `COLLABORATEUR` can view and create catalogue items only.
+
+**Engineering**
+- Flyway migrations, ProblemDetail errors with stable codes, Testcontainers integration tests, GitHub Actions CI, Docker for development and production, VPS deployment scripts, Postman collection.
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Java 17, Spring Boot 3.5.16 (Web, Data JPA, Security, Validation, WebSocket, Mail, Actuator), JJWT 0.12.6, Flyway, Lombok |
+| Database | MySQL 8.4 |
+| Frontend | Angular 22 (standalone, zoneless, signals), TypeScript 6, Tailwind CSS 4, spartan/ui (brain 1.9), RxJS 7.8 |
+| Motion and charts | GSAP 3 (ScrollTrigger, Flip), Chart.js 4.5.1 |
+| Realtime | STOMP over WebSocket (`@stomp/stompjs` 7.5) |
+| Tests | JUnit 5, Spring Test, Testcontainers (MySQL), Vitest 5 + jsdom |
+| Tooling | Maven Wrapper, npm 10, Node 22.23.2 (`.nvmrc`), Docker, GitHub Actions, Mailpit, Nginx + certbot |
+
+## Quick start (Docker)
+
+Prerequisites: Docker with the Compose plugin.
 
 ```bash
 cp .env.example .env
-# Modifier notamment MYSQL_ROOT_PASSWORD, JWT_SECRET et BOOTSTRAP_ADMIN_PASSWORD
-docker compose --env-file .env -f deployment/docker-compose.yml up -d
+docker compose up
 ```
 
-Mailpit : http://localhost:8025 (SMTP 1025). Cette boîte ne livre pas d'emails réels à l'admin ; configurez votre serveur SMTP pour cela.
+The first start downloads dependencies and may take a few minutes.
 
-## 2. Démarrer le backend
+| Service | URL |
+|---|---|
+| Application (Angular dev server, proxies `/api` and `/ws`) | http://localhost:4200 |
+| REST API | http://localhost:8080 |
+| Mailpit (catches the registration emails) | http://localhost:8025 |
+| MySQL | localhost:3306 |
 
-Variables d'environnement minimales (Windows PowerShell) :
+The development stack starts with `DEMO_DATA=true`, which loads a demonstration gallery (public-domain works from The Met Open Access) with auctions in every state.
 
-```powershell
-$env:DB_URL='jdbc:mysql://localhost:3306/psm_db?createDatabaseIfNotExist=true&serverTimezone=UTC'
-$env:DB_USER='psm'
-$env:DB_PASSWORD='psm_dev_password'
-$env:JWT_SECRET='replace_with_random_secret_at_least_32_bytes_long_please'
-$env:BOOTSTRAP_ADMIN_EMAIL='admin@psm.local'
-$env:BOOTSTRAP_ADMIN_PASSWORD='change-this-admin-password'
-$env:ADMIN_EMAIL='admin@example.test'
-$env:SMTP_HOST='localhost'
-$env:SMTP_PORT='1025'
-cd backend
-mvn spring-boot:run
-```
+### Demo accounts
 
-Par défaut backend : http://localhost:8080. Ne publiez pas ces identifiants d'exemple en production.
+| Role | Email | Password |
+|---|---|---|
+| Administrator (bootstrap account from `.env.example`) | `admin@atelier.local` | `Admin123!` |
+| Collaborateur | `curator@atelier.demo` | `Atelier2026!` |
+| Bidder | `collector@atelier.demo` | `Atelier2026!` |
+| Bidder | `patron@atelier.demo` | `Atelier2026!` |
 
-## 3. Démarrer Angular
+The demo accounts exist only when `DEMO_DATA=true`. Change every credential before exposing an instance.
 
-Depuis un second terminal :
+## Production build
 
 ```bash
-cd frontend
-npm install
-npm start
+docker build -t atelier .
 ```
 
-Frontend : http://localhost:4200. Le proxy `frontend/proxy.conf.json` transmet `/api` au backend local ; le build de production utilise la même origine que le JAR.
+The multi-stage `Dockerfile` builds the Angular app, copies it into the Spring Boot resources (`static/`) and produces a single executable `psm.jar` that serves the API, the WebSocket endpoint and the single-page app. For a VPS deployment with Nginx and HTTPS, or to run `psm.jar` directly, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
-## 4. Tester
+## Documentation
 
-```bash
-cd backend && mvn test
-cd ../frontend && npm test -- --browsers=ChromeHeadless
+The [18 November CDC audit](docs/CDC_AUDIT.md) distinguishes verified behavior from adaptations and remaining work. The required database cardinalities are implemented and tested. **Live VPS deployment (CDC step 12) remains pending**; the deployment kit and the locally tested production image are available.
+
+The guide, report, database reference and slides follow the BigDataZaaa document structure with ATELIER's midnight, cobalt, sunflower and ivory colors.
+
+| Document | Content |
+|---|---|
+| [docs/guide.pdf](docs/guide.pdf) | Illustrated guide explaining the tools, startup and every role |
+| [docs/report.pdf](docs/report.pdf) | Project report, implementation and verification results |
+| [docs/database.pdf](docs/database.pdf) | Complete 70-column database reference, keys, indexes, constraints and cardinalities |
+| [docs/slides.pdf](docs/slides.pdf) / [editable PowerPoint](docs/slides.pptx) | 17-slide presentation with source notes and an editable core database diagram |
+| [docs/CDC_AUDIT.md](docs/CDC_AUDIT.md) | Evidence and status for every requirement, including pending VPS deployment |
+| [docs/DATABASE.md](docs/DATABASE.md) | Searchable database dictionary and relationship explanations |
+| [docs/diagrams/database.svg](docs/diagrams/database.svg) | Full database relationship graph |
+| [docs/evidence/verification.json](docs/evidence/verification.json) | Dated test counts and environment |
+| [docs/DOCUMENTATION_BUILD.md](docs/DOCUMENTATION_BUILD.md) | Rebuilding the PDFs, captures and presentation |
+| [docs/CDC_EQUIVALENCE.md](docs/CDC_EQUIVALENCE.md) | Course specification mapped to ATELIER, requirement by requirement, plus extensions |
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Walkthroughs for visitors, bidders, collaborateurs and administrators |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrams, packages, domain model, security, bid flow, frontend structure |
+| [docs/API.md](docs/API.md) | Every REST endpoint, WebSocket topics, error format |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | VPS deployment, HTTPS, backups, running `psm.jar` directly |
+| [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | Automated tests, Postman/Newman, CI, manual checklists |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Local setup, conventions, adding a feature, git workflow |
+| [postman/ATELIER.postman_collection.json](postman/ATELIER.postman_collection.json) | Postman collection for the REST API |
+
+## Project structure
+
+```
+.
+├── backend/                      Spring Boot 3.5 application (artifact psm.jar)
+│   ├── src/main/java/com/sip/psm/
+│   │   ├── auth/ user/ account/  Registration, login, users, roles, profile
+│   │   ├── artist/ exhibition/   Clients and Projets of the specification
+│   │   ├── artwork/ auction/     Catalogue, auctions, bids, scheduler, broadcaster
+│   │   ├── studio/               Dashboard aggregates
+│   │   ├── security/ config/     JWT, STOMP auth, security matrix, properties
+│   │   └── common/ demo/ web/    Errors, paging, demo data, SPA fallback
+│   ├── src/main/resources/db/migration/   Flyway migrations (V1, V2)
+│   └── src/test/                 Unit and integration tests
+├── frontend/                     Angular 22 application
+│   └── src/app/{core,shared,features}
+├── deployment/                   compose.prod.yaml, nginx/atelier.conf, deploy.sh, .env.prod.example
+├── postman/                      API collection
+├── docs/                         Documentation
+├── .github/workflows/ci.yml      Continuous integration
+├── compose.yaml                  Development stack
+├── Dockerfile                    Production image (psm.jar with Angular in static/)
+└── .env.example                  Development environment variables
 ```
 
-Importez `postman/PSM-Smart-Manager.postman_collection.json` dans Postman. Connectez-vous puis utilisez la variable `token`.
+## Team
 
-## 5. Construire le JAR unique demandé par l'enseignante
-
-```bash
-cd frontend
-npm ci
-npm run build -- --configuration production
-```
-
-Sous Angular 18, le build de type application est généralement dans `frontend/dist/psm/browser/`.
-Copiez le **contenu** de ce dossier vers `backend/src/main/resources/static/`, puis :
-
-```bash
-cd ../backend
-mvn clean package
-java -jar target/psm.jar
-```
-
-La page `/` charge l'application Angular. Le contrôleur de fallback SPA du backend assure le fallback des routes frontend (voir `SpaController`).
-
-## 6. VPS
-
-Voir `docs/DEPLOYMENT.md`, `deployment/nginx-psm.conf` et `deployment/psm.service` pour Docker, systemd, les variables, HTTPS/TLS et les contrôles après déploiement.
-
-## Organisation
-- `backend/` Spring Boot (entités, repositories, services, controllers, JWT)
-- `frontend/` Angular standalone (pages, Router, guards, interceptor)
-- `database/` informations MySQL
-- `postman/` collection API
-- `docs/` architecture et plan de tests
-- `deployment/` Docker Compose et exemple proxy
+**Aymen Jedidi and Aziza Bellanes — SmartSoft Solutions**

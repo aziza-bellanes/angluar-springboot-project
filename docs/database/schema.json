@@ -1,0 +1,743 @@
+{
+  "tables": [
+    {
+      "name": "roles",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "AUTO_INCREMENT",
+          "key": "PK"
+        },
+        {
+          "name": "libelle",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": "-",
+          "key": "UQ"
+        }
+      ],
+      "constraints": [
+        "CONSTRAINT uk_roles_libelle UNIQUE (libelle)"
+      ],
+      "pk": [
+        "id"
+      ]
+    },
+    {
+      "name": "users",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "AUTO_INCREMENT",
+          "key": "PK"
+        },
+        {
+          "name": "first_name",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "last_name",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(190)",
+          "nullable": false,
+          "default": "-",
+          "key": "UQ"
+        },
+        {
+          "name": "password",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(30)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "enabled",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": "TRUE",
+          "key": "-"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "key": "-"
+        }
+      ],
+      "constraints": [
+        "CONSTRAINT uk_users_email UNIQUE (email)"
+      ],
+      "pk": [
+        "id"
+      ]
+    },
+    {
+      "name": "user_roles",
+      "columns": [
+        {
+          "name": "user_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "-",
+          "key": "PK + FK"
+        },
+        {
+          "name": "role_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "-",
+          "key": "PK + FK"
+        }
+      ],
+      "constraints": [
+        "PRIMARY KEY (user_id, role_id)",
+        "CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE",
+        "CONSTRAINT fk_user_roles_role FOREIGN KEY (role_id) REFERENCES roles (id)"
+      ],
+      "pk": [
+        "user_id",
+        "role_id"
+      ]
+    },
+    {
+      "name": "artists",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "AUTO_INCREMENT",
+          "key": "PK"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(190)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(30)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "address",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "country",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "biography",
+          "type": "VARCHAR(4000)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "photo_url",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "active",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": "TRUE",
+          "key": "-"
+        },
+        {
+          "name": "created_by_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "key": "-"
+        },
+        {
+          "name": "version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "key": "-"
+        }
+      ],
+      "constraints": [
+        "CONSTRAINT fk_artists_created_by FOREIGN KEY (created_by_id) REFERENCES users (id) ON DELETE SET NULL"
+      ],
+      "pk": [
+        "id"
+      ]
+    },
+    {
+      "name": "exhibitions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "AUTO_INCREMENT",
+          "key": "PK"
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "description",
+          "type": "VARCHAR(4000)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "budget",
+          "type": "DECIMAL(14, 2)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "duration_days",
+          "type": "INT",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "starts_on",
+          "type": "DATE",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "venue",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "cover_url",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "artist_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "created_by_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "key": "-"
+        },
+        {
+          "name": "version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "key": "-"
+        }
+      ],
+      "constraints": [
+        "CONSTRAINT fk_exhibitions_artist FOREIGN KEY (artist_id) REFERENCES artists (id)",
+        "CONSTRAINT fk_exhibitions_created_by FOREIGN KEY (created_by_id) REFERENCES users (id) ON DELETE SET NULL",
+        "CONSTRAINT ck_exhibitions_budget CHECK (budget >= 0)",
+        "CONSTRAINT ck_exhibitions_duration CHECK (duration_days > 0)"
+      ],
+      "pk": [
+        "id"
+      ]
+    },
+    {
+      "name": "artworks",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "AUTO_INCREMENT",
+          "key": "PK"
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(180)",
+          "nullable": false,
+          "default": "-",
+          "key": "UQ"
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "description",
+          "type": "VARCHAR(4000)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "year_created",
+          "type": "INT",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "medium",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "dimensions",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "image_url",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "image_credit",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "estimate",
+          "type": "DECIMAL(14, 2)",
+          "nullable": true,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(16)",
+          "nullable": false,
+          "default": "'PUBLISHED'",
+          "key": "-"
+        },
+        {
+          "name": "artist_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "exhibition_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "created_by_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "key": "-"
+        },
+        {
+          "name": "version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "key": "-"
+        }
+      ],
+      "constraints": [
+        "CONSTRAINT uk_artworks_slug UNIQUE (slug)",
+        "CONSTRAINT fk_artworks_artist FOREIGN KEY (artist_id) REFERENCES artists (id)",
+        "CONSTRAINT fk_artworks_exhibition FOREIGN KEY (exhibition_id) REFERENCES exhibitions (id) ON DELETE SET NULL",
+        "CONSTRAINT fk_artworks_created_by FOREIGN KEY (created_by_id) REFERENCES users (id) ON DELETE SET NULL"
+      ],
+      "pk": [
+        "id"
+      ]
+    },
+    {
+      "name": "auctions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "AUTO_INCREMENT",
+          "key": "PK"
+        },
+        {
+          "name": "artwork_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "starting_price",
+          "type": "DECIMAL(14, 2)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "current_price",
+          "type": "DECIMAL(14, 2)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "minimum_increment",
+          "type": "DECIMAL(14, 2)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "starts_at",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "ends_at",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(16)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "bid_count",
+          "type": "INT",
+          "nullable": false,
+          "default": "0",
+          "key": "-"
+        },
+        {
+          "name": "leading_bidder_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "winner_id",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "key": "-"
+        },
+        {
+          "name": "version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "key": "-"
+        }
+      ],
+      "constraints": [
+        "CONSTRAINT fk_auctions_artwork FOREIGN KEY (artwork_id) REFERENCES artworks (id)",
+        "CONSTRAINT fk_auctions_leader FOREIGN KEY (leading_bidder_id) REFERENCES users (id)",
+        "CONSTRAINT fk_auctions_winner FOREIGN KEY (winner_id) REFERENCES users (id)",
+        "CONSTRAINT ck_auctions_prices CHECK (starting_price > 0 AND minimum_increment > 0 AND current_price >= starting_price)",
+        "CONSTRAINT ck_auctions_window CHECK (ends_at > starts_at)"
+      ],
+      "pk": [
+        "id"
+      ]
+    },
+    {
+      "name": "bids",
+      "columns": [
+        {
+          "name": "id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "AUTO_INCREMENT",
+          "key": "PK"
+        },
+        {
+          "name": "auction_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "bidder_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "-",
+          "key": "FK"
+        },
+        {
+          "name": "amount",
+          "type": "DECIMAL(14, 2)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": "-",
+          "key": "-"
+        }
+      ],
+      "constraints": [
+        "CONSTRAINT fk_bids_auction FOREIGN KEY (auction_id) REFERENCES auctions (id) ON DELETE CASCADE",
+        "CONSTRAINT fk_bids_bidder FOREIGN KEY (bidder_id) REFERENCES users (id)",
+        "CONSTRAINT uk_bids_auction_amount UNIQUE (auction_id, amount)"
+      ],
+      "pk": [
+        "id"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "fk_user_roles_user",
+      "child": "user_roles",
+      "col": "user_id",
+      "parent": "users",
+      "pcol": "id",
+      "delete": "CASCADE",
+      "optional": false
+    },
+    {
+      "name": "fk_user_roles_role",
+      "child": "user_roles",
+      "col": "role_id",
+      "parent": "roles",
+      "pcol": "id",
+      "delete": "RESTRICT",
+      "optional": false
+    },
+    {
+      "name": "fk_artists_created_by",
+      "child": "artists",
+      "col": "created_by_id",
+      "parent": "users",
+      "pcol": "id",
+      "delete": "SET NULL",
+      "optional": true
+    },
+    {
+      "name": "fk_exhibitions_artist",
+      "child": "exhibitions",
+      "col": "artist_id",
+      "parent": "artists",
+      "pcol": "id",
+      "delete": "RESTRICT",
+      "optional": false
+    },
+    {
+      "name": "fk_exhibitions_created_by",
+      "child": "exhibitions",
+      "col": "created_by_id",
+      "parent": "users",
+      "pcol": "id",
+      "delete": "SET NULL",
+      "optional": true
+    },
+    {
+      "name": "fk_artworks_artist",
+      "child": "artworks",
+      "col": "artist_id",
+      "parent": "artists",
+      "pcol": "id",
+      "delete": "RESTRICT",
+      "optional": false
+    },
+    {
+      "name": "fk_artworks_exhibition",
+      "child": "artworks",
+      "col": "exhibition_id",
+      "parent": "exhibitions",
+      "pcol": "id",
+      "delete": "SET NULL",
+      "optional": true
+    },
+    {
+      "name": "fk_artworks_created_by",
+      "child": "artworks",
+      "col": "created_by_id",
+      "parent": "users",
+      "pcol": "id",
+      "delete": "SET NULL",
+      "optional": true
+    },
+    {
+      "name": "fk_auctions_artwork",
+      "child": "auctions",
+      "col": "artwork_id",
+      "parent": "artworks",
+      "pcol": "id",
+      "delete": "RESTRICT",
+      "optional": false
+    },
+    {
+      "name": "fk_auctions_leader",
+      "child": "auctions",
+      "col": "leading_bidder_id",
+      "parent": "users",
+      "pcol": "id",
+      "delete": "RESTRICT",
+      "optional": true
+    },
+    {
+      "name": "fk_auctions_winner",
+      "child": "auctions",
+      "col": "winner_id",
+      "parent": "users",
+      "pcol": "id",
+      "delete": "RESTRICT",
+      "optional": true
+    },
+    {
+      "name": "fk_bids_auction",
+      "child": "bids",
+      "col": "auction_id",
+      "parent": "auctions",
+      "pcol": "id",
+      "delete": "CASCADE",
+      "optional": false
+    },
+    {
+      "name": "fk_bids_bidder",
+      "child": "bids",
+      "col": "bidder_id",
+      "parent": "users",
+      "pcol": "id",
+      "delete": "RESTRICT",
+      "optional": false
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_artists_name",
+      "table": "artists",
+      "columns": "name"
+    },
+    {
+      "name": "idx_artworks_status",
+      "table": "artworks",
+      "columns": "status"
+    },
+    {
+      "name": "idx_auctions_status_ends",
+      "table": "auctions",
+      "columns": "status, ends_at"
+    },
+    {
+      "name": "idx_auctions_artwork",
+      "table": "auctions",
+      "columns": "artwork_id"
+    },
+    {
+      "name": "idx_bids_bidder",
+      "table": "bids",
+      "columns": "bidder_id, created_at"
+    }
+  ]
+}
