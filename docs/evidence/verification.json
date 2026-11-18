@@ -1,0 +1,133 @@
+{
+  "surefire": {
+    "totals": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": [
+      {
+        "name": "com.sip.psm.auction.AuctionTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "failsafe": {
+    "totals": {
+      "tests": 129,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": [
+      {
+        "name": "com.sip.psm.account.ProfileIT",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.auction.AuctionFlowIT",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.auction.ConcurrentBiddingIT",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.auth.AuthIT",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.catalog.CatalogFlowIT",
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.catalog.DatabaseRelationshipsIT",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.demo.DemoDataIT",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.security.SecurityMatrixIT",
+        "tests": 84,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.studio.StudioOverviewIT",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.user.AdminUserIT",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "newman": {
+    "requests": {
+      "total": 77,
+      "pending": 0,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 136,
+      "pending": 0,
+      "failed": 0
+    },
+    "failures": 0
+  },
+  "frontend": {
+    "files": 10,
+    "tests": 61,
+    "failures": 0
+  },
+  "date": "2026-11-18",
+  "environment": {
+    "localJava": "21.0.2 (target release 17)",
+    "productionJava": "17 (Docker)",
+    "node": "22.23.2",
+    "mysql": "8.4.13",
+    "productionImage": "smartsoft/atelier:audit-20261118",
+    "liveVps": "not verified"
+  },
+  "sourceCodeCommit": "0d7104f",
+  "ci": {
+    "run": "https://github.com/aziza-bellanes/angluar-springboot-project/actions/runs/44268274452",
+    "backendJava17": "passed",
+    "frontend": "passed",
+    "productionImage": "passed"
+  }
+}

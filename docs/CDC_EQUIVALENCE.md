@@ -2,7 +2,7 @@
 
 The course specification ("CDC: Projects Manager", version 1.0, course *Formation FullStack Spring Boot & Angular*) describes a **PSM** application that manages clients and their projects. SmartSoft Solutions delivers it as **ATELIER**, a digital art gallery with live auctions. The back-office (the **Studio**) is the PSM application: *Clients* are **Artists**, *Projets* are **Exhibitions**.
 
-Every requirement is kept. Where the vocabulary changes, the mapping is explicit below. Paths are relative to the repository root; `BE` stands for `backend/src/main/java/com/sip/psm` and `FE` for `frontend/src/app`.
+The mapping below describes the implementation. The [dated CDC audit](CDC_AUDIT.md) records verification and qualifications: **live VPS deployment remains pending**, the fixed role catalogue is read-only, and the Angular dashboard is an Argon-inspired rebuild. These adaptations must be acknowledged rather than counted as exact reproduction of every training step. Paths are relative to the repository root; `BE` stands for `backend/src/main/java/com/sip/psm` and `FE` for `frontend/src/app`.
 
 ## 1. Domain model
 
@@ -64,7 +64,7 @@ The Angular UI mirrors the matrix (it is a convenience, not a security boundary)
 | CDC item | ATELIER implementation | Where in code |
 |---|---|---|
 | 11. Build `psm.jar` containing the Angular distribution in `static/` | The `Dockerfile` builds Angular in a Node stage, copies `dist/atelier/browser/` to `src/main/resources/static/` and runs `./mvnw package`; the jar is named `psm.jar`. Maven alone can also do it: `cd backend && ./mvnw -Pwith-frontend -DskipTests package` (opt-in `with-frontend` profile: Node install, `npm ci`, `npm run build`, copy of `dist/atelier/browser/` into `static/` inside the jar). `SpaWebConfig` forwards client-side routes to `index.html` | `Dockerfile`, `backend/pom.xml` (final name), `BE/web/SpaWebConfig.java` |
-| 12. Deploy to the VPS | Production stack (app + MySQL) with Docker Compose, host Nginx terminating HTTPS with WebSocket upgrade, one-command `deployment/deploy.sh user@host` with smoke checks | `deployment/compose.prod.yaml`, `deployment/nginx/atelier.conf`, `deployment/deploy.sh`, [DEPLOYMENT.md](DEPLOYMENT.md) |
+| 12. Deploy to the VPS | **PENDING live deployment verification.** Production stack (app + MySQL), Nginx HTTPS/WebSocket configuration and a deployment script with smoke checks are prepared. A local production-image test does not establish deployment to a VPS | `deployment/compose.prod.yaml`, `deployment/nginx/atelier.conf`, `deployment/deploy.sh`, [DEPLOYMENT.md](DEPLOYMENT.md), [CDC_AUDIT.md](CDC_AUDIT.md) |
 | Identical versions for the team | Development stack in Docker (MySQL 8.4.13, Mailpit, JDK 17, Node 22.23.2) and `.nvmrc` | `compose.yaml`, `.nvmrc`, `.env.example` |
 
 ## 6. Vocabulary map
