@@ -1,0 +1,235 @@
+<ng-template #navList let-compact>
+  <nav aria-label="Studio" class="grid gap-1 px-3">
+    @if (!compact) {
+      <p
+        class="px-3 pb-2 text-[0.62rem] font-semibold tracking-widest text-sidebar-foreground/45 uppercase"
+      >
+        Manage
+      </p>
+    }
+    @for (item of items(); track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="!bg-sidebar-accent !text-sidebar-foreground before:!opacity-100"
+        [routerLinkActiveOptions]="{ exact: !!item.exact }"
+        [attr.title]="compact ? item.label : null"
+        [attr.aria-label]="compact ? item.label : null"
+        class="relative flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-sidebar-foreground/75 transition-colors before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-1 before:rounded-r before:bg-sunflower before:opacity-0 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
+        [class.justify-center]="compact"
+        (click)="mobileNavOpen.set(false)"
+      >
+        <span
+          class="grid size-9 shrink-0 place-items-center rounded-lg"
+          [class]="tones[item.tone].chip"
+        >
+          <ng-icon [name]="item.icon" size="18" />
+        </span>
+        @if (!compact) {
+          <span class="flex min-w-0 flex-col leading-tight">
+            <span class="truncate font-medium">{{ item.label }}</span>
+            @if (item.caption) {
+              <span class="text-[0.62rem] tracking-wider text-sidebar-foreground/45 uppercase">{{
+                item.caption
+              }}</span>
+            }
+          </span>
+        }
+      </a>
+    }
+  </nav>
+  <hr class="my-5 border-sidebar-border" [class]="compact ? 'mx-4' : 'mx-6'" />
+  <nav aria-label="Gallery" class="grid gap-1 px-3">
+    @if (!compact) {
+      <p
+        class="px-3 pb-2 text-[0.62rem] font-semibold tracking-widest text-sidebar-foreground/45 uppercase"
+      >
+        Gallery
+      </p>
+    }
+    @for (item of galleryLinks; track item.path) {
+      <a
+        [routerLink]="item.path"
+        [attr.title]="compact ? item.label : null"
+        [attr.aria-label]="compact ? item.label : null"
+        class="relative flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-sidebar-foreground/75 transition-colors before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-1 before:rounded-r before:bg-sunflower before:opacity-0 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
+        [class.justify-center]="compact"
+        (click)="mobileNavOpen.set(false)"
+      >
+        <span
+          class="grid size-9 shrink-0 place-items-center rounded-lg"
+          [class]="tones[item.tone].chip"
+        >
+          <ng-icon [name]="item.icon" size="18" />
+        </span>
+        @if (!compact) {
+          <span class="flex min-w-0 flex-col leading-tight">
+            <span class="truncate font-medium">{{ item.label }}</span>
+            @if (item.caption) {
+              <span class="text-[0.62rem] tracking-wider text-sidebar-foreground/45 uppercase">{{
+                item.caption
+              }}</span>
+            }
+          </span>
+        }
+      </a>
+    }
+  </nav>
+</ng-template>
+
+<ng-template #brand let-compact>
+  <div class="flex h-20 items-center" [class]="compact ? 'justify-center px-2' : 'px-6'">
+    <a routerLink="/studio" class="block" aria-label="ATELIER Studio">
+      @if (compact) {
+        <span
+          class="grid size-11 place-items-center rounded-xl bg-sunflower font-display text-2xl font-semibold text-midnight"
+          >A</span
+        >
+      } @else {
+        <span class="font-display text-2xl font-semibold tracking-[0.18em]">ATELIER</span>
+        <span class="ml-1 text-sm font-medium text-sunflower">Studio</span>
+        <span class="mt-0.5 block text-xs text-sidebar-foreground/50">by SmartSoft Solutions</span>
+      }
+    </a>
+  </div>
+</ng-template>
+
+<div class="studio-root min-h-screen bg-background" [style.--sidebar-w.px]="sidebarWidth()">
+  <aside
+    class="fixed inset-y-0 left-0 z-30 hidden w-[var(--sidebar-w)] flex-col overflow-x-hidden overflow-y-auto bg-gradient-to-b from-[#101d35] to-[#0c1629] text-sidebar-foreground transition-[width] duration-300 ease-gallery lg:flex"
+  >
+    <ng-container *ngTemplateOutlet="brand; context: { $implicit: collapsed() }" />
+    <ng-container *ngTemplateOutlet="navList; context: { $implicit: collapsed() }" />
+    <button
+      type="button"
+      class="mx-3 mt-auto mb-4 flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
+      [class.justify-center]="collapsed()"
+      [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      [attr.aria-expanded]="!collapsed()"
+      (click)="toggleSidebar()"
+    >
+      <span class="grid size-9 place-items-center"
+        ><ng-icon [name]="collapsed() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'" size="18"
+      /></span>
+      @if (!collapsed()) {
+        <span>Collapse</span>
+      }
+    </button>
+  </aside>
+
+  <hlm-sheet
+    side="left"
+    [state]="mobileNavOpen() ? 'open' : 'closed'"
+    (closed)="mobileNavOpen.set(false)"
+  >
+    <hlm-sheet-content
+      *hlmSheetPortal="let ctx"
+      class="w-72 border-0 bg-sidebar p-0 text-sidebar-foreground"
+    >
+      <ng-container *ngTemplateOutlet="brand; context: { $implicit: false }" />
+      <ng-container *ngTemplateOutlet="navList; context: { $implicit: false }" />
+    </hlm-sheet-content>
+  </hlm-sheet>
+
+  <div class="transition-[padding] duration-300 ease-gallery lg:pl-[var(--sidebar-w)]">
+    <header
+      class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-background/95 px-5 backdrop-blur lg:px-8"
+    >
+      <button
+        hlmBtn
+        variant="ghost"
+        size="icon"
+        class="lg:hidden"
+        type="button"
+        aria-label="Open navigation"
+        (click)="mobileNavOpen.set(true)"
+      >
+        <ng-icon name="lucideMenu" size="20" />
+      </button>
+      <button
+        hlmBtn
+        variant="ghost"
+        size="icon"
+        class="hidden lg:inline-flex"
+        type="button"
+        [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+        [attr.aria-expanded]="!collapsed()"
+        (click)="toggleSidebar()"
+      >
+        <ng-icon [name]="collapsed() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'" size="20" />
+      </button>
+      <h1 class="font-display text-2xl font-semibold">{{ heading() }}</h1>
+      <div class="ml-auto flex items-center gap-3">
+        <form
+          class="relative hidden md:block"
+          role="search"
+          (submit)="$event.preventDefault(); search(q.value)"
+        >
+          <ng-icon
+            name="lucideSearch"
+            size="16"
+            class="absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground"
+          />
+          <input
+            #q
+            type="search"
+            placeholder="Search artworks"
+            aria-label="Search artworks"
+            class="h-9 w-56 rounded-full border bg-card pr-4 pl-10 text-sm outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt/30"
+          />
+        </form>
+        <button
+          type="button"
+          [hlmDropdownMenuTrigger]="menu"
+          align="end"
+          class="inline-flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm hover:bg-muted"
+        >
+          <span
+            class="grid size-8 place-items-center rounded-full bg-midnight text-xs font-bold text-ivory"
+            >{{ initials() }}</span
+          >
+          <span class="hidden sm:inline"
+            >{{ auth.user()?.firstName }} {{ auth.user()?.lastName }}</span
+          >
+          <span
+            class="rounded-full bg-secondary px-2 py-0.5 text-[0.65rem] font-semibold tracking-wider uppercase"
+            >{{ roleLabel() }}</span
+          >
+          <ng-icon name="lucideChevronDown" size="14" />
+        </button>
+        <ng-template #menu>
+          <hlm-dropdown-menu class="w-56">
+            <hlm-dropdown-menu-label>
+              <span class="block font-display text-lg">Welcome!</span>
+              <span class="block truncate text-xs font-normal text-muted-foreground">{{
+                auth.user()?.email
+              }}</span>
+            </hlm-dropdown-menu-label>
+            <hlm-dropdown-menu-separator />
+            <a hlmDropdownMenuItem routerLink="/studio/profile"
+              ><ng-icon name="lucideUser" /> My profile</a
+            >
+            <a hlmDropdownMenuItem routerLink="/"
+              ><ng-icon name="lucideExternalLink" /> View gallery</a
+            >
+            <button hlmDropdownMenuItem (click)="signOut()">
+              <ng-icon name="lucideLogOut" /> Sign out
+            </button>
+          </hlm-dropdown-menu>
+        </ng-template>
+      </div>
+    </header>
+    <main class="p-5 lg:p-8">
+      <router-outlet />
+    </main>
+    <footer
+      class="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-6 text-sm text-muted-foreground lg:px-8"
+    >
+      <p>© {{ year }} SmartSoft Solutions · ATELIER</p>
+      <nav aria-label="Footer" class="flex gap-5">
+        <a routerLink="/" class="hover:text-foreground">Gallery</a>
+        <a routerLink="/auctions" class="hover:text-foreground">Auctions</a>
+        <a routerLink="/studio/profile" class="hover:text-foreground">Profile</a>
+      </nav>
+    </footer>
+  </div>
+</div>

@@ -1,0 +1,171 @@
+<section class="grid gap-4">
+  <at-crud-table
+    [search]="search"
+    placeholder="Search users…"
+    newLabel="New user"
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="visible().length === 0"
+    emptyText="No users match your search."
+    [page]="0"
+    [totalPages]="1"
+    [total]="visible().length"
+    (create)="openCreate()"
+    (retry)="load()"
+  >
+    <table hlmTable>
+      <thead hlmTHead>
+        <tr hlmTr>
+          <th hlmTh>User</th>
+          <th hlmTh>Phone</th>
+          <th hlmTh>Roles</th>
+          <th hlmTh>Enabled</th>
+          <th hlmTh>Created</th>
+          <th hlmTh class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody hlmTBody>
+        @for (user of visible(); track user.id) {
+          <tr hlmTr>
+            <td hlmTd>
+              <span class="block font-medium">{{ user.firstName }} {{ user.lastName }}</span>
+              <span class="text-xs text-muted-foreground">{{ user.email }}</span>
+            </td>
+            <td hlmTd>{{ user.phone || '—' }}</td>
+            <td hlmTd>
+              <span class="flex flex-wrap gap-1">
+                @for (role of user.roles; track role) {
+                  <span hlmBadge [variant]="role === 'ADMIN' ? 'default' : 'secondary'">{{
+                    role
+                  }}</span>
+                }
+              </span>
+            </td>
+            <td hlmTd>
+              <button
+                type="button"
+                role="switch"
+                [attr.aria-checked]="user.enabled"
+                [attr.aria-label]="(user.enabled ? 'Disable ' : 'Enable ') + user.email"
+                [disabled]="isSelf(user)"
+                (click)="toggleEnabled(user)"
+                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50"
+                [class]="user.enabled ? 'bg-cypress' : 'bg-input'"
+              >
+                <span
+                  class="inline-block size-4 rounded-full bg-white shadow transition-transform"
+                  [class]="user.enabled ? 'translate-x-4.5' : 'translate-x-0.5'"
+                ></span>
+              </button>
+            </td>
+            <td hlmTd>{{ user.createdAt | longDate }}</td>
+            <td hlmTd class="text-right whitespace-nowrap">
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                [attr.aria-label]="'Edit ' + user.email"
+                (click)="openEdit(user)"
+              >
+                <ng-icon name="lucidePencil" />
+              </button>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                [attr.aria-label]="'Delete ' + user.email"
+                [disabled]="isSelf(user)"
+                (click)="toDelete.set(user)"
+              >
+                <ng-icon name="lucideTrash2" />
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </at-crud-table>
+</section>
+
+<at-form-sheet
+  [open]="sheetOpen()"
+  [form]="form"
+  [saving]="saving()"
+  [heading]="editing() ? 'Edit user' : 'New user'"
+  description="Accounts, roles and access to the studio."
+  [submitLabel]="editing() ? 'Save changes' : 'Create user'"
+  (closed)="closeSheet()"
+  (submitted)="submit()"
+>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <at-form-field label="First name" [control]="form.controls.firstName" [required]="true">
+      <input hlmInput [formControl]="form.controls.firstName" autocomplete="off" />
+    </at-form-field>
+    <at-form-field label="Last name" [control]="form.controls.lastName" [required]="true">
+      <input hlmInput [formControl]="form.controls.lastName" autocomplete="off" />
+    </at-form-field>
+  </div>
+  <at-form-field label="Email" [control]="form.controls.email" [required]="true">
+    <input hlmInput type="email" [formControl]="form.controls.email" autocomplete="off" />
+  </at-form-field>
+  <at-form-field label="Phone" [control]="form.controls.phone">
+    <input hlmInput [formControl]="form.controls.phone" />
+  </at-form-field>
+  <at-form-field
+    label="Password"
+    [control]="form.controls.password"
+    [required]="!editing()"
+    [hint]="editing() ? 'Leave empty to keep the current password' : 'At least 8 characters'"
+  >
+    <input hlmInput type="password" [formControl]="form.controls.password" autocomplete="new-password" />
+  </at-form-field>
+  <fieldset class="grid gap-3">
+    <legend class="mb-1 text-sm font-medium">
+      Roles <span class="text-terracotta" aria-hidden="true">*</span>
+    </legend>
+    @for (role of roleOptions; track role.name) {
+      <label class="flex items-start gap-3 rounded-lg border p-3 text-sm">
+        <input
+          type="checkbox"
+          class="mt-0.5 size-4 accent-[var(--color-midnight)]"
+          [checked]="hasRole(role.name)"
+          [disabled]="lockedRole(role.name)"
+          (change)="toggleRole(role.name, $any($event.target).checked)"
+        />
+        <span>
+          <span class="block font-medium">{{ role.label }}</span>
+          <span class="text-xs text-muted-foreground">{{ role.hint }}</span>
+        </span>
+      </label>
+    }
+    @if (form.controls.roles.invalid && form.controls.roles.touched) {
+      <p class="text-xs text-destructive" role="alert">Select at least one role.</p>
+    }
+    @if (editing() && isSelf(editing()!)) {
+      <p class="text-xs text-muted-foreground">You cannot remove your own Admin role.</p>
+    }
+  </fieldset>
+  <label class="flex items-center gap-2 text-sm">
+    <input
+      type="checkbox"
+      class="size-4 accent-[var(--color-midnight)]"
+      [formControl]="form.controls.enabled"
+    />
+    Enabled (the user can sign in)
+  </label>
+</at-form-sheet>
+
+<at-confirm-dialog
+  [open]="toDelete() !== null"
+  [pending]="deleting()"
+  heading="Delete this user?"
+  [message]="
+    '“' +
+    toDelete()?.email +
+    '” will be removed. Users with bids or created content cannot be deleted; disable the account instead.'
+  "
+  (confirmed)="confirmDelete()"
+  (cancelled)="toDelete.set(null)"
+/>

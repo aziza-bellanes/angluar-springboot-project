@@ -1,0 +1,145 @@
+@if (artwork.error()) {
+  <section class="canvas-texture flex min-h-dvh items-center bg-ivory pt-28 pb-20">
+    <div class="container-gallery max-w-2xl text-center">
+      <p class="eyebrow">Artwork</p>
+      <h1 class="mt-3 font-display text-5xl md:text-6xl">We could not find this work.</h1>
+      <p class="mt-4 text-muted-foreground">It may have been withdrawn or the link is mistyped.</p>
+      <a routerLink="/artworks" class="btn-gold mt-8">Back to the collection</a>
+    </div>
+  </section>
+} @else if (artwork.value(); as art) {
+  <div class="grid min-h-dvh lg:grid-cols-[1.15fr_1fr]">
+    <section class="night relative flex items-center justify-center bg-midnight px-5 pt-28 pb-12 sm:px-10 lg:sticky lg:top-0 lg:h-dvh lg:py-20">
+      <img
+        #image
+        [src]="art.imageUrl"
+        [alt]="art.title + ' by ' + art.artist.name"
+        (load)="onImageLoaded(image)"
+        class="max-h-[78dvh] w-auto max-w-full rounded-[2px] object-contain shadow-[0_40px_90px_-30px_rgb(0_0_0/0.8)]"
+      />
+    </section>
+
+    <section class="canvas-texture bg-ivory px-5 pt-12 pb-24 sm:px-10 lg:px-16 lg:pt-32">
+      <div class="mx-auto max-w-xl space-y-10">
+        <header class="space-y-4">
+          <p class="detail-reveal eyebrow">
+            <a routerLink="/artworks" class="hover:underline">The collection</a>
+          </p>
+          <h1 class="detail-reveal font-display text-5xl leading-[1.02] md:text-6xl">{{ art.title }}</h1>
+          <p class="detail-reveal text-lg">
+            <a [routerLink]="['/artists', art.artist.id]" class="underline-offset-4 hover:text-cobalt hover:underline">{{
+              art.artist.name
+            }}</a>
+            @if (art.yearCreated) {
+              <span class="text-muted-foreground"> · {{ art.yearCreated }}</span>
+            }
+          </p>
+        </header>
+
+        <dl class="detail-reveal grid grid-cols-2 gap-x-6 gap-y-5 border-y border-ink/10 py-6 text-sm">
+          @if (art.medium) {
+            <div><dt class="eyebrow !text-[0.62rem]">Medium</dt><dd class="mt-1">{{ art.medium }}</dd></div>
+          }
+          @if (art.dimensions) {
+            <div><dt class="eyebrow !text-[0.62rem]">Dimensions</dt><dd class="mt-1">{{ art.dimensions }}</dd></div>
+          }
+          @if (art.estimate) {
+            <div>
+              <dt class="eyebrow !text-[0.62rem]">Estimate</dt>
+              <dd class="price mt-1 font-display text-2xl">{{ art.estimate | price }}</dd>
+            </div>
+          }
+        </dl>
+
+        <hlm-tabs tab="story" class="detail-reveal">
+          <hlm-tabs-list variant="line" class="w-full justify-start">
+            <button hlmTabsTrigger="story">Story</button>
+            <button hlmTabsTrigger="details">Details</button>
+            <button hlmTabsTrigger="provenance">Provenance</button>
+          </hlm-tabs-list>
+          <div hlmTabsContent="story" class="pt-5 text-base leading-relaxed text-ink/80">
+            {{ art.description || 'No written story accompanies this work yet.' }}
+          </div>
+          <div hlmTabsContent="details" class="pt-5 text-sm">
+            <dl class="space-y-3">
+              <div class="flex justify-between gap-4 border-b border-ink/10 pb-2">
+                <dt class="text-muted-foreground">Medium</dt><dd>{{ art.medium || '—' }}</dd>
+              </div>
+              <div class="flex justify-between gap-4 border-b border-ink/10 pb-2">
+                <dt class="text-muted-foreground">Dimensions</dt><dd>{{ art.dimensions || '—' }}</dd>
+              </div>
+              <div class="flex justify-between gap-4 border-b border-ink/10 pb-2">
+                <dt class="text-muted-foreground">Year</dt><dd>{{ art.yearCreated || '—' }}</dd>
+              </div>
+              <div class="flex justify-between gap-4">
+                <dt class="text-muted-foreground">Exhibition</dt>
+                <dd>
+                  @if (art.exhibitionId) {
+                    <a routerLink="/exhibitions" class="underline-offset-4 hover:text-cobalt hover:underline">{{
+                      art.exhibitionTitle
+                    }}</a>
+                  } @else {
+                    —
+                  }
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <div hlmTabsContent="provenance" class="space-y-3 pt-5 text-sm leading-relaxed text-ink/80">
+            <p>{{ art.imageCredit || 'Credit line not available.' }}</p>
+            <p class="text-muted-foreground">
+              Images come from The Met Open Access programme and are released under CC0 (public domain).
+            </p>
+          </div>
+        </hlm-tabs>
+
+        <section class="detail-reveal rounded-md border border-ink/10 bg-canvas p-6" aria-label="Auction">
+          @if (auction.value(); as sale) {
+            <div class="flex items-center justify-between">
+              <p class="eyebrow">Auction</p>
+              <at-auction-status-badge [status]="sale.status" />
+            </div>
+            <div class="mt-4 flex items-end justify-between gap-4">
+              <div>
+                <p class="eyebrow !text-[0.62rem]">{{ sale.bidCount ? 'Current bid' : 'Starting price' }}</p>
+                <p class="price font-display text-3xl">{{ sale.currentPrice | price }}</p>
+              </div>
+              <div class="text-right text-sm">
+                <p class="eyebrow !text-[0.62rem]">{{ sale.status === 'OPEN' ? 'Ends in' : 'Starts in' }}</p>
+                <at-countdown [until]="sale.status === 'OPEN' ? sale.endsAt : sale.startsAt" />
+              </div>
+            </div>
+            <a [routerLink]="['/auctions', sale.id]" class="btn-gold mt-6 w-full">Join the auction</a>
+          } @else {
+            <p class="eyebrow">Auction</p>
+            <p class="mt-2 text-sm text-muted-foreground">Not currently at auction.</p>
+          }
+        </section>
+      </div>
+    </section>
+  </div>
+
+  @if (more().length) {
+    <section class="bg-canvas py-20">
+      <div class="container-gallery">
+        <p class="eyebrow">Keep looking</p>
+        <h2 class="mt-3 font-display text-4xl md:text-5xl">More by {{ art.artist.name }}</h2>
+        <div class="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4">
+          @for (item of more(); track item.id) {
+            <at-artwork-card [artwork]="item" />
+          }
+        </div>
+      </div>
+    </section>
+  }
+} @else {
+  <div class="grid min-h-dvh lg:grid-cols-[1.15fr_1fr]" aria-busy="true">
+    <div class="night bg-midnight"></div>
+    <div class="space-y-5 bg-ivory px-5 pt-32 sm:px-10 lg:px-16">
+      <div class="h-4 w-32 animate-pulse rounded bg-ink/10"></div>
+      <div class="h-14 w-3/4 animate-pulse rounded bg-ink/10"></div>
+      <div class="h-5 w-1/2 animate-pulse rounded bg-ink/10"></div>
+      <div class="h-40 animate-pulse rounded bg-ink/10"></div>
+    </div>
+  </div>
+}

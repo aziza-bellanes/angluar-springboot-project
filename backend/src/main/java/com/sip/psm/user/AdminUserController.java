@@ -1,0 +1,78 @@
+package com.sip.psm.user;
+
+import com.sip.psm.user.UserDtos.CreateUserRequest;
+import com.sip.psm.user.UserDtos.RolesUpdate;
+import com.sip.psm.user.UserDtos.StatusUpdate;
+import com.sip.psm.user.UserDtos.UpdateUserRequest;
+import com.sip.psm.user.UserDtos.UserResponse;
+import jakarta.validation.Valid;
+import java.security.Principal;
+import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+/** User management, restricted to ADMIN by the security configuration. */
+@RestController
+@RequestMapping("/api/admin/users")
+public class AdminUserController {
+
+    private final UserService service;
+
+    public AdminUserController(UserService service) {
+        this.service = service;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public List<UserResponse> list() {
+        return service.list();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{id}")
+    public UserResponse get(@PathVariable Long id) {
+        return UserResponse.from(service.require(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse create(@Valid @RequestBody CreateUserRequest body) {
+        return service.create(body);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest body,
+                               Principal principal) {
+        return service.update(id, body, principal.getName());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id, Principal principal) {
+        service.delete(id, principal.getName());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/roles")
+    public UserResponse updateRoles(@PathVariable Long id, @Valid @RequestBody RolesUpdate body, Principal principal) {
+        return service.updateRoles(id, body.roles(), principal.getName());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/status")
+    public UserResponse updateStatus(@PathVariable Long id, @RequestBody StatusUpdate body, Principal principal) {
+        return service.updateStatus(id, body.enabled(), principal.getName());
+    }
+}

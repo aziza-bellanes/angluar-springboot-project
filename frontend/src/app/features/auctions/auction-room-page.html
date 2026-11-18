@@ -1,0 +1,110 @@
+@if (error()) {
+  <section class="container-gallery pt-28 pb-24">
+    <p class="text-terracotta" role="alert">{{ error() }}</p>
+    <a routerLink="/auctions" class="mt-4 inline-block text-sm font-semibold underline">Back to auctions</a>
+  </section>
+} @else if (!auction()) {
+  <section class="night min-h-dvh pt-28 pb-16">
+    <div class="container-gallery grid gap-10 lg:grid-cols-2">
+      <hlm-skeleton class="h-[60vh] w-full" />
+      <hlm-skeleton class="h-[60vh] w-full" />
+    </div>
+  </section>
+} @else {
+  @let a = auction()!;
+  <section class="night min-h-dvh pt-28 pb-20">
+    <div class="container-gallery grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+      <div>
+        <a routerLink="/auctions" class="text-sm text-ivory/60 hover:text-ivory">← All auctions</a>
+        <figure class="mt-4">
+          <img
+            [src]="a.artwork.imageUrl"
+            [alt]="a.artwork.title + ' by ' + a.artwork.artistName"
+            class="max-h-[75vh] w-full rounded-sm object-contain shadow-2xl"
+          />
+          <figcaption class="mt-5">
+            <h1 class="font-display text-4xl leading-tight md:text-5xl">{{ a.artwork.title }}</h1>
+            <p class="mt-1 text-ivory/70">
+              <a [routerLink]="['/artists', a.artwork.artistId]" class="underline-offset-4 hover:underline">{{ a.artwork.artistName }}</a>
+            </p>
+            <a [routerLink]="['/artworks', a.artwork.slug]" class="mt-3 inline-block text-sm font-semibold text-sunflower underline-offset-4 hover:underline">
+              View the artwork page →
+            </a>
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="space-y-8">
+        <div class="flex items-center justify-between gap-4">
+          <at-auction-status-badge [status]="a.status" />
+          <div class="text-right text-sm text-ivory/70">
+            @switch (a.status) {
+              @case ('OPEN') {
+                <span class="eyebrow !text-ivory/50">Ends in</span>
+                <at-countdown [until]="a.endsAt" class="block text-lg text-ivory" />
+              }
+              @case ('SCHEDULED') {
+                <span class="eyebrow !text-ivory/50">Starts in</span>
+                <at-countdown [until]="a.startsAt" class="block text-lg text-ivory" />
+              }
+              @default {
+                <span class="eyebrow !text-ivory/50">Ended</span>
+              }
+            }
+          </div>
+        </div>
+
+        <div>
+          <p class="eyebrow !text-sunflower">{{ a.status === 'CLOSED' ? 'Final price' : 'Current bid' }}</p>
+          <p class="sr-only" aria-live="polite" aria-atomic="true">Current price {{ a.currentPrice | price }}</p>
+          <p #priceEl aria-hidden="true" class="price mt-2 font-display text-7xl leading-none font-semibold md:text-8xl">
+            {{ displayText() }}
+          </p>
+          @if (extended() && a.status === 'OPEN') {
+            <p class="mt-3 text-sm text-sunflower" role="status">A late bid extended the auction. The end time moved.</p>
+          }
+        </div>
+
+        <dl class="grid grid-cols-2 gap-x-6 gap-y-4 border-y border-ivory/10 py-5 text-sm">
+          <div>
+            <dt class="eyebrow !text-ivory/50">Minimum next bid</dt>
+            <dd class="price mt-1 text-lg font-semibold">{{ a.minimumNextBid | price }}</dd>
+          </div>
+          <div>
+            <dt class="eyebrow !text-ivory/50">Bids</dt>
+            <dd class="price mt-1 text-lg font-semibold">{{ a.bidCount }}</dd>
+          </div>
+          <div>
+            <dt class="eyebrow !text-ivory/50">Starting price</dt>
+            <dd class="price mt-1">{{ a.startingPrice | price }}</dd>
+          </div>
+          <div>
+            <dt class="eyebrow !text-ivory/50">Increment</dt>
+            <dd class="price mt-1">{{ a.minimumIncrement | price }}</dd>
+          </div>
+          <div class="col-span-2">
+            <dt class="eyebrow !text-ivory/50">{{ a.status === 'CLOSED' ? 'Winner' : 'Highest bidder' }}</dt>
+            <dd class="mt-1 text-base">
+              @if (a.status === 'CLOSED') {
+                {{ iWon() ? 'You won this auction' : (a.winner ?? 'No winner') }}
+              } @else if (iLead()) {
+                <span class="font-semibold text-sunflower">You are the highest bidder</span>
+              } @else {
+                {{ a.leadingBidder ?? 'No bids yet' }}
+              }
+            </dd>
+          </div>
+        </dl>
+
+        @if (a.status === 'OPEN' || a.status === 'SCHEDULED') {
+          <at-bid-panel [auction]="a" (refresh)="reload()" />
+        }
+
+        <div class="border-t border-ivory/10 pt-8">
+          <h2 class="font-display text-3xl">Bid history</h2>
+          <div class="mt-4"><at-bid-history [bids]="bids()" [myId]="myId()" /></div>
+        </div>
+      </div>
+    </div>
+  </section>
+}

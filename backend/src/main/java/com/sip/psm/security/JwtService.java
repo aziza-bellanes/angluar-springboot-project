@@ -1,17 +1,64 @@
 package com.sip.psm.security;
 
-import io.jsonwebtoken.*;
+import com.sip.psm.config.AtelierProperties;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Date;
-@Service public class JwtService {
-private final Key key; private final long expiration;
-public JwtService(@Value("${psm.jwt.secret}") String secret,@Value("${psm.jwt.expiration-ms}") long expiration){
-if(secret==null || secret.getBytes(StandardCharsets.UTF_8).length<32) throw new IllegalStateException("JWT_SECRET must contain at least 32 UTF-8 bytes");
-this.key=Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));this.expiration=expiration;}
-public String issue(String email){long now=System.currentTimeMillis();return Jwts.builder().subject(email).issuedAt(new Date(now)).expiration(new Date(now+expiration)).signWith(key).compact();}
-public String subject(String token){return Jwts.parser().verifyWith((javax.crypto.SecretKey)key).build().parseSignedClaims(token).getPayload().getSubject();}
+import java.util.Optional;
+import javax.crypto.SecretKey;
+import org.springframework.stereotype.Service;
+
+/** Issues and verifies the stateless HMAC-signed access tokens. */
+@Service
+public class JwtService {
+
+    private static final int MIN_SECRET_BYTES = 32;
+
+    private final SecretKey key;
+    private final AtelierProperties.Jwt settings;
+    private final Clock clock;
+
+    public JwtService(AtelierProperties properties, Clock clock) {
+        this.settings = properties.jwt();
+        this.clock = clock;
+        String secret = settings.secret();
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException("JWT_SECRET must contain at least " + MIN_SECRET_BYTES + " bytes");
+        }
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public IssuedToken issue(String email) {
+        Instant now = clock.instant();
+        Instant expiresAt = now.plus(settings.expiration());
+        String token = Jwts.builder()
+                .subject(email)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiresAt))
+                .signWith(key)
+                .compact();
+        return new IssuedToken(token, expiresAt);
+    }
+
+    /** Returns the email contained in a valid token, or empty when the token is invalid or expired. */
+    public Optional<String> verify(String token) {
+        try {
+            return Optional.ofNullable(Jwts.parser()
+                    .verifyWith(key)
+                    .clock(() -> Date.from(clock.instant()))
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getSubject());
+        } catch (JwtException | IllegalArgumentException ex) {
+            return Optional.empty();
+        }
+    }
+
+    public record IssuedToken(String value, Instant expiresAt) {
+    }
 }

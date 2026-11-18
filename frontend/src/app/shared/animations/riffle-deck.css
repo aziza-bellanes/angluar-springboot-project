@@ -1,0 +1,96 @@
+/* The gallery wall: a seamless warm sweep lit from above, with a soft floor and fine film grain. */
+.studio-wall {
+  background:
+    radial-gradient(60% 45% at 50% 34%, rgb(255 253 248 / 0.95) 0%, rgb(255 253 248 / 0) 70%),
+    radial-gradient(70% 30% at 50% 100%, rgb(176 150 108 / 0.28) 0%, rgb(176 150 108 / 0) 70%),
+    linear-gradient(180deg, #f6f0e4 0%, #efe6d4 62%, #e4d7bd 100%);
+}
+
+.studio-wall::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.plane {
+  transform-style: preserve-3d;
+}
+
+.riffle-card {
+  width: var(--card-w);
+  height: var(--card-h);
+  margin-left: calc(var(--card-w) / -2);
+  margin-top: calc(var(--card-h) / -2);
+}
+
+.riffle-face {
+  box-shadow:
+    0 2px 5px rgb(16 29 53 / 0.12),
+    0 52px 100px -40px rgb(16 29 53 / 0.5);
+}
+
+.scroll-cue {
+  animation: scroll-cue 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  transform-origin: top;
+}
+
+@keyframes scroll-cue {
+  0% {
+    transform: scaleY(0);
+  }
+  45% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  55% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+.caption-in {
+  animation: caption-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.drift {
+  transform-style: preserve-3d;
+}
+
+.riffle-face {
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.riffle-card:hover .riffle-face {
+  transform: translateY(-3%) scale(1.03);
+  box-shadow:
+    0 2px 5px rgb(16 29 53 / 0.12),
+    0 70px 120px -40px rgb(16 29 53 / 0.55);
+}
+
+.label-in {
+  animation: label-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes label-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}

@@ -1,0 +1,354 @@
+<!-- 1. Opening: the Riffle sequence -->
+@if (artworks()?.length) {
+  <at-riffle-deck [artworks]="artworks()!" />
+} @else {
+  <section class="h-dvh bg-[#f2eadb]" aria-hidden="true"></section>
+}
+
+<!-- 2. Statement -->
+<section class="wall-tone text-midnight">
+  <div class="container-gallery py-28 md:py-40">
+    <p atReveal class="font-mono text-[11px] tracking-[0.32em] text-midnight/50 uppercase">
+      The salon
+    </p>
+    <p
+      atReveal
+      [revealDelay]="80"
+      class="mt-8 max-w-5xl font-display text-[clamp(2rem,4.4vw,4.25rem)] leading-[1.08] text-balance"
+    >
+      {{ worksInWords() }} paintings by {{ painterNames() }}
+      @if (inline()[0]; as a) {
+        <img class="inline-plate" [src]="a.imageUrl" [alt]="a.title" />
+      }
+      hung in {{ roomsInWords() }} rooms
+      @if (inline()[1]; as b) {
+        <img class="inline-plate" [src]="b.imageUrl" [alt]="b.title" />
+      }
+      <em class="text-midnight/55">and offered at auction, bid by bid, in real time</em>
+      @if (inline()[2]; as c) {
+        <img class="inline-plate" [src]="c.imageUrl" [alt]="c.title" />
+      }
+    </p>
+    <div
+      atReveal
+      [revealDelay]="160"
+      class="mt-14 grid max-w-3xl grid-cols-3 gap-6 border-t border-midnight/15 pt-6 font-mono text-[11px] tracking-[0.24em] uppercase"
+    >
+      <p>
+        <span class="block font-display text-4xl tracking-normal normal-case">{{
+          artworks()?.length ?? 0
+        }}</span>Works
+      </p>
+      <p>
+        <span class="block font-display text-4xl tracking-normal normal-case">{{
+          artists()?.length ?? 0
+        }}</span>Painters
+      </p>
+      <p>
+        <span class="block font-display text-4xl tracking-normal normal-case">{{
+          auctions()?.length ?? 0
+        }}</span>Lots open
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. On the block -->
+@if (lead(); as lot) {
+  <section class="bg-ivory text-midnight">
+    <div class="container-gallery pb-28 md:pb-36">
+      <div
+        atReveal
+        class="flex flex-wrap items-end justify-between gap-6 border-b border-midnight/15 pb-6"
+      >
+        <div>
+          <p
+            class="flex items-center gap-3 font-mono text-[11px] tracking-[0.32em] text-terracotta uppercase"
+          >
+            <span class="live-dot size-1.5 rounded-full bg-current"></span> Live now
+          </p>
+          <h2 class="mt-4 font-display text-5xl md:text-6xl">On the block</h2>
+        </div>
+        <a routerLink="/auctions" class="group font-mono text-[11px] tracking-[0.28em] uppercase">
+          All {{ auctions()?.length }} lots
+          <span
+            class="inline-block transition-transform duration-500 ease-gallery group-hover:translate-x-1"
+            >→</span
+          >
+        </a>
+      </div>
+
+      <div class="mt-10 grid gap-10 lg:grid-cols-12">
+        <!-- Lead lot -->
+        <a atReveal [routerLink]="['/auctions', lot.id]" class="group block lg:col-span-7">
+          <div class="relative overflow-hidden rounded-[22px] bg-midnight">
+            <img
+              [src]="lot.artwork.imageUrl"
+              [alt]="lot.artwork.title"
+              class="aspect-[4/3] w-full object-cover transition-transform duration-[1.4s] ease-gallery group-hover:scale-[1.04]"
+              loading="lazy"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-midnight/85 via-midnight/10 to-transparent"
+            ></div>
+            <div class="absolute top-5 left-5">
+              <at-auction-status-badge [status]="lot.status" />
+            </div>
+            <div
+              class="absolute inset-x-6 bottom-6 flex flex-wrap items-end justify-between gap-6 text-ivory"
+            >
+              <div class="max-w-md">
+                <p class="font-mono text-[10px] tracking-[0.28em] text-ivory/60 uppercase">
+                  Lot {{ lot.id }} · {{ lot.artwork.artistName }}
+                </p>
+                <p class="mt-2 font-display text-3xl leading-tight italic md:text-4xl">
+                  {{ lot.artwork.title }}
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="font-mono text-[10px] tracking-[0.28em] text-ivory/60 uppercase">
+                  Current bid
+                </p>
+                <p class="font-display text-4xl tabular-nums">{{ lot.currentPrice | price }}</p>
+                <p class="mt-1 font-mono text-[11px] text-sunflower tabular-nums">
+                  <at-countdown [until]="lot.endsAt" />
+                </p>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Next lots -->
+        <ol class="flex flex-col divide-y divide-midnight/10 lg:col-span-5">
+          @for (next of nextLots(); track next.id; let i = $index) {
+            <li atReveal [revealDelay]="i * 90">
+              <a
+                [routerLink]="['/auctions', next.id]"
+                class="group grid grid-cols-[96px_1fr] items-center gap-5 py-5 first:pt-0"
+              >
+                <span class="block overflow-hidden rounded-[14px]">
+                  <img
+                    [src]="next.artwork.imageUrl"
+                    [alt]="next.artwork.title"
+                    class="aspect-square w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </span>
+                <span class="min-w-0">
+                  <span
+                    class="block font-mono text-[10px] tracking-[0.26em] text-midnight/50 uppercase"
+                    >{{ next.artwork.artistName }}</span
+                  >
+                  <span class="mt-1 block truncate font-display text-2xl group-hover:italic">{{
+                    next.artwork.title
+                  }}</span>
+                  <span
+                    class="mt-2 flex items-center justify-between gap-4 font-mono text-[11px] tabular-nums"
+                  >
+                    <span>{{ next.currentPrice | price }}</span>
+                    <span class="text-midnight/55"><at-countdown [until]="next.endsAt" /></span>
+                  </span>
+                </span>
+              </a>
+            </li>
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+}
+
+<!-- 4. The painters -->
+@if (artists()?.length) {
+  <section
+    class="marquee overflow-hidden border-y border-midnight/15 bg-ivory py-8 text-midnight"
+    aria-label="Painters"
+  >
+    <div class="marquee-track flex w-max">
+      @for (round of [0, 1]; track round) {
+        <ul class="flex shrink-0 items-center" [attr.aria-hidden]="round === 1">
+          @for (artist of artists(); track artist.id) {
+            <li class="flex items-center">
+              <a
+                [routerLink]="['/artists', artist.id]"
+                [attr.tabindex]="round === 1 ? -1 : 0"
+                class="px-8 font-display text-[clamp(2.5rem,6vw,5.5rem)] leading-none italic transition-colors duration-500 hover:text-cobalt"
+              >
+                {{ artist.name }}
+              </a>
+              <span class="text-xl text-sunflower" aria-hidden="true">✦</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </section>
+}
+
+<!-- 5. The collection wall -->
+@if (wall().length) {
+  <section class="bg-ivory text-midnight">
+    <div class="container-gallery py-28 md:py-36">
+      <div atReveal class="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <p class="font-mono text-[11px] tracking-[0.32em] text-midnight/50 uppercase">
+            The collection
+          </p>
+          <h2 class="mt-4 max-w-xl font-display text-5xl leading-[1.05] md:text-6xl">
+            Hung as they were painted, uncropped.
+          </h2>
+        </div>
+        <a routerLink="/artworks" class="group font-mono text-[11px] tracking-[0.28em] uppercase">
+          All {{ artworks()?.length }} works
+          <span
+            class="inline-block transition-transform duration-500 ease-gallery group-hover:translate-x-1"
+            >→</span
+          >
+        </a>
+      </div>
+
+      <div class="mt-14 columns-2 gap-6 md:columns-3 lg:columns-4">
+        @for (art of wall(); track art.id; let i = $index) {
+          <a
+            atReveal
+            [revealDelay]="(i % 4) * 70"
+            [routerLink]="['/artworks', art.slug]"
+            class="group mb-10 block break-inside-avoid"
+          >
+            <span
+              class="block overflow-hidden rounded-[14px] bg-midnight/5 shadow-[0_24px_50px_-30px_rgb(16_29_53/0.55)]"
+            >
+              <img
+                [src]="art.imageUrl"
+                [alt]="art.title"
+                class="w-full transition-transform duration-[1.2s] ease-gallery group-hover:scale-[1.035]"
+                loading="lazy"
+              />
+            </span>
+            <span class="mt-4 block font-display text-xl leading-snug group-hover:italic">{{
+              art.title
+            }}</span>
+            <span
+              class="mt-1 block font-mono text-[10px] tracking-[0.24em] text-midnight/50 uppercase"
+            >
+              {{ art.artistName }}
+              @if (art.yearCreated) {
+                <span>&nbsp;·&nbsp;{{ art.yearCreated }}</span>
+              }
+            </span>
+          </a>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- 6. Rooms now showing -->
+@if (exhibitions()?.length) {
+  <section
+    class="night relative overflow-hidden"
+    (pointermove)="movePreview($event)"
+    (pointerleave)="showPreview(null)"
+  >
+    <at-night-sky />
+    <div class="container-gallery relative py-28 md:py-36">
+      <div atReveal>
+        <p class="font-mono text-[11px] tracking-[0.32em] text-ivory/50 uppercase">Now showing</p>
+        <h2 class="mt-4 font-display text-5xl md:text-6xl">One room for each painter.</h2>
+      </div>
+
+      <ol class="mt-14 border-t border-ivory/15" (pointerleave)="showPreview(null)">
+        @for (room of exhibitions(); track room.id; let i = $index) {
+          <li atReveal [revealDelay]="i * 60" class="border-b border-ivory/15">
+            <a
+              routerLink="/exhibitions"
+              class="group grid grid-cols-[3rem_1fr] items-baseline gap-x-6 gap-y-2 py-7 md:grid-cols-[4rem_1fr_auto]"
+              (pointerenter)="showPreview(room, $event)"
+            >
+              <span class="font-mono text-xs tracking-[0.2em] text-ivory/45">{{ roman(i) }}</span>
+              <span>
+                <span
+                  class="block font-display text-3xl transition-[color,transform] duration-500 ease-gallery group-hover:translate-x-2 group-hover:text-sunflower md:text-5xl"
+                >
+                  {{ room.title }}
+                </span>
+                <span class="mt-2 block text-sm text-ivory/55">{{ room.artistName }}</span>
+              </span>
+              <span
+                class="col-start-2 font-mono text-[11px] tracking-[0.2em] text-ivory/55 uppercase md:col-start-auto md:text-right"
+              >
+                {{ room.venue }}
+                @if (room.endsOn) {
+                  <span class="block normal-case tracking-normal text-ivory/40"
+                    >until {{ room.endsOn | longDate }}</span
+                  >
+                }
+              </span>
+            </a>
+          </li>
+        }
+      </ol>
+    </div>
+
+    <!-- Hover preview of the room -->
+    <div
+      class="room-preview pointer-events-none fixed top-0 left-0 z-40 hidden w-60 md:block"
+      [style.transform]="
+        'translate3d(' +
+        (previewX() + 28) +
+        'px,' +
+        (previewY() - 150) +
+        'px,0) rotate(' +
+        (preview() ? -3 : 0) +
+        'deg)'
+      "
+      [style.opacity]="preview() ? 1 : 0"
+      aria-hidden="true"
+    >
+      @if (preview(); as src) {
+        <img
+          [src]="src"
+          alt=""
+          class="aspect-[4/5] w-full rounded-[14px] object-cover shadow-2xl"
+        />
+      }
+    </div>
+  </section>
+}
+
+<!-- 7. The collectors' register -->
+<section class="wall-tone text-midnight">
+  <div class="container-gallery grid gap-12 py-28 md:grid-cols-[1.3fr_1fr] md:items-end md:py-36">
+    <div atReveal>
+      <p class="font-mono text-[11px] tracking-[0.32em] text-midnight/50 uppercase">
+        Collectors' register
+      </p>
+      <h2 class="mt-6 font-display text-[clamp(2.75rem,6vw,5.5rem)] leading-[0.98]">
+        Register once.<br /><em class="text-cobalt">Bid on any lot.</em>
+      </h2>
+    </div>
+    <div atReveal [revealDelay]="120" class="space-y-6 md:pb-3">
+      <p class="max-w-sm text-midnight/70">
+        Follow every lot in real time, place bids from the auction room and keep your wins in one
+        place.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a
+          routerLink="/register"
+          class="rounded-full bg-midnight px-6 py-3 text-sm font-semibold text-ivory transition-colors hover:bg-cobalt"
+        >
+          Create a collector account
+        </a>
+        <a
+          routerLink="/artworks"
+          class="rounded-full border border-midnight/25 px-6 py-3 text-sm font-semibold transition-colors hover:border-midnight"
+        >
+          Browse the collection
+        </a>
+      </div>
+      <p class="font-mono text-[10px] tracking-[0.24em] text-midnight/45 uppercase">
+        Demonstration platform · no real money
+      </p>
+    </div>
+  </div>
+</section>

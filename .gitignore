@@ -9,3 +9,7 @@
 **/.settings/
 *.log
 .DS_Store
+# Angular build copied into the JAR at package time
+backend/src/main/resources/static/
+.vscode/
+deployment/.env.prod

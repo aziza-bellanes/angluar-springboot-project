@@ -1,0 +1,11 @@
+atelier:
+  jwt:
+    secret: integration-test-secret-that-is-at-least-32-bytes
+  bootstrap:
+    admin-email: ""
+  auction:
+    lifecycle-interval: PT1H
+spring:
+  mail:
+    host: localhost
+    port: 2525

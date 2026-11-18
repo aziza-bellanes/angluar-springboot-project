@@ -1,0 +1,159 @@
+<section class="relative text-midnight" aria-label="The collection">
+  <div #stage class="studio-wall relative h-dvh overflow-hidden motion-reduce:hidden">
+    <!-- Edition mark -->
+    <div
+      class="deck-chrome absolute top-24 left-6 z-20 font-mono text-[11px] leading-5 tracking-[0.32em] uppercase sm:left-10"
+    >
+      <p class="text-midnight">Atelier</p>
+      <p class="text-midnight/45">◦ The autumn salon, 2026</p>
+      <p class="mt-3 text-midnight/45 tabular-nums">
+        {{ pad(cards().length) }} works · {{ pad(painters()) }} painters
+      </p>
+    </div>
+
+    <!-- Scene index -->
+    <ol
+      class="deck-chrome absolute top-24 right-6 z-20 hidden space-y-1 text-right font-mono text-[11px] tracking-[0.28em] uppercase sm:right-10 md:block"
+      aria-hidden="true"
+    >
+      @for (item of scenes; track item.name; let i = $index) {
+        <li
+          class="transition-colors duration-500"
+          [class]="scene() === i ? 'text-midnight' : 'text-midnight/30'"
+        >
+          {{ item.label }} <span class="tabular-nums">{{ pad(i + 1) }}</span>
+        </li>
+      }
+    </ol>
+
+    <div class="absolute inset-0 [perspective:1700px]">
+      <div class="drift absolute inset-0">
+        <div class="plane absolute top-1/2 left-1/2">
+          @for (art of cards(); track art.id; let i = $index) {
+            <a
+              class="riffle-card absolute top-0 left-0 block rounded-[30px] outline-offset-4 focus-visible:outline-2 focus-visible:outline-cobalt"
+              [routerLink]="['/artworks', art.slug]"
+              (click)="remember(art.slug, image)"
+              [attr.aria-label]="art.title + ' by ' + art.artistName"
+              [attr.tabindex]="i === 0 ? 0 : -1"
+              (pointerenter)="hover(art, $event)"
+              (pointerleave)="hover(null, $event)"
+            >
+              <span
+                class="riffle-face group block size-full overflow-hidden rounded-[30px] bg-ivory"
+              >
+                <img
+                  #image
+                  [src]="art.imageUrl"
+                  [alt]="art.title"
+                  class="size-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-[1.06]"
+                  loading="eager"
+                  decoding="async"
+                  draggable="false"
+                />
+              </span>
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Museum label following the pointer over a card -->
+    <div class="museum-label pointer-events-none absolute top-0 left-0 z-30" aria-hidden="true">
+      @if (hovered(); as art) {
+        <div
+          class="label-in -translate-x-1/2 translate-y-6 rounded-xl border border-white/70 bg-[#fbf8f1]/85 px-4 py-3 whitespace-nowrap shadow-[0_18px_40px_-22px_rgb(16_29_53/0.5)] backdrop-blur-xl"
+        >
+          <p class="font-display text-lg leading-tight italic">{{ art.title }}</p>
+          <p class="mt-1 font-mono text-[10px] tracking-[0.24em] text-midnight/55 uppercase">
+            {{ art.artistName }}
+            @if (art.yearCreated) {
+              <span>&nbsp;·&nbsp;{{ art.yearCreated }}</span>
+            }
+          </p>
+        </div>
+      }
+    </div>
+
+    <!-- Featured caption -->
+    @if (scene() === scenes.length - 1 && lead(); as art) {
+      <div
+        class="caption-in absolute inset-x-6 bottom-10 z-20 max-w-md sm:left-10 md:top-1/2 md:bottom-auto md:-translate-y-1/2"
+      >
+        <p class="font-mono text-[11px] tracking-[0.3em] text-midnight/55 uppercase">
+          N° 01 — {{ byline() }}
+        </p>
+        <p class="mt-4 font-display text-4xl leading-[1.05] italic md:text-6xl">{{ art.title }}</p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <a
+            class="rounded-full bg-midnight px-6 py-3 text-sm font-semibold text-ivory transition-colors hover:bg-cobalt"
+            [routerLink]="['/artworks', art.slug]"
+          >
+            View the work
+          </a>
+          <a
+            class="rounded-full border border-midnight/25 px-6 py-3 text-sm font-semibold transition-colors hover:border-midnight"
+            routerLink="/auctions"
+          >
+            Live auctions
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- Scroll cue -->
+    <div
+      class="deck-chrome pointer-events-none absolute bottom-8 left-1/2 z-20 -translate-x-1/2"
+      aria-hidden="true"
+    >
+      <div
+        class="flex flex-col items-center gap-3 font-mono text-[10px] tracking-[0.4em] text-midnight/55 uppercase transition-opacity duration-500"
+        [class.opacity-0]="scene() > 0"
+      >
+        Scroll
+        <span class="block h-10 w-px overflow-hidden bg-midnight/10"
+          ><span class="scroll-cue block size-full bg-midnight/60"></span
+        ></span>
+      </div>
+    </div>
+    <!-- Scroll progress -->
+    <div class="absolute inset-x-0 bottom-0 z-20 h-px bg-midnight/10" aria-hidden="true">
+      <div class="deck-progress h-full origin-left scale-x-0 bg-midnight"></div>
+    </div>
+  </div>
+
+  <!-- Reduced motion: a calm, swipeable row on the same wall -->
+  <div class="studio-wall relative hidden overflow-hidden pt-32 pb-16 motion-reduce:block">
+    <div class="relative px-6 font-mono text-[11px] leading-5 tracking-[0.32em] uppercase sm:px-10">
+      <p>Atelier</p>
+      <p class="text-midnight/45">◦ The autumn salon, 2026</p>
+    </div>
+    <ul
+      class="relative mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto px-6 pb-6 [scrollbar-width:none] sm:px-10"
+    >
+      @for (art of cards(); track art.id) {
+        <li class="w-[62vw] max-w-64 shrink-0 snap-start">
+          <a
+            [routerLink]="['/artworks', art.slug]"
+            (click)="remember(art.slug, still)"
+            class="block space-y-3"
+          >
+            <span class="riffle-face block overflow-hidden rounded-[14px]">
+              <img
+                #still
+                [src]="art.imageUrl"
+                [alt]="art.title"
+                class="aspect-[4/5] w-full object-cover"
+                loading="lazy"
+              />
+            </span>
+            <span class="block font-display text-xl">{{ art.title }}</span>
+            <span class="block font-mono text-[11px] tracking-[0.2em] text-midnight/55 uppercase">{{
+              art.artistName
+            }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

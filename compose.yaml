@@ -1,0 +1,76 @@
+# Development environment: identical tool versions for every teammate.
+#   docker compose up            -> MySQL + Mailpit + backend (hot reload) + frontend (ng serve)
+#   docker compose up db mailpit -> only infrastructure, run the apps from your IDE
+name: atelier
+
+x-db-env: &db-env
+  MYSQL_DATABASE: ${MYSQL_DATABASE:-atelier}
+  MYSQL_USER: ${MYSQL_USER:-atelier}
+  MYSQL_PASSWORD: ${MYSQL_PASSWORD:-atelier_dev_password}
+
+services:
+  db:
+    image: mysql:8.4.13
+    environment:
+      <<: *db-env
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-atelier_root_dev}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:v1.34.0
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  backend:
+    image: eclipse-temurin:17-jdk
+    working_dir: /workspace/backend
+    command: ["./mvnw", "-B", "spring-boot:run"]
+    environment:
+      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-atelier}?serverTimezone=UTC
+      DB_USER: ${MYSQL_USER:-atelier}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-atelier_dev_password}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me-in-production-0123456789}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@atelier.local}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-Admin123!}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@atelier.local}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      CORS_ORIGINS: http://localhost:4200
+      DEMO_DATA: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/workspace/backend
+      - maven_cache:/root/.m2
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  frontend:
+    image: node:22.23.2-alpine
+    working_dir: /workspace/frontend
+    command: ["sh", "-c", "npm ci --no-audit --no-fund && npx ng serve --host 0.0.0.0 --proxy-config proxy.docker.json"]
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/workspace/frontend
+      - frontend_node_modules:/workspace/frontend/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+  maven_cache:
+  frontend_node_modules:

@@ -1,0 +1,133 @@
+<section class="grid gap-4">
+  <at-crud-table
+    [search]="search"
+    placeholder="Search exhibitions…"
+    newLabel="New exhibition"
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="items().length === 0"
+    emptyText="No exhibitions match your search."
+    [page]="page()"
+    [totalPages]="totalPages()"
+    [total]="total()"
+    (create)="openCreate()"
+    (retry)="reload()"
+    (pageChange)="goTo($event)"
+  >
+    <table hlmTable>
+      <thead hlmTHead>
+        <tr hlmTr>
+          <th hlmTh>Exhibition</th>
+          <th hlmTh>Artist</th>
+          <th hlmTh class="text-right">Budget</th>
+          <th hlmTh>Duration</th>
+          <th hlmTh>Starts</th>
+          @if (auth.isAdmin()) {
+            <th hlmTh class="text-right">Actions</th>
+          }
+        </tr>
+      </thead>
+      <tbody hlmTBody>
+        @for (exhibition of items(); track exhibition.id) {
+          <tr hlmTr>
+            <td hlmTd>
+              <span class="block font-medium">{{ exhibition.title }}</span>
+              @if (exhibition.venue) {
+                <span class="text-xs text-muted-foreground">{{ exhibition.venue }}</span>
+              }
+            </td>
+            <td hlmTd>{{ exhibition.artistName }}</td>
+            <td hlmTd class="price text-right">{{ exhibition.budget | price }}</td>
+            <td hlmTd>{{ exhibition.durationDays }} days</td>
+            <td hlmTd>{{ exhibition.startsOn ? (exhibition.startsOn | longDate) : '—' }}</td>
+            @if (auth.isAdmin()) {
+              <td hlmTd class="text-right whitespace-nowrap">
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="'Edit ' + exhibition.title"
+                  (click)="openEdit(exhibition)"
+                >
+                  <ng-icon name="lucidePencil" />
+                </button>
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="'Delete ' + exhibition.title"
+                  (click)="toDelete.set(exhibition)"
+                >
+                  <ng-icon name="lucideTrash2" />
+                </button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </at-crud-table>
+</section>
+
+<at-form-sheet
+  [open]="sheetOpen()"
+  [form]="form"
+  [saving]="saving()"
+  [heading]="editing() ? 'Edit exhibition' : 'New exhibition'"
+  description="The budget is internal and never shown publicly."
+  [submitLabel]="editing() ? 'Save changes' : 'Create exhibition'"
+  (closed)="closeSheet()"
+  (submitted)="submit()"
+>
+  <at-form-field label="Title" [control]="form.controls.title" [required]="true">
+    <input hlmInput [formControl]="form.controls.title" />
+  </at-form-field>
+  <at-form-field label="Artist" [control]="form.controls.artistId" [required]="true">
+    <select hlmInput [formControl]="form.controls.artistId">
+      <option [ngValue]="null" disabled>Select an artist…</option>
+      @for (artist of artists(); track artist.id) {
+        <option [ngValue]="artist.id">{{ artist.name }}</option>
+      }
+    </select>
+  </at-form-field>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <at-form-field label="Budget (EUR)" [control]="form.controls.budget" [required]="true">
+      <input hlmInput type="number" min="0" step="0.01" [formControl]="form.controls.budget" />
+    </at-form-field>
+    <at-form-field
+      label="Duration (days)"
+      [control]="form.controls.durationDays"
+      [required]="true"
+      hint="1 to 3650 days."
+    >
+      <input hlmInput type="number" min="1" max="3650" [formControl]="form.controls.durationDays" />
+    </at-form-field>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <at-form-field label="Starts on" [control]="form.controls.startsOn">
+      <input hlmInput type="date" [formControl]="form.controls.startsOn" />
+    </at-form-field>
+    <at-form-field label="Venue" [control]="form.controls.venue">
+      <input hlmInput [formControl]="form.controls.venue" />
+    </at-form-field>
+  </div>
+  <at-form-field label="Cover image URL" [control]="form.controls.coverUrl">
+    <input hlmInput type="url" [formControl]="form.controls.coverUrl" />
+  </at-form-field>
+  <at-form-field label="Description" [control]="form.controls.description">
+    <textarea hlmInput rows="5" [formControl]="form.controls.description"></textarea>
+  </at-form-field>
+</at-form-sheet>
+
+<at-confirm-dialog
+  [open]="toDelete() !== null"
+  [pending]="deleting()"
+  heading="Delete this exhibition?"
+  [message]="
+    '“' + toDelete()?.title + '” will be removed. Artworks keep existing but lose the link.'
+  "
+  (confirmed)="confirmDelete()"
+  (cancelled)="toDelete.set(null)"
+/>
