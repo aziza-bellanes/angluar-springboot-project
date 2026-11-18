@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-18",
+  "provider": "Gmail authenticated STARTTLS, port 587",
+  "productionJava": "17",
+  "dedicatedTestDatabase": true,
+  "smtpAcceptedMessages": 5,
+  "flows": [
+    "collector welcome",
+    "admin new account",
+    "accepted bid confirmation",
+    "winning collector notification",
+    "admin auction result"
+  ],
+  "recipients": "the two addresses authorized by the owner",
+  "externalInboxReadback": false,
+  "note": "Successful SMTP handoff; inbox placement not independently inspected. No credentials or real recipient addresses stored in this evidence."
+}

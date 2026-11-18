@@ -4,6 +4,9 @@
 **/target
 .git
 .env
+**/.env
+**/.env.*
+compose.smtp.yaml
 *.log
 docs
 postman

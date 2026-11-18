@@ -16,11 +16,11 @@ The project also fulfils a course specification (cahier des charges) that asks f
 **Live auctions**
 - Auction rooms with countdown, bid history (bidder names masked) and quick-bid buttons.
 - Real-time updates over STOMP/WebSocket: price, leader and status change instantly for everyone.
-- Bids placed under a pessimistic row lock; a soft close extends an auction when a bid lands near the end.
-- A scheduler opens and closes auctions on time and records the winner.
+- Bids placed under a pessimistic row lock; a soft close extends an auction when a bid lands near the end. Bidder confirmations and outbid notices follow committed bids.
+- A scheduler opens and closes auctions on time and records the winner; settlement sends the winner and administrator branded result emails.
 
 **Accounts**
-- Public registration creates a collector (`BIDDER`) account and emails the administrator (async, after commit).
+- Public registration creates a collector (`BIDDER`) account, sends a branded welcome email and notifies the administrator (async, after commit). Admin-created enabled user accounts also receive a welcome email and administrator notification.
 - Stateless JWT authentication, "My collection" page with bids and won works, profile and password change.
 
 **Studio (back-office)**
@@ -59,7 +59,7 @@ The first start downloads dependencies and may take a few minutes.
 |---|---|
 | Application (Angular dev server, proxies `/api` and `/ws`) | http://localhost:4200 |
 | REST API | http://localhost:8080 |
-| Mailpit (catches the registration emails) | http://localhost:8025 |
+| Mailpit (catches outgoing emails) | http://localhost:8025 |
 | MySQL | localhost:3306 |
 
 The development stack starts with `DEMO_DATA=true`, which loads a demonstration gallery (public-domain works from The Met Open Access) with auctions in every state.
@@ -74,6 +74,8 @@ The development stack starts with `DEMO_DATA=true`, which loads a demonstration 
 | Bidder | `patron@atelier.demo` | `Atelier2026!` |
 
 The demo accounts exist only when `DEMO_DATA=true`. Change every credential before exposing an instance.
+
+Local `.env` configures development Compose. Production uses a separate private `deployment/.env.prod`; neither file nor the MySQL data volume travels through Git. See [email configuration](docs/EMAIL.md) and [migration to another machine or VPS](docs/DEPLOYMENT.md#moving-to-another-machine-or-vps).
 
 ## Production build
 
@@ -104,6 +106,7 @@ The guide, report, database reference and slides follow the BigDataZaaa document
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Walkthroughs for visitors, bidders, collaborateurs and administrators |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrams, packages, domain model, security, bid flow, frontend structure |
 | [docs/API.md](docs/API.md) | Every REST endpoint, WebSocket topics, error format |
+| [docs/EMAIL.md](docs/EMAIL.md) | Welcome and auction emails, Mailpit and real SMTP configuration |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | VPS deployment, HTTPS, backups, running `psm.jar` directly |
 | [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | Automated tests, Postman/Newman, CI, manual checklists |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Local setup, conventions, adding a feature, git workflow |
@@ -133,6 +136,10 @@ The guide, report, database reference and slides follow the BigDataZaaa document
 ├── Dockerfile                    Production image (psm.jar with Angular in static/)
 └── .env.example                  Development environment variables
 ```
+
+## Deployable JAR
+
+After successful GitHub Actions tests and image build, the `atelier-psm-jar` workflow artifact contains `psm.jar` (with Angular included) and its SHA-256 checksum. Private configuration and database data are transferred separately as described in [Deployment](docs/DEPLOYMENT.md).
 
 ## Team
 

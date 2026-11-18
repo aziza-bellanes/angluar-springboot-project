@@ -11,6 +11,7 @@ import com.sip.psm.auction.AuctionDtos.BidView;
 import com.sip.psm.common.BusinessRuleException;
 import com.sip.psm.common.NotFoundException;
 import com.sip.psm.common.PageResponse;
+import com.sip.psm.user.User;
 import java.time.Clock;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -73,6 +74,7 @@ public class AuctionService {
         applyTerms(auction, request);
         auction.synchronize(clock.instant());
         auctions.saveAndFlush(auction);
+        publishResultIfFinished(auction);
         return publish(AuctionEventType.UPDATED, auction);
     }
 
@@ -88,8 +90,11 @@ public class AuctionService {
         }
         applyTerms(auction, request);
         auction.setCurrentPrice(request.startingPrice());
-        auction.synchronize(clock.instant());
+        boolean changed = auction.synchronize(clock.instant());
         auctions.saveAndFlush(auction);
+        if (changed) {
+            publishResultIfFinished(auction);
+        }
         return publish(AuctionEventType.UPDATED, auction);
     }
 
@@ -97,6 +102,7 @@ public class AuctionService {
         Auction auction = auctions.findByIdForUpdate(id).orElseThrow(() -> new NotFoundException("Auction", id));
         auction.cancel();
         auctions.flush();
+        publishResultIfFinished(auction);
         return publish(AuctionEventType.STATUS_CHANGED, requireDetailed(id));
     }
 
@@ -113,6 +119,7 @@ public class AuctionService {
         auctions.findByIdForUpdate(id).ifPresent(auction -> {
             if (auction.synchronize(clock.instant())) {
                 auctions.flush();
+                publishResultIfFinished(auction);
                 publish(AuctionEventType.STATUS_CHANGED, requireDetailed(id));
             }
         });
@@ -126,6 +133,21 @@ public class AuctionService {
         AuctionView view = AuctionView.from(auction);
         events.publishEvent(new AuctionEvent(type, view, null, clock.instant()));
         return view;
+    }
+
+    /** Invoke only after a new status transition; repeated lifecycle checks must not resend mail. */
+    private void publishResultIfFinished(Auction auction) {
+        if (auction.getStatus() != AuctionStatus.CLOSED && auction.getStatus() != AuctionStatus.CANCELLED) {
+            return;
+        }
+        events.publishEvent(new AuctionResultEvent(auction.getId(), auction.getArtwork().getTitle(),
+                auction.getArtwork().getArtist().getName(), auction.getStatus(), auction.getCurrentPrice(),
+                recipient(auction.getWinner()), recipient(auction.getLeadingBidder())));
+    }
+
+    private static AuctionResultEvent.Recipient recipient(User user) {
+        return user == null ? null : new AuctionResultEvent.Recipient(user.getId(),
+                user.getFirstName() + " " + user.getLastName(), user.getEmail());
     }
 
     private static void applyTerms(Auction auction, AuctionRequest request) {

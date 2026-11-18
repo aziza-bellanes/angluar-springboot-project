@@ -38,6 +38,7 @@ type Field = 'firstName' | 'lastName' | 'email' | 'phone' | 'password' | 'confir
           <label hlmLabel for="email">Email</label>
           <input hlmInput id="email" type="email" autocomplete="email" formControlName="email" class="w-full" />
           @if (message('email'); as m) { <p class="text-sm text-terracotta" role="alert">{{ m }}</p> }
+          <p class="text-xs text-muted-foreground">Use an inbox you can access for your welcome message and auction updates.</p>
         </div>
         <div class="space-y-2">
           <label hlmLabel for="phone">Phone <span class="text-muted-foreground">(optional)</span></label>

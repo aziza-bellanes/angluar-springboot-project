@@ -37,7 +37,7 @@ A ready-to-run collection is available in [`postman/ATELIER.postman_collection.j
   "phone": null, "enabled": true, "roles": ["ADMIN"], "roleIds": [1], "createdAt": "2026-11-17T10:00:00Z" }
 ```
 
-Errors: register 409 `email_taken`; login 401 `invalid_credentials` (wrong password or disabled account). A successful registration creates a `BIDDER` and emails `ADMIN_EMAIL`.
+Errors: register 409 `email_taken`; login 401 `invalid_credentials` (wrong password or disabled account). A successful registration creates a `BIDDER`, queues a welcome email to that account and a registration notification to `ADMIN_EMAIL` after commit. Delivery failures do not change the successful API response. See [EMAIL.md](EMAIL.md).
 
 ## Public gallery (no authentication)
 
@@ -197,6 +197,8 @@ Trends compare the last seven days with the seven days before.
 | PUT | `/api/admin/users/{id}/roles` | `{ "roleIds": [2] }` (non-empty role catalogue IDs) | 200 `UserResponse` |
 | PUT | `/api/admin/users/{id}/status` | `{ "enabled": false }` | 200 `UserResponse` |
 
+Creating an enabled user account also queues a welcome email and administrator notification after commit, including staff accounts. Existing-account edits and role changes do not resend welcome mail; passwords and JWTs are never included.
+
 Unknown ids return 404 `not_found`.
 
 ```jsonc
@@ -322,3 +324,7 @@ Validation failure (400) adds a `fields` object:
 | 409 | `exhibition_artist_mismatch`, `artwork_not_published`, `invalid_window`, `auction_overlap`, `auction_locked`, `artwork_change`, `auction_finished`, `auction_has_bids` | Catalogue and auction rules |
 | 409 | `role_name_taken`, `system_role`, `role_in_use`, `unknown_role` | Role catalogue and assignment rules |
 | 409 | `auction_not_open`, `already_leading`, `bid_too_low` | Bidding rules |
+
+## Email side effects
+
+Email is asynchronous and runs after committed changes. Artist/client contact creation or a change to a new normalized contact email queues contact welcome and administrator notices, without creating an authentication account. A successful bid queues bidder confirmation and, when applicable, an outbid notice to the previous leader. Auction closure queues an administrator result (including no bids) and a winner message when there is a winner; cancellation queues an administrator summary and a current-leader notice. SMTP failures do not undo these operations. See [EMAIL.md](EMAIL.md) for configuration and delivery limits.

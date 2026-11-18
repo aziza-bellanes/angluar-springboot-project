@@ -14,6 +14,7 @@ Files in `deployment/`:
 | `.env.prod.example` | Template for `deployment/.env.prod` (never committed; ignored by git) |
 | `nginx/atelier.conf` | Reverse proxy with WebSocket upgrade, gzip and static caching |
 | `deploy.sh` | Syncs the sources over SSH, builds on the server, restarts the stack and runs smoke checks |
+| `database.sh` | Streams a database backup or restores one, using credentials already inside the database container |
 
 ## 1. Prerequisites
 
@@ -42,18 +43,22 @@ ssh user@host nano /opt/atelier/deployment/.env.prod
 
 | Variable | Meaning |
 |---|---|
-| `PUBLIC_URL` | Public origin, e.g. `https://atelier.example.com`. Becomes `CORS_ORIGINS` (also used for WebSocket origins). Required |
+| `PUBLIC_URL` | Public origin, e.g. `https://atelier.example.com`. Used for email links and as `CORS_ORIGINS` (also used for WebSocket origins). Required |
 | `APP_PORT` | Local port bound on `127.0.0.1` (default 8080); keep it in sync with Nginx |
 | `ATELIER_VERSION` | Tag of the built image `smartsoft/atelier:<version>` |
 | `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` | Database credentials; use strong values |
 | `JWT_SECRET` | Signing key, at least 32 random bytes: `openssl rand -base64 48` |
-| `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` | First administrator, created on first start if the email does not exist (password at least 8 characters) |
-| `ADMIN_EMAIL` | Recipient of the registration notification emails |
+| `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` | Initial administrator, created only if the email does not exist (password at least 8 characters); changing these values does not reset an existing password |
+| `ADMIN_EMAIL` | Recipient of registration notifications and auction result emails |
 | `MAIL_FROM` | Sender address of notification emails |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_AUTH`, `SMTP_TLS` | SMTP provider. For a local catcher use `SMTP_HOST=mailpit`, `SMTP_PORT=1025` and start the `mailpit` profile |
 | `DEMO_DATA` | `true` loads the demonstration gallery and demo accounts on first start (only if the catalogue is empty). Set `false` for a real gallery |
 
 Never reuse the demo passwords on a public server. If `DEMO_DATA=true`, change or disable the `*@atelier.demo` accounts from the Studio (Users page).
+
+Root `.env` belongs to the development stack (`docker compose up`). `deployment/.env.prod` belongs to the production stack and must be explicitly selected with `--env-file deployment/.env.prod`. They are separate configurations, not synchronized copies. Do not paste private SMTP values into tracked templates. See [EMAIL.md](EMAIL.md) for Mailpit and authenticated SMTP, including Gmail app passwords.
+
+Restrict the private file after editing: `chmod 600 /opt/atelier/deployment/.env.prod`.
 
 ## 3. Deploy
 
@@ -99,15 +104,12 @@ User data lives in the MySQL volume `atelier-prod_mysql_data` (the project name 
 
 ```bash
 # Backup
-ssh user@host 'cd /opt/atelier && set -a && . deployment/.env.prod && set +a \
-  && docker compose -f deployment/compose.prod.yaml --env-file deployment/.env.prod exec -T db \
-     mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines "$MYSQL_DATABASE"' \
+umask 077
+ssh user@host 'cd /opt/atelier && deployment/database.sh backup' \
   | gzip > atelier-$(date +%F).sql.gz
 
 # Restore into a running stack
-gunzip -c atelier-2026-11-17.sql.gz | ssh user@host 'cd /opt/atelier && set -a && . deployment/.env.prod && set +a \
-  && docker compose -f deployment/compose.prod.yaml --env-file deployment/.env.prod exec -T db \
-     mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
+gunzip -c atelier-2026-11-17.sql.gz | ssh user@host 'cd /opt/atelier && deployment/database.sh restore'
 ```
 
 Schedule the backup with cron on a trusted machine and keep copies off the VPS. To snapshot the raw volume instead, stop the stack first (`docker compose ... stop db`) and archive `/var/lib/docker/volumes/atelier-prod_mysql_data`.
@@ -175,6 +177,7 @@ export DB_USER=atelier DB_PASSWORD='...'
 export JWT_SECRET="$(openssl rand -base64 48)"
 export BOOTSTRAP_ADMIN_EMAIL=admin@example.com BOOTSTRAP_ADMIN_PASSWORD='ChangeMe123!'
 export ADMIN_EMAIL=admin@example.com
+export PUBLIC_URL=https://atelier.example.com
 export CORS_ORIGINS=https://atelier.example.com
 export SMTP_HOST=smtp.example.com SMTP_PORT=587 SMTP_AUTH=true SMTP_TLS=true SMTP_USER=... SMTP_PASSWORD=...
 java -jar psm.jar
@@ -187,7 +190,7 @@ java -jar psm.jar
 | `JWT_SECRET` | empty (**required**) | JWT signing key, 32+ bytes |
 | `JWT_EXPIRATION` | `PT12H` | Token lifetime (ISO-8601 duration) |
 | `CORS_ORIGINS` | `http://localhost:4200` | Allowed origins, comma separated |
-| `ADMIN_EMAIL`, `MAIL_FROM` | `admin@atelier.local`, `noreply@smartsoft-solutions.local` | Registration notification recipient and sender |
+| `ADMIN_EMAIL`, `MAIL_FROM` | `admin@atelier.local`, `noreply@smartsoft-solutions.local` | Notification recipient and sender |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_AUTH`, `SMTP_TLS` | `localhost`, `1025`, empty, empty, `false`, `false` | SMTP |
 | `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` | empty | First administrator |
 | `AUCTION_SOFT_CLOSE` | `PT60S` | Extension window for late bids |
@@ -201,3 +204,18 @@ To run as a service, create a systemd unit with `ExecStart=/usr/bin/java -jar /o
 The application applies `V3__dynamic_roles.sql` through Flyway at startup. It adds `roles.profile` and `roles.system_key`, fills them from the existing built-in labels, then makes `profile` mandatory. Existing role IDs and `user_roles` assignments remain intact. `RoleMigrationIT` exercises this populated V2-to-V3 path against MySQL. Keep V1 and V2 unchanged and back up the database before the normal deployment upgrade.
 
 After upgrade, administrators manage named roles under **Studio → Roles** and assign them from the live catalogue in **Users**. Renamed system roles retain stable system keys and permission profiles across restarts. No manual SQL rename or role recreation is required.
+
+
+## Moving to another machine or VPS
+
+Git or a Docker image transfers the program, not your accounts, bids, artworks or secrets. Docker volumes are local to each Docker host. Copying `.env.prod` alone does not preserve accounts; copying the database alone does not configure email or public links.
+
+1. Record the source Git commit or exact image digest, take a database backup, and arrange a maintenance window that prevents writes and auction settlement during the final dump and cutover. Keep the old instance stopped until cutover is complete so two schedulers cannot operate independently.
+2. Install Docker/Compose on the destination. Deploy the same source revision or load/pull the same image version. A release tag is useful only if it identifies the same built image. Keep MySQL compatible (the supplied stack uses 8.4.13).
+3. Transfer the private configuration separately over SSH, for example `scp deployment/.env.prod user@new-host:/opt/atelier/deployment/.env.prod`, then `chmod 600` it on the destination. If the source is a development instance, create `.env.prod` from the production template and enter the required settings privately; do not rename the development file and assume it is production-ready. Never commit or attach the real file to a report.
+4. Set destination-specific `PUBLIC_URL`, SMTP settings, `MAIL_FROM`, `ADMIN_EMAIL`, database credentials and Nginx domain. Production Compose maps `PUBLIC_URL` to REST/WebSocket `CORS_ORIGINS`; when running the jar directly set both variables. Retain the existing `JWT_SECRET` if existing tokens must remain valid; rotating it requires users to log in again. Set `DEMO_DATA=false` for a real installation.
+5. Start only the destination database: `docker compose -f deployment/compose.prod.yaml --env-file deployment/.env.prod up -d db`. Wait for it to become healthy. Restore the SQL dump using section 5 before starting the app. The source dump command uses root `.env` and root `compose.yaml` for a development source, or the production paths for a production source. Do not use `down -v`, which deletes the database volume.
+6. Start the application with the production Compose command in section 3, configure Nginx/HTTPS, and point DNS at the destination. Flyway runs at app startup; starting with the same app version avoids introducing a schema upgrade during the move.
+7. Verify readiness, existing-account login, stored catalogue and bids, secured Studio access, Angular deep links, WebSocket bidding and fresh email delivery with the new URL. Retain the encrypted or access-restricted backup and the old host until the move is accepted.
+
+Restored users retain their BCrypt passwords and role assignments. `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD` only create a missing initial administrator; they do not change a restored user's password. Use the existing administrator account and normal account-management flow to update credentials.

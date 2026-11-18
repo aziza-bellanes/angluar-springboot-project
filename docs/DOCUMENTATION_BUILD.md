@@ -47,3 +47,7 @@ See [slides/README.md](slides/README.md). Its `build.mjs` uses the official Code
 ## Review and evidence
 
 The guide/report, schema reference and deck read `docs/evidence/verification.json` for measured suite totals. Keep the date and test results aligned with the actual recorded run. Do not infer VPS deployment or real SMTP delivery from local results. Render all final PDF pages to images with `pdftoppm`, inspect them, and regenerate any document whose content changed.
+
+## Branded email previews
+
+The backend unit tests write synthetic (non-customer) HTML messages under `backend/target/email-previews`. After running `./mvnw test` in `backend/`, run `node docs/build/email-previews.mjs` from the repository root. It copies the samples into `docs/emails/` and checks desktop/mobile overflow while rendering welcome, winner and administrator messages. The template is `backend/src/main/resources/mail/gallery.html`; SMTP behavior and configuration are documented in [EMAIL.md](EMAIL.md).

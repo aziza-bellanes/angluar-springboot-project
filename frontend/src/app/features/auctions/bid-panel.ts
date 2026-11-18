@@ -60,6 +60,7 @@ import { formatPrice } from '@app/core/util/format';
           <p class="text-sm text-sunflower">You are the highest bidder. Wait for another bid to raise yours.</p>
         }
         <button type="submit" class="btn-gold w-full" [disabled]="!canSubmit()">Place a bid</button>
+        <p class="text-xs leading-relaxed text-ivory/60">Bid confirmations, outbid notices and winning results go to your account email. Follow this page for the live auction status.</p>
       </form>
 
       <hlm-dialog [state]="dialog() ? 'open' : 'closed'" (closed)="dialog.set(false)">

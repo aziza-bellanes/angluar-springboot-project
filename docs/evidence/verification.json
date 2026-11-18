@@ -1,15 +1,36 @@
 {
   "surefire": {
     "totals": {
-      "tests": 8,
+      "tests": 19,
       "failures": 0,
       "errors": 0,
       "skipped": 0
     },
     "suites": [
       {
+        "name": "com.sip.psm.artist.ArtistNotificationEventTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
         "name": "com.sip.psm.auction.AuctionTest",
         "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.auction.BidNotificationEventTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.mail.GalleryMailTemplateTest",
+        "tests": 6,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -18,7 +39,7 @@
   },
   "failsafe": {
     "totals": {
-      "tests": 140,
+      "tests": 151,
       "failures": 0,
       "errors": 0,
       "skipped": 0
@@ -34,6 +55,13 @@
       {
         "name": "com.sip.psm.auction.AuctionFlowIT",
         "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.auction.AuctionResultEventIT",
+        "tests": 4,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -69,6 +97,13 @@
       {
         "name": "com.sip.psm.demo.DemoDataIT",
         "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.sip.psm.mail.GalleryMailIT",
+        "tests": 7,
         "failures": 0,
         "errors": 0,
         "skipped": 0
@@ -134,7 +169,7 @@
     "productionJava": "17 (Docker)",
     "node": "22.23.2",
     "mysql": "8.4.13",
-    "productionImage": "smartsoft/atelier:roles-20261118",
+    "productionImage": "smartsoft/atelier:mail-20261118",
     "liveVps": "not verified"
   },
   "databaseUpgrade": {
@@ -149,11 +184,32 @@
     "failures": 0,
     "pageErrors": 0
   },
-  "sourceCodeCommit": "2ca172f",
-  "ci": {
+  "email": {
+    "templates": "ATELIER HTML + plain text",
+    "unitAndIntegration": "passed",
+    "smtpAuthentication": "verified; no credentials recorded",
+    "mailpitMessages": 17,
+    "gmailAcceptedMessages": 5,
+    "externalInboxReadback": false,
+    "evidence": [
+      "email-smoke.json",
+      "email-provider.json",
+      "backup-restore.json"
+    ]
+  },
+  "sourceCodeBaseCommit": "2ca172f",
+  "previousCi": {
     "run": "https://github.com/aziza-bellanes/angluar-springboot-project/actions/runs/44297908011",
     "backendJava17": "passed",
     "frontend": "passed",
     "productionImage": "passed"
+  },
+  "ci": {
+    "status": "pending push of this change set",
+    "actions": "https://github.com/aziza-bellanes/angluar-springboot-project/actions"
+  },
+  "historicalChecks": {
+    "newman": "103 requests/175 assertions from prior role-CRUD release; API shapes unchanged",
+    "browser": "14 scenarios from prior role-CRUD release; new mail paths tested separately in email-smoke.json"
   }
 }

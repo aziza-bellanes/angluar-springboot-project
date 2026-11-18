@@ -1,56 +1,38 @@
 package com.sip.psm.auth;
 
 import com.sip.psm.config.AtelierProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import com.sip.psm.mail.GalleryMailSender;
+import com.sip.psm.mail.GalleryMailTemplate.Content;
+import com.sip.psm.mail.GalleryMailTemplate.Detail;
+import java.util.List;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-/**
- * Specification requirement: "after a registration, an email must be sent to the admin".
- * Runs asynchronously after commit, so an SMTP outage never blocks or rolls back a registration.
- */
+/** Customer and administrator receive individual branded messages after account creation commits. */
 @Component
 public class RegistrationMailListener {
+    private final GalleryMailSender sender;
+    private final String admin;
 
-    private static final Logger log = LoggerFactory.getLogger(RegistrationMailListener.class);
-
-    private final JavaMailSender mailSender;
-    private final AtelierProperties.Mail settings;
-
-    public RegistrationMailListener(JavaMailSender mailSender, AtelierProperties properties) {
-        this.mailSender = mailSender;
-        this.settings = properties.mail();
+    public RegistrationMailListener(GalleryMailSender sender, AtelierProperties properties) {
+        this.sender = sender;
+        this.admin = properties.mail().adminAddress();
     }
 
-    @Async
+    @Async("galleryMailExecutor")
     @TransactionalEventListener
     public void onUserRegistered(UserRegisteredEvent event) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(settings.fromAddress());
-        message.setTo(settings.adminAddress());
-        message.setSubject("[SmartSoft Solutions · ATELIER] New registration: " + event.fullName());
-        message.setText("""
-                A new collector account has been created on ATELIER.
-
-                Name:  %s
-                Email: %s
-                ID:    %d
-
-                You can review roles from the Studio > Users page.
-
-                — ATELIER, operated by SmartSoft Solutions
-                """.formatted(event.fullName(), event.email(), event.userId()));
-        try {
-            mailSender.send(message);
-            log.info("Registration notification sent for user {}", event.userId());
-        } catch (MailException ex) {
-            log.warn("Registration of user {} saved, but the admin notification failed: {}",
-                    event.userId(), ex.getMessage());
-        }
+        sender.send(event.email(), new Content("Welcome to the gallery", "Your place in the gallery.",
+                "Welcome to ATELIER. Your account is ready.", "Hello, " + event.fullName() + ".",
+                List.of("Welcome to ATELIER, a space where artists, collectors and new perspectives meet.",
+                        "Your account is ready. Sign in with the password chosen when the account was created. If a gallery administrator created your account, contact them for your access details."),
+                List.of(new Detail("Your account", event.email())), "Explore the gallery", "/login"));
+        sender.send(admin, new Content("New account · " + event.fullName(), "A new gallery member.",
+                "An account has been created on ATELIER.", "Hello, gallery team.",
+                List.of("A new account is ready. You can review its details and permissions in Studio."),
+                List.of(new Detail("Name", event.fullName()), new Detail("Email", event.email()),
+                        new Detail("Account reference", String.valueOf(event.userId()))),
+                "Review gallery members", "/studio/users"));
     }
 }

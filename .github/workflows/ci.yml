@@ -62,6 +62,21 @@ jobs:
         with:
           context: .
           push: false
+          load: true
           tags: atelier:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Extract the deployable JAR
+        run: |
+          mkdir -p release
+          docker create --name atelier-artifact atelier:ci
+          docker cp atelier-artifact:/app/psm.jar release/psm.jar
+          docker rm atelier-artifact
+          sha256sum release/psm.jar > release/psm.jar.sha256
+      - name: Upload psm.jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: atelier-psm-jar
+          path: release/
+          retention-days: 30
+          if-no-files-found: error

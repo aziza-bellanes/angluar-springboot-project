@@ -43,9 +43,15 @@ services:
       BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@atelier.local}
       BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-Admin123!}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@atelier.local}
-      SMTP_HOST: mailpit
-      SMTP_PORT: 1025
-      CORS_ORIGINS: http://localhost:4200
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_AUTH: ${SMTP_AUTH:-false}
+      SMTP_TLS: ${SMTP_TLS:-false}
+      MAIL_FROM: ${MAIL_FROM:-noreply@atelier.local}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:4200}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
       DEMO_DATA: "true"
     ports:
       - "8080:8080"

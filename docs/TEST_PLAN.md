@@ -24,7 +24,7 @@ Location: `backend/src/test/java/com/sip/psm/`. Unit tests are `*Test` (Surefire
 
 | Class | Covers |
 |---|---|
-| `auth/AuthIT` | Registration creates a `BIDDER` and returns a token; duplicate email 409; invalid payload returns field errors; **exactly one email is sent to the admin**; registration still succeeds when the mail server fails; login success, wrong password 401, disabled user 401; `/api/auth/me` with and without a token |
+| `auth/AuthIT` | Registration creates a `BIDDER` and returns a token; duplicate email 409; invalid payload returns field errors; welcome and administrator emails follow committed registration; registration still succeeds when the mail server fails; login success, wrong password 401, disabled user 401; `/api/auth/me` with and without a token |
 | `security/SecurityMatrixIT` | Parameterized authorization matrix of `SecurityConfig` for anonymous, `BIDDER`, `COLLABORATEUR` and `ADMIN` across public, studio, admin and bidding endpoints |
 | `catalog/CatalogFlowIT` | A collaborateur builds the catalogue; visitors see only public fields (no contact details, no budget); draft artworks are hidden; duplicate titles get distinct slugs; exhibition of another artist rejected; artist with exhibitions cannot be deleted; admin updates; invalid payload field errors |
 | `catalog/DatabaseRelationshipsIT` | Flushes and reloads actual MySQL rows to prove several roles per user, a shared role across users, and two exhibitions belonging to the same artist through both JPA navigation directions |
@@ -117,7 +117,7 @@ Start the stack (`docker compose up`) and use the accounts listed in the [README
 - [ ] `/studio` and `/account` redirect to the sign-in page.
 
 ### Bidder
-- [ ] Register with a new email: you land signed in; Mailpit (http://localhost:8025) shows one email to the admin.
+- [ ] Register with a new email: you land signed in; Mailpit (http://localhost:8025) shows a welcome to the user and a notification to the admin.
 - [ ] Registering the same email again shows a clear error.
 - [ ] Sign in as `collector@atelier.demo`; open an open auction; place a valid bid after the confirmation dialog; price, leader and history update immediately.
 - [ ] A bid below the minimum is refused; bidding while already leading is refused.
@@ -132,7 +132,7 @@ Start the stack (`docker compose up`) and use the accounts listed in the [README
 - [ ] Can view and add an artist, an exhibition and an artwork; no edit or delete buttons are shown.
 - [ ] Navigating by URL to `/studio/auctions`, `/studio/users` or `/studio/roles` is denied.
 
-### Administrator (`admin@atelier.local`)
+### Administrator (private bootstrap account; template example `admin@atelier.local`)
 - [ ] Edit and delete artists, exhibitions and artworks; deleting an artist that still has exhibitions shows a clear conflict message.
 - [ ] Create an auction for a published artwork; a second live auction for the same artwork is refused; edit it before bids; cancel it; delete one without bids; an auction with bids cannot be deleted.
 - [ ] Users page: change a user's roles; disable and re-enable an account (a disabled user cannot sign in); trying to remove your own admin role or disable yourself is refused.
@@ -146,3 +146,16 @@ Start the stack (`docker compose up`) and use the accounts listed in the [README
 - [ ] Stop the backend while on the auctions list: the indicator changes from "Live updates on" to "Connecting…" and live updates resume after restart.
 - [ ] Keyboard navigation reaches dialogs and forms; focus is visible.
 - [ ] Layout is usable at phone width.
+
+
+### Notification and migration acceptance
+
+- [ ] New enabled admin-created accounts receive welcome mail plus an administrator notice; existing-account edits do not resend welcomes. Disabled account creation does not send welcome mail.
+- [ ] New artist/client contacts and changes to a new normalized email receive contact welcomes and administrator notices; these records do not create login accounts.
+- [ ] A committed bid sends bidder confirmation and an outbid notice to the previous leader when applicable; the administrator receives no per-bid message.
+- [ ] Auction closure sends the winner congratulations when present and an administrator result, including no bids. Cancellation sends an administrator summary and a current-leader notice when applicable.
+- [ ] Inspect HTML and plain-text parts, links using PUBLIC_URL, and recipient isolation. Confirm no passwords/tokens or payment-receipt claims; a rolled-back transaction sends no message and an SMTP failure does not roll back data.
+- [ ] Keep local Mailpit checks separate from real-provider inbox verification. SMTP authentication alone does not prove an app message reached an inbox.
+- [ ] Rehearse moving the same code/image version to another host: transfer private .env.prod over SSH, restore a MySQL dump, set PUBLIC_URL/CORS and SMTP settings, and verify existing accounts and records. Git does not transfer secrets or Docker volumes. Changing bootstrap values does not reset restored passwords.
+
+The account examples above are generic seeded demo/template values, not the private credentials of a running instance. Development Compose reads root `.env`; production explicitly selects `deployment/.env.prod`. See [DEPLOYMENT.md](DEPLOYMENT.md) and [EMAIL.md](EMAIL.md).

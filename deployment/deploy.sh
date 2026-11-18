@@ -11,6 +11,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "→ Syncing sources to $TARGET:$REMOTE_DIR"
 rsync -az --delete \
   --exclude '.git' --exclude 'node_modules' --exclude 'target' --exclude 'dist' --exclude '.angular' \
+  --exclude '.env' \
   --exclude 'deployment/.env.prod' \
   "$ROOT/" "$TARGET:$REMOTE_DIR/"
 

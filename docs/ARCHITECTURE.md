@@ -45,6 +45,7 @@ Base package: `backend/src/main/java/com/sip/psm/`. Each feature owns its entity
 | Package | Responsibility |
 |---|---|
 | `auth` | Registration, login, `/api/auth/me`, `UserRegisteredEvent`, `RegistrationMailListener` |
+| `mail` | Shared ATELIER HTML/plain-text renderer and SMTP sender; after-commit artist, bid and auction-result notifications. Email links use `PUBLIC_URL`; see [EMAIL.md](EMAIL.md). |
 | `user` | `User`, `Role`, `RoleName`, user and role administration (`AdminUserController`, `AdminRoleController`, `UserService`, `RoleService`) |
 | `account` | Self-service: profile, password, own bids, won auctions |
 | `artist` | Artists (CDC *Client*): public and studio controllers, DTOs with public/private projections |

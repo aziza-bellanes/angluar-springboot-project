@@ -2,9 +2,9 @@ package com.sip.psm.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -17,12 +17,18 @@ import com.sip.psm.user.User;
 import com.sip.psm.user.UserRepository;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.mail.MailSendException;
-import org.springframework.mail.SimpleMailMessage;
+import jakarta.mail.Session;
+import jakarta.mail.Multipart;
+import jakarta.mail.Part;
+import jakarta.mail.internet.MimeMessage;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.time.Duration;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,6 +47,14 @@ class AuthIT {
     JavaMailSender mailSender;
     @Value("${atelier.mail.admin-address:admin@atelier.local}")
     String adminAddress;
+
+    private final ConcurrentLinkedQueue<MimeMessage> sent = new ConcurrentLinkedQueue<>();
+
+    @BeforeEach
+    void mockMimeTransport() {
+        when(mailSender.createMimeMessage()).thenAnswer(call -> new MimeMessage(Session.getInstance(new Properties())));
+        doAnswer(call -> { sent.add(call.getArgument(0)); return null; }).when(mailSender).send(any(MimeMessage.class));
+    }
 
     @Test
     void registerCreatesBidderAndReturnsToken() throws Exception {
@@ -79,32 +93,54 @@ class AuthIT {
     }
 
     @Test
-    void registrationSendsExactlyOneEmailToTheAdmin() throws Exception {
+    void registrationSendsWelcomeAndOneEmailToTheAdmin() throws Exception {
         String email = uniqueEmail();
-
         mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
-                        .content(registration("Grace", "Hopper", email)))
+                        .content(registration("Grace <b>", "Hopper &", email)))
                 .andExpect(status().isCreated());
-
-        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
-        verify(mailSender, timeout(5000)).send(captor.capture());
-        SimpleMailMessage message = captor.getValue();
-        assertThat(message.getTo()).containsExactly(adminAddress);
-        assertThat(message.getSubject()).contains("Grace Hopper");
-        assertThat(message.getText()).contains(email);
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            var messages = sent.stream().filter(message -> text(message).contains(email)).toList();
+            assertThat(messages).hasSize(2);
+            assertThat(messages.stream().map(AuthIT::destination)).containsExactlyInAnyOrder(email, adminAddress);
+            for (var message : messages) {
+                assertThat(message.isMimeType("multipart/*")).isTrue();
+                assertThat(text(message)).contains("Grace &lt;b&gt; Hopper &amp;");
+                assertThat(text(message)).doesNotContain(TestFixtures.PASSWORD);
+            }
+        });
     }
 
     @Test
     void registrationStillSucceedsWhenTheMailServerFails() throws Exception {
-        doThrow(new MailSendException("smtp down")).when(mailSender).send(any(SimpleMailMessage.class));
+        doAnswer(call -> {
+            sent.add(call.getArgument(0));
+            throw new MailSendException("smtp down");
+        }).when(mailSender).send(any(MimeMessage.class));
         String email = uniqueEmail();
-
         mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                         .content(registration("Alan", "Turing", email)))
                 .andExpect(status().isCreated());
-
-        verify(mailSender, timeout(5000)).send(any(SimpleMailMessage.class));
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
+                assertThat(sent.stream().filter(message -> text(message).contains(email))
+                        .map(AuthIT::destination)).containsExactlyInAnyOrder(email, adminAddress));
         assertThat(users.existsByEmailIgnoreCase(email)).isTrue();
+    }
+
+    private static String destination(MimeMessage message) {
+        try { return message.getAllRecipients()[0].toString(); }
+        catch (Exception ex) { throw new AssertionError(ex); }
+    }
+
+    private static String text(Part part) {
+        try {
+            Object content = part.getContent();
+            if (content instanceof Multipart multipart) {
+                StringBuilder result = new StringBuilder();
+                for (int i = 0; i < multipart.getCount(); i++) result.append(text(multipart.getBodyPart(i)));
+                return result.toString();
+            }
+            return String.valueOf(content);
+        } catch (Exception ex) { throw new AssertionError(ex); }
     }
 
     @Test

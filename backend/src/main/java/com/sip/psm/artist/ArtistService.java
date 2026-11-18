@@ -6,6 +6,9 @@ import com.sip.psm.artist.ArtistDtos.ArtistSummary;
 import com.sip.psm.common.NotFoundException;
 import com.sip.psm.common.PageResponse;
 import com.sip.psm.user.UserService;
+import java.util.Locale;
+import java.util.Objects;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +20,12 @@ public class ArtistService {
 
     private final ArtistRepository artists;
     private final UserService users;
+    private final ApplicationEventPublisher events;
 
-    public ArtistService(ArtistRepository artists, UserService users) {
+    public ArtistService(ArtistRepository artists, UserService users, ApplicationEventPublisher events) {
         this.artists = artists;
         this.users = users;
+        this.events = events;
     }
 
     @Transactional(readOnly = true)
@@ -51,13 +56,20 @@ public class ArtistService {
         Artist artist = new Artist();
         apply(artist, request);
         artist.setCreatedBy(users.requireByEmail(actorEmail));
-        return ArtistResponse.from(artists.save(artist));
+        artist = artists.save(artist);
+        publishContactCreated(artist);
+        return ArtistResponse.from(artist);
     }
 
     public ArtistResponse update(Long id, ArtistRequest request) {
         Artist artist = require(id);
+        String previousEmail = normalizedEmail(artist.getEmail());
         apply(artist, request);
-        return ArtistResponse.from(artists.saveAndFlush(artist));
+        artist = artists.saveAndFlush(artist);
+        if (!Objects.equals(previousEmail, normalizedEmail(artist.getEmail()))) {
+            publishContactCreated(artist);
+        }
+        return ArtistResponse.from(artist);
     }
 
     /** Deleting an artist referenced by exhibitions or artworks is refused by the database (HTTP 409). */
@@ -84,5 +96,15 @@ public class ArtistService {
 
     static String normalize(String query) {
         return query == null || query.isBlank() ? null : query.trim();
+    }
+
+    private void publishContactCreated(Artist artist) {
+        if (artist.getEmail() != null && !artist.getEmail().isBlank()) {
+            events.publishEvent(new ArtistContactCreatedEvent(artist.getId(), artist.getName(), artist.getEmail()));
+        }
+    }
+
+    private static String normalizedEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

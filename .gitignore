@@ -13,3 +13,5 @@
 backend/src/main/resources/static/
 .vscode/
 deployment/.env.prod
+# Optional machine-local SMTP override; may contain credentials.
+compose.smtp.yaml

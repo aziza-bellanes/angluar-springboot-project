@@ -2,6 +2,7 @@ package com.sip.psm.user;
 
 import com.sip.psm.common.BusinessRuleException;
 import com.sip.psm.common.NotFoundException;
+import com.sip.psm.auth.UserRegisteredEvent;
 import com.sip.psm.artist.ArtistRepository;
 import com.sip.psm.artwork.ArtworkRepository;
 import com.sip.psm.auction.AuctionRepository;
@@ -17,6 +18,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Sort;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,10 +37,12 @@ public class UserService {
     private final ArtistRepository artists;
     private final ExhibitionRepository exhibitions;
     private final ArtworkRepository artworks;
+    private final ApplicationEventPublisher events;
 
     public UserService(UserRepository users, RoleRepository roles, PasswordEncoder passwordEncoder,
                        BidRepository bids, AuctionRepository auctions, ArtistRepository artists,
-                       ExhibitionRepository exhibitions, ArtworkRepository artworks) {
+                       ExhibitionRepository exhibitions, ArtworkRepository artworks,
+                       ApplicationEventPublisher events) {
         this.users = users;
         this.roles = roles;
         this.passwordEncoder = passwordEncoder;
@@ -47,6 +51,7 @@ public class UserService {
         this.artists = artists;
         this.exhibitions = exhibitions;
         this.artworks = artworks;
+        this.events = events;
     }
 
     public UserResponse create(CreateUserRequest request) {
@@ -62,7 +67,12 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setEnabled(request.enabled() == null || request.enabled());
         user.setRoles(resolve(request));
-        return UserResponse.from(users.save(user));
+        users.save(user);
+        if (user.isEnabled()) {
+            events.publishEvent(new UserRegisteredEvent(user.getId(),
+                    user.getFirstName() + " " + user.getLastName(), user.getEmail()));
+        }
+        return UserResponse.from(user);
     }
 
     public UserResponse update(Long id, UpdateUserRequest request, String actingEmail) {

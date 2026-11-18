@@ -27,7 +27,19 @@ public record AtelierProperties(
     public record Cors(@NotNull List<String> allowedOrigins) {
     }
 
-    public record Mail(@NotBlank String adminAddress, @NotBlank String fromAddress) {
+    public record Mail(@NotBlank String adminAddress, @NotBlank String fromAddress,
+                       @NotBlank String publicUrl) {
+        public Mail {
+            if (publicUrl != null) {
+                var uri = java.net.URI.create(publicUrl);
+                if (!("https".equals(uri.getScheme()) || "http".equals(uri.getScheme()))
+                        || uri.getHost() == null || uri.getUserInfo() != null
+                        || uri.getQuery() != null || uri.getFragment() != null) {
+                    throw new IllegalArgumentException("PUBLIC_URL must be an absolute HTTP(S) site URL");
+                }
+                publicUrl = publicUrl.replaceAll("/+$", "");
+            }
+        }
     }
 
     public record Bootstrap(String adminEmail, String adminPassword) {

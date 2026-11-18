@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-18",
+  "environment": "Java 17 production image, dedicated MySQL QA schema, Mailpit",
+  "messages": 17,
+  "checks": [
+    "self-registration customer + admin",
+    "artist creation + changed address customer + admin",
+    "bid confirmations",
+    "outbid notice",
+    "winner + admin final result",
+    "no-bid admin result",
+    "cancelled auction leader + admin",
+    "HTML/plain alternatives and ATELIER colors",
+    "configured PUBLIC_URL in every message",
+    "no account password in mail"
+  ],
+  "duplicateWinnerMessages": false,
+  "remoteDelivery": "not part of this isolated capture"
+}

@@ -46,11 +46,20 @@ public class BidService {
         Auction auction = auctions.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new NotFoundException("Auction", auctionId));
         Instant now = clock.instant();
+        BidAcceptedEvent.Recipient previousLeader = recipient(auction.getLeadingBidder());
         Bid bid = bids.save(auction.placeBid(bidder, amount, now, softClose));
         auctions.flush();
         AuctionEvent event = new AuctionEvent(AuctionEventType.BID_PLACED, AuctionView.from(auction),
                 BidView.from(bid), now);
         events.publishEvent(event);
+        events.publishEvent(new BidAcceptedEvent(auction.getId(), auction.getArtwork().getTitle(),
+                auction.getArtwork().getArtist().getName(), bid.getAmount(), auction.getEndsAt(),
+                recipient(bidder), previousLeader));
         return event;
+    }
+
+    private static BidAcceptedEvent.Recipient recipient(User user) {
+        return user == null ? null : new BidAcceptedEvent.Recipient(user.getId(),
+                user.getFirstName() + " " + user.getLastName(), user.getEmail());
     }
 }

@@ -24,6 +24,10 @@ spring:
     properties:
       mail.smtp.auth: ${SMTP_AUTH:false}
       mail.smtp.starttls.enable: ${SMTP_TLS:false}
+      mail.smtp.starttls.required: ${SMTP_TLS:false}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
   jackson:
     default-property-inclusion: non_null
     serialization:
@@ -50,6 +54,7 @@ atelier:
   mail:
     admin-address: ${ADMIN_EMAIL:admin@atelier.local}
     from-address: ${MAIL_FROM:noreply@smartsoft-solutions.local}
+    public-url: ${PUBLIC_URL:http://localhost:4200}
   bootstrap:
     admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}
     admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}

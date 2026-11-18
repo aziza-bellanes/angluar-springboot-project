@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-18",
+  "source": "local demo database",
+  "backup": "private outside Git",
+  "restoreTarget": "dedicated temporary MySQL schema",
+  "tables": [
+    "users",
+    "user_roles",
+    "artists",
+    "artworks",
+    "auctions",
+    "bids"
+  ],
+  "counts": [
+    6,
+    6,
+    7,
+    30,
+    10,
+    13
+  ],
+  "restoreMatched": true
+}

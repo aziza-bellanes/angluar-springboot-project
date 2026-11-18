@@ -113,6 +113,9 @@
   <at-form-field label="Email" [control]="form.controls.email" [required]="true">
     <input hlmInput type="email" [formControl]="form.controls.email" autocomplete="off" />
   </at-form-field>
+  @if (!editing()) {
+    <p class="text-xs text-muted-foreground">Enabled new users receive a welcome email. Share their initial password separately.</p>
+  }
   <at-form-field label="Phone" [control]="form.controls.phone">
     <input hlmInput [formControl]="form.controls.phone" />
   </at-form-field>
