@@ -1,0 +1,7 @@
+ RUN  v5.1.0 /home/aymmzn/Documents/projects/springbootzaaa/angluar-springboot-project/frontend
+
+
+ Test Files  10 passed (10)
+      Tests  61 passed (61)
+   Start at  09:28:41
+   Duration  1.92s (environment 67%, setup 24%, transform 5%, import 2%, tests 1%)

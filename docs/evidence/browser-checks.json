@@ -1,0 +1,43 @@
+{
+  "baseUrl": "http://127.0.0.1:18081",
+  "date": "2026-11-18T08:41:55.237Z",
+  "checks": [
+    {
+      "name": "Public gallery and anonymous guard",
+      "status": "passed"
+    },
+    {
+      "name": "Admin login and dashboard data",
+      "status": "passed"
+    },
+    {
+      "name": "Admin creates a client and its project through the UI",
+      "status": "passed"
+    },
+    {
+      "name": "Admin updates and deletes its project then client",
+      "status": "passed"
+    },
+    {
+      "name": "Admin user management screen",
+      "status": "passed"
+    },
+    {
+      "name": "Collaborateur create access and hidden edit delete actions",
+      "status": "passed"
+    },
+    {
+      "name": "Bidder account and studio guard",
+      "status": "passed"
+    },
+    {
+      "name": "Live bid arrives over WebSocket in another browser",
+      "status": "passed"
+    },
+    {
+      "name": "Mobile gallery and studio remain within viewport",
+      "status": "passed"
+    }
+  ],
+  "pageErrors": []
+}

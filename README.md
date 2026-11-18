@@ -84,8 +84,21 @@ The multi-stage `Dockerfile` builds the Angular app, copies it into the Spring B
 
 ## Documentation
 
+The [18 November CDC audit](docs/CDC_AUDIT.md) distinguishes verified behavior from adaptations and remaining work. The required database cardinalities are implemented and tested. **Live VPS deployment (CDC step 12) remains pending**; the deployment kit and the locally tested production image are available.
+
+The guide, report, database reference and slides follow the BigDataZaaa document structure with ATELIER's midnight, cobalt, sunflower and ivory colors.
+
 | Document | Content |
 |---|---|
+| [docs/guide.pdf](docs/guide.pdf) | Illustrated guide explaining the tools, startup and every role |
+| [docs/report.pdf](docs/report.pdf) | Project report, implementation and verification results |
+| [docs/database.pdf](docs/database.pdf) | Complete 70-column database reference, keys, indexes, constraints and cardinalities |
+| [docs/slides.pdf](docs/slides.pdf) / [editable PowerPoint](docs/slides.pptx) | 17-slide presentation with source notes and an editable core database diagram |
+| [docs/CDC_AUDIT.md](docs/CDC_AUDIT.md) | Evidence and status for every requirement, including pending VPS deployment |
+| [docs/DATABASE.md](docs/DATABASE.md) | Searchable database dictionary and relationship explanations |
+| [docs/diagrams/database.svg](docs/diagrams/database.svg) | Full database relationship graph |
+| [docs/evidence/verification.json](docs/evidence/verification.json) | Dated test counts and environment |
+| [docs/DOCUMENTATION_BUILD.md](docs/DOCUMENTATION_BUILD.md) | Rebuilding the PDFs, captures and presentation |
 | [docs/CDC_EQUIVALENCE.md](docs/CDC_EQUIVALENCE.md) | Course specification mapped to ATELIER, requirement by requirement, plus extensions |
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Walkthroughs for visitors, bidders, collaborateurs and administrators |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrams, packages, domain model, security, bid flow, frontend structure |
