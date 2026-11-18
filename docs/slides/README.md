@@ -1,6 +1,6 @@
 # ATELIER presentation source
 
-`build.mjs` authors the 17-slide editable presentation with the official `@oai/artifact-tool` JavaScript package (validated with version 2.8.134). It uses the project palette, fresh screenshots from `docs/evidence/screenshots`, native editable tables and an editable core database diagram. Every slide contains presenter notes with repository source paths.
+`build.mjs` authors the 18-slide editable presentation with the official `@oai/artifact-tool` JavaScript package (validated with version 2.8.134). It uses the project palette, fresh screenshots from `docs/evidence/screenshots`, native editable tables and an editable core database diagram. Measured totals load from `docs/evidence/verification.json`. Every slide contains presenter notes with repository source paths.
 
 ## Rebuild
 
@@ -18,7 +18,7 @@ ATELIER_SLIDES_OUTPUT=/tmp/atelier-audit/slides-output-new \
 /path/to/codex-primary-runtime/dependencies/node/bin/node /tmp/atelier-slides/build/build.mjs
 ```
 
-The finalizer workspace is `/tmp/atelier-audit`. Build and output paths must remain inside it. Select a new output directory for each revision. Validation receipts remain in the build directory, separate from the final outputs. The generated PPTX uses Noto Sans and DejaVu Sans, which should be available when rebuilding.
+The finalizer workspace defaults to `/tmp/atelier-audit` and can be set with `ATELIER_SLIDES_WORKSPACE`. Build and output paths must remain inside it. Select a new output directory for each revision. Validation receipts remain in the build directory, separate from the final outputs. The generated PPTX uses Noto Sans and DejaVu Sans, which should be available when rebuilding.
 
 Export the finalized presentation to PDF with LibreOffice:
 
@@ -32,4 +32,4 @@ Inspect every slide in the generated PNGs and the exported PDF before copying fi
 
 ## Scope
 
-The presentation distinguishes the course requirements from auction extensions. It acknowledges the fixed read-only role catalogue and the Argon-inspired Angular rebuild. Production packaging works locally. A live VPS deployment remains pending, so CDC step 12 is not claimed as complete.
+The presentation distinguishes the course requirements from auction extensions. It demonstrates editable roles, stable permission profiles and dynamic user assignment. It acknowledges the Argon-inspired Angular rebuild. Production packaging works locally. A live VPS deployment remains pending, so CDC step 12 is not claimed as complete.

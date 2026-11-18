@@ -1,0 +1,7 @@
+{
+  "fromVersion": "2",
+  "toVersion": "3",
+  "roleIdsPreserved": true,
+  "userAssignmentsPreserved": true,
+  "existingUserCountPreserved": true
+}

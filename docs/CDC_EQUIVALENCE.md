@@ -2,14 +2,14 @@
 
 The course specification ("CDC: Projects Manager", version 1.0, course *Formation FullStack Spring Boot & Angular*) describes a **PSM** application that manages clients and their projects. SmartSoft Solutions delivers it as **ATELIER**, a digital art gallery with live auctions. The back-office (the **Studio**) is the PSM application: *Clients* are **Artists**, *Projets* are **Exhibitions**.
 
-The mapping below describes the implementation. The [dated CDC audit](CDC_AUDIT.md) records verification and qualifications: **live VPS deployment remains pending**, the fixed role catalogue is read-only, and the Angular dashboard is an Argon-inspired rebuild. These adaptations must be acknowledged rather than counted as exact reproduction of every training step. Paths are relative to the repository root; `BE` stands for `backend/src/main/java/com/sip/psm` and `FE` for `frontend/src/app`.
+The mapping below describes the implementation. The [dated CDC audit](CDC_AUDIT.md) records verification and qualifications: **live VPS deployment remains pending**, the Angular dashboard is an Argon-inspired rebuild. These adaptations must be acknowledged rather than counted as exact reproduction of every training step. Paths are relative to the repository root; `BE` stands for `backend/src/main/java/com/sip/psm` and `FE` for `frontend/src/app`.
 
 ## 1. Domain model
 
 | CDC item | ATELIER implementation | Where in code |
 |---|---|---|
 | `User` (id, email, password, tel, nom, prénom) | `User` entity: `id`, `email` (unique), `password` (BCrypt hash), `phone`, `lastName`, `firstName`, plus `enabled` and audit timestamps | `BE/user/User.java`, table `users` in `backend/src/main/resources/db/migration/V1__core_schema.sql` |
-| `Role` (id, libellé) with a closed set of roles | `Role` entity with column `libelle` typed by the enum `RoleName` `{ADMIN, COLLABORATEUR, BIDDER}`. `BIDDER` is an extension for public collectors; `ADMIN` and `COLLABORATEUR` are the two roles of the CDC. **Read-only** through `GET /api/admin/roles`: the roles are a fixed enum, so they are not created or deleted | `BE/user/Role.java`, `BE/user/RoleName.java`, `BE/config/RoleAndAdminInitializer.java` (creates missing roles at startup) |
+| `Role` (id, libellé) | `Role` has an editable unique `libelle` and a fixed permission `profile`. Full ADMIN CRUD at `/api/admin/roles` and `/studio/roles`; users select actual role IDs. Required system roles retain their profile and cannot be deleted. Assigned custom roles must be unassigned before profile changes or deletion. `BIDDER` extends the CDC profiles for collectors. | `BE/user/Role.java`, `RoleService.java`, `AdminRoleController.java`, `V3__dynamic_roles.sql`, `FE/features/studio/roles/` |
 | `User` *..* `Role` (Many-to-Many) | `User.roles` mapped with join table `user_roles` (`user_id`, `role_id`) | `BE/user/User.java`, `V1__core_schema.sql` |
 | `Client` (id, nom, tel, email, adresse) | `Artist` entity: `name`, `phone`, `email`, `address`, `photoUrl`, `active`, plus extra `biography` and `country`. Public pages see only name, country, biography and photo; contact details stay in the Studio | `BE/artist/Artist.java`, `BE/artist/ArtistDtos.java`, table `artists` |
 | `Projet` (id, libellé, budget, durée, description, idClient) | `Exhibition` entity: `title` (libellé), `budget` (`BigDecimal`), `durationDays` (durée), `description`, `artist` (idClient), plus `startsOn`, `venue`, `coverUrl`. The public projection hides the budget | `BE/exhibition/Exhibition.java`, `BE/exhibition/ExhibitionDtos.java`, table `exhibitions` |
@@ -17,6 +17,8 @@ The mapping below describes the implementation. The [dated CDC audit](CDC_AUDIT.
 | Class diagram (Fig. 1) | Mermaid class diagram, extended with artworks, auctions and bids | [ARCHITECTURE.md](ARCHITECTURE.md#domain-model) |
 
 ## 2. Roles and permissions
+
+Named roles select one of the stable permission profiles below. Display labels remain editable and do not define authority.
 
 The CDC: **Admin** performs every CRUD operation on clients and projects; **Collaborateur** may only view and add them.
 
@@ -34,14 +36,14 @@ Authoritative matrix, enforced server-side in `BE/config/SecurityConfig.java` an
 | `/api/admin/**` (users and roles) | no | no | no | yes |
 | Other `/api/**` (`/api/auth/me`, `/api/account/**`) | no | yes | yes | yes |
 
-The Angular UI mirrors the matrix (it is a convenience, not a security boundary): Collaborateurs do not see edit or delete actions, nor the Auctions and Users pages.
+The Angular UI mirrors the matrix (it is a convenience, not a security boundary): Collaborateurs do not see edit or delete actions, nor the Auctions, Users and Roles pages.
 
 ## 3. Part 1 — Spring
 
 | CDC item | ATELIER implementation | Where in code |
 |---|---|---|
 | 1. Spring Boot project with Web, Data JPA, DevTools, MySQL Driver | Spring Boot 3.5 with `spring-boot-starter-web`, `-data-jpa`, `spring-boot-devtools`, `mysql-connector-j` (plus Security, Validation, Mail, WebSocket, Actuator, Flyway, JJWT) | `backend/pom.xml` |
-| 2. CRUD for the entities, without security | Layered by feature: controller, service, repository, DTO records. Clients and Projets CRUD are `StudioArtistController` and `StudioExhibitionController`; users via `AdminUserController`. **User CRUD is complete**: list, read, create, update and delete under `/api/admin/users` (see [API.md](API.md#user-administration--apiadminusers-admin)) | `BE/artist/`, `BE/exhibition/`, `BE/user/` |
+| 2. CRUD for the entities, without security | Layered by feature: controller, service, repository, DTO records. Clients and Projets CRUD are `StudioArtistController` and `StudioExhibitionController`; users via `AdminUserController`. **User and Role CRUD is complete**: list, read, create, update and delete under `/api/admin/users` and `/api/admin/roles` (see [API.md](API.md#user-administration--apiadminusers-admin)) | `BE/artist/`, `BE/exhibition/`, `BE/user/` |
 | 3. Test the APIs in Postman | Postman collection covering every endpoint and role, runnable with Newman | `postman/ATELIER.postman_collection.json`, [TEST_PLAN.md](TEST_PLAN.md#postman-and-newman) |
 | 4. Add the security layer and JWT | Stateless Spring Security with a `JwtAuthenticationFilter` and `JwtService` (JJWT, HS256, expiry `JWT_EXPIRATION`, default 12 h); BCrypt passwords | `BE/config/SecurityConfig.java`, `BE/security/JwtAuthenticationFilter.java`, `BE/security/JwtService.java` |
 | 5. After a registration, send an email to the admin | `AuthService.register` publishes `UserRegisteredEvent`; `RegistrationMailListener` sends the email **asynchronously after commit**, so an SMTP outage never blocks or rolls back a registration. Recipient: `ADMIN_EMAIL`. Visible in Mailpit at http://localhost:8025 | `BE/auth/AuthService.java`, `BE/auth/UserRegisteredEvent.java`, `BE/auth/RegistrationMailListener.java`, `BE/config/AsyncConfig.java`; test `AuthIT` |
@@ -52,7 +54,7 @@ The Angular UI mirrors the matrix (it is a convenience, not a security boundary)
 
 | CDC item | ATELIER implementation | Where in code |
 |---|---|---|
-| 8. Components and navigation menu for Clients, Projets, Users, following the Argon mockup | Studio sidebar: **Artists** (caption "Clients"), **Exhibitions** (caption "Projets"), Artworks, Auctions, Users | `FE/features/studio/studio-layout.ts`, `FE/features/studio/studio.routes.ts`, pages in `FE/features/studio/{artists,exhibitions,users}/` |
+| 8. Components and navigation menu for Clients, Projets, Users, following the Argon mockup | Studio sidebar: **Artists** (caption "Clients"), **Exhibitions** (caption "Projets"), Artworks, Auctions, Users, Roles | `FE/features/studio/studio-layout.ts`, `FE/features/studio/studio.routes.ts`, pages in `FE/features/studio/{artists,exhibitions,users,roles}/` |
 | Mockup: [Argon Dashboard Angular](https://www.creative-tim.com/product/argon-dashboard-angular) | The studio is **inspired by Argon**: gradient header with KPI cards and weekly trends, Chart.js line and bar charts, ranking tables with progress bars, a profile page and a footer. It is re-implemented from scratch with Tailwind CSS 4 and spartan/ui in the ATELIER palette (midnight, cobalt, sunflower, ivory); no template code is copied | `FE/features/studio/overview/` (page, metrics), `FE/features/studio/shared/chart-canvas.ts`, `FE/features/studio/profile/`, `FE/styles.css` (tokens) |
 | 9. Guards | `authGuard` (signed-in only), `roleGuard(...roles)` (role-restricted routes, redirects to `/forbidden`), `guestGuard` (keeps signed-in users off login/register) | `FE/core/auth/guards.ts`, applied in `FE/app.routes.ts` and `FE/features/studio/studio.routes.ts` |
 | 9. Interceptor | `authInterceptor` adds `Authorization: Bearer <jwt>` to `/api/` calls and ends the session on a 401 | `FE/core/auth/auth.interceptor.ts`, registered in `FE/app.config.ts` |
@@ -111,7 +113,7 @@ The studio follows the structure of Argon Dashboard Angular by Creative Tim (MIT
 |---|---|
 | Sidebar, navbar with user menu, footer | Collapsible sidebar, top bar with search and user menu, footer |
 | Dashboard (gradient header, 4 stat cards, dark line chart, bar chart, two tables) | Overview (gradient header, 4 KPI cards with weekly trends, daily bid volume chart, auctions-by-status doughnut, recent bids, top artists, ending soon, quick actions) |
-| Tables | CRUD tables for Artists (Clients), Exhibitions (Projets), Artworks, Auctions and Users with search and paging |
+| Tables | CRUD tables for Artists (Clients), Exhibitions (Projets), Artworks, Auctions, Users and Roles with the relevant list controls |
 | User profile | My profile (edit details, change password) |
 | Login / Register | Sign in / Register (registration emails the admin) |
 | Icons, Maps | Not used (template showcase pages) |

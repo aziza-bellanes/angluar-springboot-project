@@ -1,5 +1,5 @@
 digraph ER { graph [rankdir=TB,bgcolor="transparent",pad="0.2",nodesep="0.65",ranksep="0.9"]; node [shape=box,style="rounded,filled",fillcolor="#f4edde",color="#315c91",fontname="DejaVu Sans",fontsize=15,margin="0.18"]; edge [color="#315c91",fontname="DejaVu Sans",fontsize=13,arrowsize=0.6];
-roles [label="roles\n2 columns"];
+roles [label="roles\n4 columns"];
 users [label="users\n8 columns"];
 user_roles [label="user_roles\n2 columns"];
 artists [label="artists\n12 columns"];

@@ -25,7 +25,8 @@ The project also fulfils a course specification (cahier des charges) that asks f
 
 **Studio (back-office)**
 - Argon-inspired dashboard: gradient header with KPI cards and weekly trends, Chart.js line and bar charts, ranking tables with progress bars.
-- Artists (Clients), Exhibitions (Projets), Artworks, Auctions, Users, profile page.
+- Artists (Clients), Exhibitions (Projets), Artworks, Auctions, Users, Roles, profile page.
+- Editable role catalogue with full admin CRUD, permission profiles and dynamic assignment by role ID.
 - Role-based access: `ADMIN` has full CRUD; `COLLABORATEUR` can view and create catalogue items only.
 
 **Engineering**
@@ -92,8 +93,8 @@ The guide, report, database reference and slides follow the BigDataZaaa document
 |---|---|
 | [docs/guide.pdf](docs/guide.pdf) | Illustrated guide explaining the tools, startup and every role |
 | [docs/report.pdf](docs/report.pdf) | Project report, implementation and verification results |
-| [docs/database.pdf](docs/database.pdf) | Complete 70-column database reference, keys, indexes, constraints and cardinalities |
-| [docs/slides.pdf](docs/slides.pdf) / [editable PowerPoint](docs/slides.pptx) | 17-slide presentation with source notes and an editable core database diagram |
+| [docs/database.pdf](docs/database.pdf) | Complete 72-column database reference, keys, indexes, constraints and cardinalities |
+| [docs/slides.pdf](docs/slides.pdf) / [editable PowerPoint](docs/slides.pptx) | 18-slide presentation with source notes and an editable core database diagram |
 | [docs/CDC_AUDIT.md](docs/CDC_AUDIT.md) | Evidence and status for every requirement, including pending VPS deployment |
 | [docs/DATABASE.md](docs/DATABASE.md) | Searchable database dictionary and relationship explanations |
 | [docs/diagrams/database.svg](docs/diagrams/database.svg) | Full database relationship graph |
@@ -120,7 +121,7 @@ The guide, report, database reference and slides follow the BigDataZaaa document
 │   │   ├── studio/               Dashboard aggregates
 │   │   ├── security/ config/     JWT, STOMP auth, security matrix, properties
 │   │   └── common/ demo/ web/    Errors, paging, demo data, SPA fallback
-│   ├── src/main/resources/db/migration/   Flyway migrations (V1, V2)
+│   ├── src/main/resources/db/migration/   Flyway migrations (V1, V2, V3)
 │   └── src/test/                 Unit and integration tests
 ├── frontend/                     Angular 22 application
 │   └── src/app/{core,shared,features}

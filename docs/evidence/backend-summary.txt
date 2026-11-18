@@ -1,16 +1,18 @@
-[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.078 s -- in com.sip.psm.auction.AuctionTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.073 s -- in com.sip.psm.auction.AuctionTest
 [INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0
-[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 26.00 s -- in com.sip.psm.account.ProfileIT
-[INFO] Tests run: 84, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.195 s -- in com.sip.psm.security.SecurityMatrixIT
-[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.735 s -- in com.sip.psm.auction.AuctionFlowIT
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.520 s -- in com.sip.psm.auction.ConcurrentBiddingIT
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.48 s -- in com.sip.psm.demo.DemoDataIT
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.222 s -- in com.sip.psm.studio.StudioOverviewIT
-[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.190 s -- in com.sip.psm.catalog.DatabaseRelationshipsIT
-[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.872 s -- in com.sip.psm.catalog.CatalogFlowIT
-[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 27.48 s -- in com.sip.psm.auth.AuthIT
-[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.123 s -- in com.sip.psm.user.AdminUserIT
-[INFO] Tests run: 129, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.91 s -- in com.sip.psm.account.ProfileIT
+[INFO] Tests run: 84, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.957 s -- in com.sip.psm.security.SecurityMatrixIT
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.555 s -- in com.sip.psm.auction.AuctionFlowIT
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.556 s -- in com.sip.psm.auction.ConcurrentBiddingIT
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.17 s -- in com.sip.psm.demo.DemoDataIT
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.258 s -- in com.sip.psm.studio.StudioOverviewIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.177 s -- in com.sip.psm.catalog.DatabaseRelationshipsIT
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.849 s -- in com.sip.psm.catalog.CatalogFlowIT
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 148.6 s -- in com.sip.psm.auth.AuthIT
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.526 s -- in com.sip.psm.user.AdminRoleIT
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.929 s -- in com.sip.psm.user.AdminUserIT
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.22 s -- in com.sip.psm.user.RoleMigrationIT
+[INFO] Tests run: 140, Failures: 0, Errors: 0, Skipped: 0
 [INFO] BUILD SUCCESS
-[INFO] Total time:  01:31 min
-[INFO] Finished at: 2026-11-18T09:31:27+01:00
+[INFO] Total time:  03:36 min
+[INFO] Finished at: 2026-11-18T12:44:58+01:00
