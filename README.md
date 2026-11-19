@@ -87,7 +87,7 @@ The multi-stage `Dockerfile` builds the Angular app, copies it into the Spring B
 
 ## Documentation
 
-The [18 November CDC audit](docs/CDC_AUDIT.md) distinguishes verified behavior from adaptations and remaining work. The required database cardinalities are implemented and tested. **Live VPS deployment (CDC step 12) remains pending**; the deployment kit and the locally tested production image are available.
+The [18 November CDC audit](docs/CDC_AUDIT.md) distinguishes verified behavior from adaptations and remaining work. The required database cardinalities are implemented and tested. **CDC step 12 is done:** the application runs on an AWS EC2 VPS behind a Cloudflare tunnel (remote checks in `docs/evidence/vps-smoke.json`).
 
 The guide, report, database reference and slides follow the BigDataZaaa document structure with ATELIER's midnight, cobalt, sunflower and ivory colors.
 
@@ -97,7 +97,7 @@ The guide, report, database reference and slides follow the BigDataZaaa document
 | [docs/report.pdf](docs/report.pdf) | Project report, implementation and verification results |
 | [docs/database.pdf](docs/database.pdf) | Complete 72-column database reference, keys, indexes, constraints and cardinalities |
 | [docs/slides.pdf](docs/slides.pdf) / [editable PowerPoint](docs/slides.pptx) | 18-slide presentation with source notes and an editable core database diagram |
-| [docs/CDC_AUDIT.md](docs/CDC_AUDIT.md) | Evidence and status for every requirement, including pending VPS deployment |
+| [docs/CDC_AUDIT.md](docs/CDC_AUDIT.md) | Evidence and status for every requirement, including the VPS deployment |
 | [docs/DATABASE.md](docs/DATABASE.md) | Searchable database dictionary and relationship explanations |
 | [docs/diagrams/database.svg](docs/diagrams/database.svg) | Full database relationship graph |
 | [docs/evidence/verification.json](docs/evidence/verification.json) | Dated test counts and environment |
@@ -143,4 +143,4 @@ After successful GitHub Actions tests and image build, the `atelier-psm-jar` wor
 
 ## Team
 
-**Aymen Jedidi and Aziza Bellanes — SmartSoft Solutions**
+**Aziza Bellanes — SmartSoft Solutions**
