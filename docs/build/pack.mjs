@@ -10,6 +10,9 @@
 //   ```chart```       JSON {title, labels, values, unit} rendered as a bar chart
 //   ```stats```       JSON [{value, label}] rendered as figure tiles
 //   ```cols```        two columns separated by a line containing only ---
+//   ```donut```/```hbar``` JSON {title, labels, values} ring chart / horizontal bars
+//   ```cards```       JSON [{title, text}] tiles;  ```note``` first line = label, rest = Markdown box
+//   ![caption](path "browser:/route")   screenshot inside a browser frame
 import fs from 'node:fs/promises';
 import { existsSync, mkdirSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -76,6 +79,25 @@ figure.diagram{text-align:center}figure.diagram svg{max-width:100%;height:auto;m
 .toc h1{font-size:30pt;margin:2mm 0 8mm}
 .toc a{display:grid;grid-template-columns:12mm 1fr 10mm;border-bottom:.2mm solid ${C.line};padding:2.6mm 0;color:${C.ink};font-weight:400}
 .toc a span:first-child{font:400 13pt/1 Bebas,sans-serif;color:${C.cobalt};letter-spacing:.06em}.toc a span:last-child{text-align:right}
+section.sec>h1+p,section.sec>h1+h3+p{font-size:10.6pt;line-height:1.6;font-weight:400}
+figure.browser{border:.3mm solid ${C.line};border-radius:2mm;overflow:hidden;box-shadow:0 1.5mm 4mm rgba(16,29,53,.12);background:#fff}
+figure.browser .bar{display:flex;align-items:center;gap:1.4mm;background:#eef0f3;padding:1.6mm 3mm;border-bottom:.3mm solid ${C.line}}
+figure.browser .bar i{width:2.2mm;height:2.2mm;border-radius:50%;background:#d4d8de}
+figure.browser .bar i:nth-child(1){background:#e8776b}figure.browser .bar i:nth-child(2){background:#e7b84b}figure.browser .bar i:nth-child(3){background:#7bbf7a}
+figure.browser .bar span{margin-left:3mm;font:400 6.8pt Montserrat;color:${C.muted};background:#fff;border-radius:1mm;padding:.6mm 3mm;flex:1}
+figure.browser img{border:0}figure.browser figcaption{padding:2mm 3mm 2.4mm;margin:0;background:#fafbfc;border-top:.3mm solid ${C.line}}
+.donut .row{display:flex;align-items:center;gap:8mm}.donut .legend{flex:1}
+.donut .legend div{display:grid;grid-template-columns:4mm 1fr auto;align-items:center;gap:2mm;padding:1.5mm 0;border-bottom:.2mm solid ${C.line};font-size:8.4pt}
+.donut .legend i{width:3mm;height:3mm;border-radius:.6mm}.donut .legend b{font:400 14pt Bebas;letter-spacing:.04em}
+.hbar .hrow{display:grid;grid-template-columns:38mm 1fr 14mm;align-items:center;gap:3mm;margin:1.6mm 0;font-size:8.2pt}
+.hbar .track{background:${C.ivory};height:4.2mm;border-radius:.8mm;overflow:hidden}.hbar .track div{height:100%}
+.hbar .hrow b{font:400 13pt Bebas;letter-spacing:.04em;text-align:right}
+aside.note{break-inside:avoid;margin:2mm 0 5mm;padding:4mm 5mm 1.5mm;background:${C.ivory};border-left:1.6mm solid ${C.sun}}
+aside.note>b{display:block;font:600 7.4pt Montserrat;text-transform:uppercase;letter-spacing:.14em;color:${C.cobalt};margin-bottom:1.6mm}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(48mm,1fr));gap:3.5mm;margin:2mm 0 5mm;break-inside:avoid}
+.cards div{border:.3mm solid ${C.line};border-top:1.2mm solid ${C.cobalt};padding:3.5mm 4mm 1mm;background:#fff}
+.cards div:nth-child(even){border-top-color:${C.sun}}
+.cards b{display:block;font:400 15pt/1.05 Bebas;letter-spacing:.06em;margin-bottom:1.5mm}.cards p{font-size:8.3pt;line-height:1.5}
 .clear{clear:both}
 `;
 
@@ -111,6 +133,27 @@ function barChart({ title, labels, values, unit = '' }) {
   return `<div class="chart"><div class="t">${esc(title)}</div><svg viewBox="0 0 ${w} ${h}" width="100%" font-family="Montserrat">${grid}${bars}</svg></div>`;
 }
 
+const palette = ['#315c91', '#e7b84b', '#101d35', '#8aa4c8', '#c9a24a', '#5b6678', '#b9c7da'];
+
+function donutChart({ title, labels, values, center = '', unit = '' }) {
+  const total = values.reduce((a, b) => a + b, 0), r = 70, c = 2 * Math.PI * r;
+  let offset = 0;
+  const arcs = values.map((v, i) => {
+    const len = (v / total) * c;
+    const arc = `<circle r="${r}" cx="110" cy="110" fill="none" stroke="${palette[i % palette.length]}" stroke-width="34" stroke-dasharray="${len} ${c - len}" stroke-dashoffset="${-offset}" transform="rotate(-90 110 110)"/>`;
+    offset += len;
+    return arc;
+  }).join('');
+  const legend = labels.map((l, i) => `<div><i style="background:${palette[i % palette.length]}"></i><span>${esc(l)}</span><b>${values[i]}${unit}</b></div>`).join('');
+  return `<div class="chart donut"><div class="t">${esc(title)}</div><div class="row"><svg viewBox="0 0 220 220" width="46mm">${arcs}<text x="110" y="106" text-anchor="middle" font-family="Bebas" font-size="38" fill="${C.ink}">${esc(center || total)}</text><text x="110" y="128" text-anchor="middle" font-family="Montserrat" font-size="10" fill="${C.muted}">TOTAL</text></svg><div class="legend">${legend}</div></div></div>`;
+}
+
+function hbarChart({ title, labels, values, unit = '' }) {
+  const max = Math.max(...values);
+  const rows = labels.map((l, i) => `<div class="hrow"><span>${esc(l)}</span><div class="track"><div style="width:${(values[i] / max) * 100}%;background:${i % 2 ? C.sun : C.cobalt}"></div></div><b>${values[i]}${unit}</b></div>`).join('');
+  return `<div class="chart hbar"><div class="t">${esc(title)}</div>${rows}</div>`;
+}
+
 function dot(source) {
   const defaults = `graph[fontname="Helvetica",fontsize=11,bgcolor="transparent",pad=0.1];node[fontname="Helvetica",fontsize=10,shape=box,style="filled",fillcolor="${C.ivory}",color="${C.ink}",penwidth=0.8,margin="0.14,0.06"];edge[fontname="Helvetica",fontsize=8.5,color="${C.cobalt}",fontcolor="${C.muted}",arrowsize=0.7];`;
   const svg = execFileSync('dot', ['-Tsvg'], { input: source.replace('{', '{' + defaults) }).toString();
@@ -139,6 +182,13 @@ function makeMarked() {
         if (lang === 'dot') return dot(text);
         if (lang === 'chart') return barChart(JSON.parse(text));
         if (lang === 'stats') return `<div class="stats">${JSON.parse(text).map(s => `<div><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join('')}</div>`;
+        if (lang === 'donut') return donutChart(JSON.parse(text));
+        if (lang === 'hbar') return hbarChart(JSON.parse(text));
+        if (lang === 'cards') return `<div class="cards" style="grid-template-columns:repeat(${(n => n <= 2 ? n : n === 4 ? 2 : 3)(JSON.parse(text).length)},1fr)">${JSON.parse(text).map(c => `<div><b>${esc(c.title)}</b><p>${esc(c.text)}</p></div>`).join('')}</div>`;
+        if (lang === 'note') {
+          const [first, ...rest] = text.split('\n');
+          return `<aside class="note"><b>${esc(first)}</b>${marked.parse(rest.join('\n'))}</aside>`;
+        }
         if (lang === 'cols') return `<div class="cols">${text.split(/^---$/m).map(part => `<div>${marked.parse(part)}</div>`).join('')}</div>`;
         return `<pre><code>${esc(text)}</code></pre>`;
       },
@@ -151,6 +201,10 @@ function makeMarked() {
         if (title === 'strip') return `<figure class="strip"><img src="${src}" alt=""></figure>`;
         const [head, ...rest] = text.split(' — ');
         const caption = rest.length ? `<b>${esc(head)}.</b> ${esc(rest.join(' — '))}` : esc(text);
+        if (title?.startsWith('browser')) {
+          const where = title.slice('browser'.length).replace(/^:/, '') || '/';
+          return `<figure class="browser"><div class="bar"><i></i><i></i><i></i><span>atelier · ${esc(where)}</span></div><img src="${src}" alt="${esc(head)}"><figcaption>${caption}</figcaption></figure>`;
+        }
         return `<figure><img src="${src}"${title === 'tall' ? ' class="tall"' : ''} alt="${esc(head)}"><figcaption>${caption}</figcaption></figure>`;
       },
     },

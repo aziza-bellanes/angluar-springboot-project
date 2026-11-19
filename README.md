@@ -89,13 +89,16 @@ The multi-stage `Dockerfile` builds the Angular app, copies it into the Spring B
 
 The [18 November CDC audit](docs/CDC_AUDIT.md) distinguishes verified behavior from adaptations and remaining work. The required database cardinalities are implemented and tested. **CDC step 12 is done:** the application runs on an AWS EC2 VPS behind a Cloudflare tunnel (remote checks in `docs/evidence/vps-smoke.json`).
 
-The cahier des charges, compte rendu, study guide and database reference share one report layout in ATELIER's midnight, cobalt, sunflower and ivory colors. Their screenshots come from the deployed application, a disposable local instance, the Postman collection run and the MySQL client.
+These PDFs share one report layout in ATELIER's midnight, cobalt, sunflower and ivory colors. Their screenshots come from the deployed application, a disposable local instance, the Postman collection run and the MySQL client.
 
 | Document | Content |
 |---|---|
-| [docs/cahier-des-charges.pdf](docs/cahier-des-charges.pdf) | Requirements specification: context, utility, actors, functional and non-functional requirements, acceptance |
-| [docs/compte-rendu.pdf](docs/compte-rendu.pdf) | Project report with interface, Postman and MySQL screenshots, test results and deployment |
-| [docs/study-guide.pdf](docs/study-guide.pdf) | Study guide: Spring Boot, Angular, security, database, deployment, likely questions |
+| [docs/OPEN_EVERYTHING.md](docs/OPEN_EVERYTHING.md) | **Start here:** open the app, the database (terminal, DBeaver, Workbench), the emails, Postman and the documents on your own computer |
+| [docs/cahier-des-charges.pdf](docs/cahier-des-charges.pdf) | Cahier des charges: the idea, the users, what the application does, its stack and deployment |
+| [docs/compte-rendu.pdf](docs/compte-rendu.pdf) | Compte rendu: screens, Studio dashboard, Postman tests, deployment and results |
+| [docs/study-guide.pdf](docs/study-guide.pdf) | Study guide: the whole architecture, every tool in general and in ATELIER, how the parts connect, questions and answers |
+| [docs/technical-report.pdf](docs/technical-report.pdf) | Detailed technical report, including MySQL transaction and command-line evidence |
+| [docs/requirements-detailed.pdf](docs/requirements-detailed.pdf) | Detailed requirements: functional and non-functional requirements, acceptance criteria |
 | [docs/DEMO.md](docs/DEMO.md) | Demo script on the live deployment, including the Studio dashboard |
 | [docs/guide.pdf](docs/guide.pdf) | Illustrated guide explaining the tools, startup and every role |
 | [docs/report.pdf](docs/report.pdf) | Project report, implementation and verification results |
