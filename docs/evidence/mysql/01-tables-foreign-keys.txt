@@ -1,0 +1,43 @@
+--------------
+SHOW TABLES
+--------------
+
++-----------------------+
+| Tables_in_atelier     |
++-----------------------+
+| artists               |
+| artworks              |
+| auctions              |
+| bids                  |
+| exhibitions           |
+| flyway_schema_history |
+| roles                 |
+| user_roles            |
+| users                 |
++-----------------------+
+--------------
+SELECT k.TABLE_NAME AS table_name, k.COLUMN_NAME AS column_name, k.REFERENCED_TABLE_NAME AS referenced_table, r.DELETE_RULE AS delete_rule
+FROM information_schema.REFERENTIAL_CONSTRAINTS r
+JOIN information_schema.KEY_COLUMN_USAGE k
+  ON k.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA AND k.CONSTRAINT_NAME = r.CONSTRAINT_NAME AND k.TABLE_NAME = r.TABLE_NAME
+WHERE r.CONSTRAINT_SCHEMA = 'atelier'
+ORDER BY k.TABLE_NAME, k.COLUMN_NAME
+--------------
+
++-------------+-------------------+------------------+-------------+
+| table_name  | column_name       | referenced_table | delete_rule |
++-------------+-------------------+------------------+-------------+
+| artists     | created_by_id     | users            | SET NULL    |
+| artworks    | artist_id         | artists          | NO ACTION   |
+| artworks    | created_by_id     | users            | SET NULL    |
+| artworks    | exhibition_id     | exhibitions      | SET NULL    |
+| auctions    | artwork_id        | artworks         | NO ACTION   |
+| auctions    | leading_bidder_id | users            | NO ACTION   |
+| auctions    | winner_id         | users            | NO ACTION   |
+| bids        | auction_id        | auctions         | CASCADE     |
+| bids        | bidder_id         | users            | NO ACTION   |
+| exhibitions | artist_id         | artists          | NO ACTION   |
+| exhibitions | created_by_id     | users            | SET NULL    |
+| user_roles  | role_id           | roles            | NO ACTION   |
+| user_roles  | user_id           | users            | CASCADE     |
++-------------+-------------------+------------------+-------------+

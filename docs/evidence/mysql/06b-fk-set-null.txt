@@ -1,0 +1,48 @@
+--------------
+START TRANSACTION
+--------------
+
+--------------
+SELECT id, title, exhibition_id FROM artworks WHERE artist_id = 2 ORDER BY id
+--------------
+
++----+--------------------------------------------------------------------+---------------+
+| id | title                                                              | exhibition_id |
++----+--------------------------------------------------------------------+---------------+
+|  9 | Madame Cézanne (Hortense Fiquet, 1850–1922) in a Red Dress         |             2 |
+| 10 | Madame Cézanne (Hortense Fiquet, 1850–1922) in the Conservatory    |             2 |
+| 11 | Trees and Houses Near the Jas de Bouffan                           |             2 |
+| 12 | The House with the Cracked Walls                                   |             2 |
++----+--------------------------------------------------------------------+---------------+
+--------------
+DELETE FROM exhibitions WHERE id = 2
+--------------
+
+--------------
+SELECT id, title, exhibition_id FROM artworks WHERE artist_id = 2 ORDER BY id
+--------------
+
++----+--------------------------------------------------------------------+---------------+
+| id | title                                                              | exhibition_id |
++----+--------------------------------------------------------------------+---------------+
+|  9 | Madame Cézanne (Hortense Fiquet, 1850–1922) in a Red Dress         |          NULL |
+| 10 | Madame Cézanne (Hortense Fiquet, 1850–1922) in the Conservatory    |          NULL |
+| 11 | Trees and Houses Near the Jas de Bouffan                           |          NULL |
+| 12 | The House with the Cracked Walls                                   |          NULL |
++----+--------------------------------------------------------------------+---------------+
+--------------
+ROLLBACK
+--------------
+
+--------------
+SELECT id, title, exhibition_id FROM artworks WHERE artist_id = 2 ORDER BY id
+--------------
+
++----+--------------------------------------------------------------------+---------------+
+| id | title                                                              | exhibition_id |
++----+--------------------------------------------------------------------+---------------+
+|  9 | Madame Cézanne (Hortense Fiquet, 1850–1922) in a Red Dress         |             2 |
+| 10 | Madame Cézanne (Hortense Fiquet, 1850–1922) in the Conservatory    |             2 |
+| 11 | Trees and Houses Near the Jas de Bouffan                           |             2 |
+| 12 | The House with the Cracked Walls                                   |             2 |
++----+--------------------------------------------------------------------+---------------+

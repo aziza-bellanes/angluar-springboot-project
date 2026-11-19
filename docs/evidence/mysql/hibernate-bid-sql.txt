@@ -1,0 +1,12 @@
+-- POST /api/auctions/6/bids amount=548460.0 -> HTTP 201; connection thread 483
+-- source: MySQL general query log
+2026-11-19T21:21:07.467826Z  SET autocommit=0
+2026-11-19T21:21:07.468258Z  select u1_0.id,u1_0.created_at,u1_0.email,u1_0.enabled,u1_0.first_name,u1_0.last_name,u1_0.password,u1_0.phone from users u1_0 where upper(u1_0.email)=upper('collector@atelier.demo')
+2026-11-19T21:21:07.468501Z  select r1_0.user_id,r1_1.id,r1_1.libelle,r1_1.profile,r1_1.system_key from user_roles r1_0 join roles r1_1 on r1_1.id=r1_0.role_id where r1_0.user_id=3
+2026-11-19T21:21:07.468899Z  select a1_0.id,a1_0.artwork_id,a1_0.bid_count,a1_0.created_at,a1_0.current_price,a1_0.ends_at,a1_0.leading_bidder_id,a1_0.minimum_increment,a1_0.starting_price,a1_0.starts_at,a1_0.status,a1_0.version,a1_0.winner_id from auctions a1_0 where a1_0.id=6 for update
+2026-11-19T21:21:07.469210Z  select u1_0.id,u1_0.created_at,u1_0.email,u1_0.enabled,u1_0.first_name,u1_0.last_name,u1_0.password,u1_0.phone,r1_0.user_id,r1_1.id,r1_1.libelle,r1_1.profile,r1_1.system_key from users u1_0 left join user_roles r1_0 on u1_0.id=r1_0.user_id left join roles r1_1 on r1_1.id=r1_0.role_id where u1_0.id=4
+2026-11-19T21:21:07.469931Z  insert into bids (amount,auction_id,bidder_id,created_at) values (548460.0,6,3,'2026-11-19 21:21:07.469093')
+2026-11-19T21:21:07.470899Z  update auctions set artwork_id=6,bid_count=2,current_price=548460.0,ends_at='2026-11-21 02:30:57.195389',leading_bidder_id=3,minimum_increment=49860.00,starting_price=498600.00,starts_at='2026-11-17 08:30:57.195389',status='OPEN',version=3,winner_id=null where id=6 and version=2
+2026-11-19T21:21:07.471353Z  select a1_0.id,a1_0.artist_id,a1_0.created_at,a1_0.created_by_id,a1_0.description,a1_0.dimensions,a1_0.estimate,a1_0.exhibition_id,a1_0.image_credit,a1_0.image_url,a1_0.medium,a1_0.slug,a1_0.status,a1_0.title,a1_0.version,a1_0.year_created from artworks a1_0 where a1_0.id=6
+2026-11-19T21:21:07.471683Z  select a1_0.id,a1_0.active,a1_0.address,a1_0.biography,a1_0.country,a1_0.created_at,a1_0.created_by_id,a1_0.email,a1_0.name,a1_0.phone,a1_0.photo_url,a1_0.version from artists a1_0 where a1_0.id=1
+2026-11-19T21:21:07.472061Z  COMMIT

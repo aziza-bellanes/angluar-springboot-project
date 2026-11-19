@@ -1,0 +1,57 @@
+[
+  {
+    "file": "newman-summary.png",
+    "title": "Postman collection — run with Newman: summary",
+    "caption": "Newman executed 103 requests and 175 assertions with 0 failures."
+  },
+  {
+    "file": "newman-folder-auth.png",
+    "title": "Postman collection — run with Newman: Auth folder",
+    "caption": "Console lines of the Auth folder: login for the three roles, wrong password (401), registration and duplicate email (409), each with its assertions."
+  },
+  {
+    "file": "newman-folder-security.png",
+    "title": "Postman collection — run with Newman: access-control checks",
+    "caption": "Console lines of the security folder: anonymous calls return 401 and calls with the wrong role return 403."
+  },
+  {
+    "file": "card-login.png",
+    "title": "Postman collection — run with Newman: Login as administrator",
+    "caption": "POST /api/auth/login answered 200 OK in 88 ms and 2 assertion(s) passed."
+  },
+  {
+    "file": "card-create-artist.png",
+    "title": "Postman collection — run with Newman: Create artist (POST /api/studio/artists)",
+    "caption": "POST /api/studio/artists answered 201 Created in 15 ms and 2 assertion(s) passed."
+  },
+  {
+    "file": "card-place-bid.png",
+    "title": "Postman collection — run with Newman: Place a bid",
+    "caption": "POST /api/auctions/12/bids answered 201 Created in 14 ms and 2 assertion(s) passed."
+  },
+  {
+    "file": "card-401-no-token.png",
+    "title": "Postman collection — run with Newman: Request without a token returns 401",
+    "caption": "GET /api/studio/artists answered 401 Unauthorized in 5 ms and 2 assertion(s) passed."
+  },
+  {
+    "file": "card-403-collaborateur-delete.png",
+    "title": "Postman collection — run with Newman: Collaborateur delete returns 403",
+    "caption": "DELETE /api/studio/artists/20 answered 403 Forbidden in 8 ms and 1 assertion(s) passed."
+  },
+  {
+    "file": "card-409-business-error.png",
+    "title": "Postman collection — run with Newman: Business rule conflict returns 409",
+    "caption": "DELETE /api/studio/artists/20 answered 409 Conflict in 16 ms and 2 assertion(s) passed."
+  },
+  {
+    "file": "report-summary.png",
+    "title": "Postman collection — run with Newman: HTML report summary",
+    "caption": "Top of the htmlextra report: totals for iterations, requests, assertions and failures of the run."
+  },
+  {
+    "file": "report-requests.png",
+    "title": "Postman collection — run with Newman: HTML report requests",
+    "caption": "Report view of the security-checks folder with one request expanded to show its request, response and test information."
+  }
+]

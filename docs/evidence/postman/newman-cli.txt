@@ -1,0 +1,517 @@
+newman
+
+ATELIER REST API
+
+Folder 0 · Auth
+Sub-folder Login as administrator
+  POST http://127.0.0.1:18081/api/auth/login [200 OK, 834B, 88ms]
+  Pass  Status is 200
+  Pass  Admin token and id saved
+
+Sub-folder Login as curator (Collaborateur)
+  POST http://127.0.0.1:18081/api/auth/login [200 OK, 844B, 70ms]
+  Pass  Status is 200
+  Pass  Curator token saved
+
+Sub-folder Login as bidder (collector)
+  POST http://127.0.0.1:18081/api/auth/login [200 OK, 868B, 78ms]
+  Pass  Status is 200
+  Pass  Bidder token saved
+
+Sub-folder Login with wrong password
+  POST http://127.0.0.1:18081/api/auth/login [401 Unauthorized, 594B, 75ms]
+  Pass  Status is 401
+  Pass  Error code is invalid_credentials
+
+Sub-folder Register new bidder (random email)
+  POST http://127.0.0.1:18081/api/auth/register [201 Created, 877B, 75ms]
+  Pass  Status is 201
+  Pass  New collector saved with BIDDER role
+
+Sub-folder Register with an existing email is refused
+  POST http://127.0.0.1:18081/api/auth/register [409 Conflict, 596B, 5ms]
+  Pass  Status is 409
+  Pass  Error code is email_taken
+
+Sub-folder Current user (me) as bidder
+  GET http://127.0.0.1:18081/api/auth/me [200 OK, 650B, 8ms]
+  Pass  Status is 200
+  Pass  Returned account is the bidder
+
+Folder 1 · Clients — Artists
+Sub-folder List studio artists (curator)
+  GET http://127.0.0.1:18081/api/studio/artists [200 OK, 3.78kB, 10ms]
+  Pass  Status is 200
+  Pass  Paginated content is an array
+
+Sub-folder Create artist (curator)
+  POST http://127.0.0.1:18081/api/studio/artists [201 Created, 785B, 15ms]
+  Pass  Status is 201
+  Pass  Artist created and id saved
+
+Sub-folder Get artist (curator)
+  GET http://127.0.0.1:18081/api/studio/artists/20 [200 OK, 777B, 12ms]
+  Pass  Status is 200
+  Pass  Returned artist matches the created id
+
+Sub-folder Update artist (admin)
+  PUT http://127.0.0.1:18081/api/studio/artists/20 [200 OK, 787B, 14ms]
+  Pass  Status is 200
+  Pass  Name was updated
+
+Sub-folder Collaborateur cannot update artist (forbidden)
+  PUT http://127.0.0.1:18081/api/studio/artists/20 [403 Forbidden, 536B, 7ms]
+  Pass  Status is 403
+  Pass  Error code is forbidden
+
+Sub-folder Collaborateur cannot delete artist (forbidden)
+  DELETE http://127.0.0.1:18081/api/studio/artists/20 [403 Forbidden, 536B, 8ms]
+  Pass  Status is 403
+
+Sub-folder Create temporary artist for the delete test (curator)
+  POST http://127.0.0.1:18081/api/studio/artists [201 Created, 638B, 21ms]
+  Pass  Status is 201
+
+Sub-folder Delete temporary artist (admin)
+  DELETE http://127.0.0.1:18081/api/studio/artists/21 [204 No Content, 371B, 23ms]
+  Pass  Status is 204
+
+Folder 2 · Projets — Exhibitions
+Sub-folder List studio exhibitions for artist (curator)
+  GET http://127.0.0.1:18081/api/studio/exhibitions?artistId=20 [200 OK, 515B, 10ms]
+  Pass  Status is 200
+  Pass  Paginated content is an array
+
+Sub-folder Create exhibition (curator)
+  POST http://127.0.0.1:18081/api/studio/exhibitions [201 Created, 830B, 11ms]
+  Pass  Status is 201
+  Pass  Exhibition linked to the artist
+
+Sub-folder Get exhibition (curator)
+  GET http://127.0.0.1:18081/api/studio/exhibitions/15 [200 OK, 822B, 7ms]
+  Pass  Status is 200
+  Pass  Returned exhibition matches the created id
+
+Sub-folder Update exhibition (admin)
+  PUT http://127.0.0.1:18081/api/studio/exhibitions/15 [200 OK, 832B, 10ms]
+  Pass  Status is 200
+  Pass  Title and duration were updated
+
+Sub-folder Collaborateur cannot update exhibition (forbidden)
+  PUT http://127.0.0.1:18081/api/studio/exhibitions/15 [403 Forbidden, 536B, 6ms]
+  Pass  Status is 403
+
+Sub-folder Collaborateur cannot delete exhibition (forbidden)
+  DELETE http://127.0.0.1:18081/api/studio/exhibitions/15 [403 Forbidden, 536B, 8ms]
+  Pass  Status is 403
+
+Sub-folder Artist with an exhibition cannot be deleted (409)
+  DELETE http://127.0.0.1:18081/api/studio/artists/20 [409 Conflict, 639B, 16ms]
+  Pass  Status is 409
+  Pass  Error code is integrity_violation
+
+Sub-folder Delete exhibition (admin)
+  DELETE http://127.0.0.1:18081/api/studio/exhibitions/15 [204 No Content, 371B, 16ms]
+  Pass  Status is 204
+
+Folder 3 · Artworks
+Sub-folder List studio artworks for artist (curator)
+  GET http://127.0.0.1:18081/api/studio/artworks?artistId=20 [200 OK, 515B, 9ms]
+  Pass  Status is 200
+  Pass  Paginated content is an array
+
+Sub-folder Create artwork (curator)
+  POST http://127.0.0.1:18081/api/studio/artworks [201 Created, 947B, 13ms]
+  Pass  Status is 201
+  Pass  Artwork created as published with a slug
+
+Sub-folder Get artwork (curator)
+  GET http://127.0.0.1:18081/api/studio/artworks/35 [200 OK, 939B, 15ms]
+  Pass  Status is 200
+  Pass  Returned artwork matches the created id
+
+Sub-folder Update artwork (admin)
+  PUT http://127.0.0.1:18081/api/studio/artworks/35 [200 OK, 949B, 19ms]
+  Pass  Status is 200
+  Pass  Title was updated
+
+Sub-folder Collaborateur cannot update artwork (forbidden)
+  PUT http://127.0.0.1:18081/api/studio/artworks/35 [403 Forbidden, 536B, 8ms]
+  Pass  Status is 403
+
+Sub-folder Find first demo artwork (curator)
+  GET http://127.0.0.1:18081/api/studio/artworks?sort=id,asc&size=1 [200 OK, 1.21kB, 17ms]
+  Pass  Status is 200
+  Pass  A demo artwork id is saved
+
+Sub-folder Artwork referenced by an auction cannot be deleted (409)
+  DELETE http://127.0.0.1:18081/api/studio/artworks/1 [409 Conflict, 639B, 18ms]
+  Pass  Status is 409
+  Pass  Error code is integrity_violation
+
+Sub-folder Delete artwork (admin)
+  DELETE http://127.0.0.1:18081/api/studio/artworks/35 [204 No Content, 371B, 16ms]
+  Pass  Status is 204
+
+Sub-folder Delete artist (admin)
+  DELETE http://127.0.0.1:18081/api/studio/artists/20 [204 No Content, 371B, 13ms]
+  Pass  Status is 204
+
+Folder 4 · Auctions
+Sub-folder List live auctions (public)
+  GET http://127.0.0.1:18081/api/auctions [200 OK, 2.23kB, 7ms]
+  Pass  Status is 200
+  Pass  Paginated content is an array
+
+Sub-folder Find a published demo artwork (admin)
+  GET http://127.0.0.1:18081/api/studio/artworks?status=PUBLISHED&size=1 [200 OK, 1.18kB, 11ms]
+  Pass  Status is 200
+  Pass  Newest published demo artwork saved
+
+Sub-folder Create auction (admin)
+  POST http://127.0.0.1:18081/api/studio/auctions [201 Created, 861B, 15ms]
+  Pass  Status is 201
+  Pass  Auction is open and linked to the artwork
+
+Sub-folder Second live auction on the same artwork is refused (409)
+  POST http://127.0.0.1:18081/api/studio/auctions [409 Conflict, 614B, 13ms]
+  Pass  Status is 409
+  Pass  Error code is auction_overlap
+
+Sub-folder Get auction (public)
+  GET http://127.0.0.1:18081/api/auctions/12 [200 OK, 856B, 7ms]
+  Pass  Status is 200
+  Pass  Returned auction matches the created id
+
+Sub-folder Place bid (bidder)
+  POST http://127.0.0.1:18081/api/auctions/12/bids [201 Created, 1.1kB, 14ms]
+  Pass  Status is 201
+  Pass  Bid recorded and bidder is leading
+
+Sub-folder Bidder already leading is refused (409)
+  POST http://127.0.0.1:18081/api/auctions/12/bids [409 Conflict, 595B, 9ms]
+  Pass  Status is 409
+  Pass  Error code is already_leading
+
+Sub-folder Bid history (public)
+  GET http://127.0.0.1:18081/api/auctions/12/bids [200 OK, 615B, 9ms]
+  Pass  Status is 200
+  Pass  Bid history contains the bid
+
+Sub-folder Cancel auction (admin)
+  POST http://127.0.0.1:18081/api/studio/auctions/12/cancel [200 OK, 907B, 18ms]
+  Pass  Status is 200
+  Pass  Auction is cancelled
+
+Sub-folder Cancelling a cancelled auction is refused (409)
+  POST http://127.0.0.1:18081/api/studio/auctions/12/cancel [409 Conflict, 621B, 6ms]
+  Pass  Status is 409
+  Pass  Error code is auction_finished
+
+Folder 5 · Account
+Sub-folder My bids (bidder)
+  GET http://127.0.0.1:18081/api/account/bids [200 OK, 2.56kB, 9ms]
+  Pass  Status is 200
+  Pass  Bid from folder 4 is listed
+
+Sub-folder My wins (bidder)
+  GET http://127.0.0.1:18081/api/account/wins [200 OK, 451B, 7ms]
+  Pass  Status is 200
+  Pass  Wins is an array
+
+Sub-folder Update my profile (bidder)
+  PUT http://127.0.0.1:18081/api/account/profile [200 OK, 650B, 11ms]
+  Pass  Status is 200
+  Pass  Phone was updated
+
+Sub-folder Change password with wrong current password (409)
+  PUT http://127.0.0.1:18081/api/account/password [409 Conflict, 596B, 73ms]
+  Pass  Status is 409
+  Pass  Error code is wrong_password
+
+Sub-folder Change password (bidder)
+  PUT http://127.0.0.1:18081/api/account/password [204 No Content, 371B, 138ms]
+  Pass  Status is 204
+
+Sub-folder Restore original password (bidder)
+  PUT http://127.0.0.1:18081/api/account/password [204 No Content, 371B, 137ms]
+  Pass  Status is 204
+
+Folder 6 · Users (admin)
+Sub-folder List users (admin)
+  GET http://127.0.0.1:18081/api/admin/users [200 OK, 2.35kB, 13ms]
+  Pass  Status is 200
+  Pass  Admin account is listed
+
+Sub-folder Grant COLLABORATEUR role to registered user (admin)
+  PUT http://127.0.0.1:18081/api/admin/users/17/roles [200 OK, 669B, 18ms]
+  Pass  Status is 200
+  Pass  Roles include COLLABORATEUR
+
+Sub-folder Restore BIDDER-only role (admin)
+  PUT http://127.0.0.1:18081/api/admin/users/17/roles [200 OK, 651B, 10ms]
+  Pass  Status is 200
+  Pass  Roles are BIDDER only
+
+Sub-folder Disable registered user (admin)
+  PUT http://127.0.0.1:18081/api/admin/users/17/status [200 OK, 652B, 9ms]
+  Pass  Status is 200
+  Pass  User is disabled
+
+Sub-folder Re-enable registered user (admin)
+  PUT http://127.0.0.1:18081/api/admin/users/17/status [200 OK, 651B, 9ms]
+  Pass  Status is 200
+  Pass  User is enabled
+
+Sub-folder Admin cannot remove own ADMIN role (409)
+  PUT http://127.0.0.1:18081/api/admin/users/13/roles [409 Conflict, 610B, 13ms]
+  Pass  Status is 409
+  Pass  Error code is self_demotion
+
+Sub-folder Admin cannot disable own account (409)
+  PUT http://127.0.0.1:18081/api/admin/users/13/status [409 Conflict, 600B, 7ms]
+  Pass  Status is 409
+  Pass  Error code is self_disable
+
+Sub-folder List roles (admin)
+  GET http://127.0.0.1:18081/api/admin/roles [200 OK, 678B, 11ms]
+  Pass  Status is 200
+  Pass  Roles include ADMIN
+
+Sub-folder Create user (Collaborateur)
+  POST http://127.0.0.1:18081/api/admin/users [201 Created, 672B, 85ms]
+  Pass  Status is 201
+  Pass  Created user is a Collaborateur and id saved
+
+Sub-folder Create user with taken email (refused)
+  POST http://127.0.0.1:18081/api/admin/users [409 Conflict, 594B, 8ms]
+  Pass  Status is 409
+  Pass  Error code is email_taken
+
+Sub-folder Get user (admin)
+  GET http://127.0.0.1:18081/api/admin/users/18 [200 OK, 664B, 10ms]
+  Pass  Status is 200
+  Pass  Email matches the created user
+
+Sub-folder Update user (admin)
+  PUT http://127.0.0.1:18081/api/admin/users/18 [200 OK, 665B, 17ms]
+  Pass  Status is 200
+  Pass  Last name is updated and roles kept
+
+Sub-folder Collaborateur cannot create users (forbidden)
+  POST http://127.0.0.1:18081/api/admin/users [403 Forbidden, 536B, 8ms]
+  Pass  Status is 403
+
+Sub-folder Delete own account (refused)
+  DELETE http://127.0.0.1:18081/api/admin/users/13 [409 Conflict, 598B, 8ms]
+  Pass  Status is 409
+  Pass  Error code is cannot_delete_self
+
+Sub-folder Delete user (admin)
+  DELETE http://127.0.0.1:18081/api/admin/users/18 [204 No Content, 371B, 11ms]
+  Pass  Status is 204
+
+Folder 7 · Public gallery
+Sub-folder List published artworks (public)
+  GET http://127.0.0.1:18081/api/artworks [200 OK, 6.52kB, 8ms]
+  Pass  Status is 200
+  Pass  Artwork slug saved
+
+Sub-folder Artwork by slug (public)
+  GET http://127.0.0.1:18081/api/artworks/bather-in-the-woods-437306 [200 OK, 1.35kB, 10ms]
+  Pass  Status is 200
+  Pass  Artwork detail has an artist
+
+Sub-folder Unknown artwork slug (public)
+  GET http://127.0.0.1:18081/api/artworks/postman-unknown-slug-404 [404 Not Found, 622B, 13ms]
+  Pass  Status is 404
+  Pass  Error code is not_found
+
+Sub-folder List artists (public)
+  GET http://127.0.0.1:18081/api/artists [200 OK, 2.79kB, 8ms]
+  Pass  Status is 200
+  Pass  Artist id saved
+
+Sub-folder Artist by id (public)
+  GET http://127.0.0.1:18081/api/artists/9 [200 OK, 493B, 6ms]
+  Pass  Status is 200
+  Pass  Public artist has no contact email
+
+Sub-folder List exhibitions (public)
+  GET http://127.0.0.1:18081/api/exhibitions [200 OK, 2.18kB, 11ms]
+  Pass  Status is 200
+  Pass  Exhibition id saved
+
+Sub-folder Exhibition by id (public)
+  GET http://127.0.0.1:18081/api/exhibitions/5 [200 OK, 717B, 9ms]
+  Pass  Status is 200
+  Pass  Public exhibition has no budget
+
+Folder 8 · Security checks
+Sub-folder Anonymous studio artist list (401)
+  GET http://127.0.0.1:18081/api/studio/artists [401 Unauthorized, 537B, 5ms]
+  Pass  Status is 401
+  Pass  Error code is authentication_required
+
+Sub-folder Bidder studio artist list (403)
+  GET http://127.0.0.1:18081/api/studio/artists [403 Forbidden, 536B, 7ms]
+  Pass  Status is 403
+  Pass  Error code is forbidden
+
+Sub-folder Anonymous place bid (401)
+  POST http://127.0.0.1:18081/api/auctions/12/bids [401 Unauthorized, 537B, 3ms]
+  Pass  Status is 401
+
+Sub-folder Admin place bid (403, bidding is BIDDER only)
+  POST http://127.0.0.1:18081/api/auctions/12/bids [403 Forbidden, 536B, 5ms]
+  Pass  Status is 403
+
+Sub-folder Curator studio auctions (403, ADMIN only)
+  GET http://127.0.0.1:18081/api/studio/auctions [403 Forbidden, 536B, 8ms]
+  Pass  Status is 403
+
+Sub-folder Bidder admin user list (403)
+  GET http://127.0.0.1:18081/api/admin/users [403 Forbidden, 536B, 11ms]
+  Pass  Status is 403
+
+Sub-folder Anonymous account bids (401)
+  GET http://127.0.0.1:18081/api/account/bids [401 Unauthorized, 537B, 5ms]
+  Pass  Status is 401
+
+Folder 9 · Roles (admin CRUD)
+Sub-folder Create custom role
+  POST http://127.0.0.1:18081/api/admin/roles [201 Created, 548B, 11ms]
+  Pass  Status is 201
+  Pass  Role label trimmed and profile returned
+
+Sub-folder Read custom role
+  GET http://127.0.0.1:18081/api/admin/roles/8 [200 OK, 543B, 15ms]
+  Pass  Status is 200
+  Pass  Custom role ID
+
+Sub-folder List named roles and remember system role
+  GET http://127.0.0.1:18081/api/admin/roles [200 OK, 773B, 15ms]
+  Pass  Status is 200
+  Pass  Catalogue contains custom role
+
+Sub-folder Duplicate role name is rejected
+  POST http://127.0.0.1:18081/api/admin/roles [409 Conflict, 600B, 12ms]
+  Pass  Status is 409
+  Pass  Duplicate role code
+
+Sub-folder Invalid role name is rejected
+  POST http://127.0.0.1:18081/api/admin/roles [400 Bad Request, 598B, 9ms]
+  Pass  Status is 400
+  Pass  Name field error
+
+Sub-folder Change unassigned role profile
+  PUT http://127.0.0.1:18081/api/admin/roles/8 [200 OK, 536B, 18ms]
+  Pass  Status is 200
+  Pass  Unassigned profile changed
+
+Sub-folder Restore collaborator profile before assignment
+  PUT http://127.0.0.1:18081/api/admin/roles/8 [200 OK, 543B, 15ms]
+  Pass  Status is 200
+
+Sub-folder Create user assigned by custom role ID
+  POST http://127.0.0.1:18081/api/admin/users [201 Created, 644B, 85ms]
+  Pass  Status is 201
+  Pass  Actual IDs and effective profiles
+
+Sub-folder Login custom collaborator
+  POST http://127.0.0.1:18081/api/auth/login [200 OK, 862B, 69ms]
+  Pass  Status is 200
+
+Sub-folder Custom collaborator can access studio
+  GET http://127.0.0.1:18081/api/studio/artists [200 OK, 3.78kB, 7ms]
+  Pass  Status is 200
+
+Sub-folder Custom collaborator cannot manage roles
+  POST http://127.0.0.1:18081/api/admin/roles [403 Forbidden, 536B, 4ms]
+  Pass  Status is 403
+
+Sub-folder Custom collaborator cannot edit roles
+  PUT http://127.0.0.1:18081/api/admin/roles/8 [403 Forbidden, 536B, 4ms]
+  Pass  Status is 403
+
+Sub-folder Custom collaborator cannot delete roles
+  DELETE http://127.0.0.1:18081/api/admin/roles/8 [403 Forbidden, 536B, 4ms]
+  Pass  Status is 403
+
+Sub-folder Anonymous cannot create roles
+  POST http://127.0.0.1:18081/api/admin/roles [401 Unauthorized, 537B, 5ms]
+  Pass  Status is 401
+
+Sub-folder Anonymous cannot edit roles
+  PUT http://127.0.0.1:18081/api/admin/roles/8 [401 Unauthorized, 537B, 5ms]
+  Pass  Status is 401
+
+Sub-folder Anonymous cannot delete roles
+  DELETE http://127.0.0.1:18081/api/admin/roles/8 [401 Unauthorized, 537B, 5ms]
+  Pass  Status is 401
+
+Sub-folder Role reports assigned user count
+  GET http://127.0.0.1:18081/api/admin/roles/8 [200 OK, 543B, 11ms]
+  Pass  Status is 200
+  Pass  One assigned user
+
+Sub-folder Assigned role cannot change permission profile
+  PUT http://127.0.0.1:18081/api/admin/roles/8 [409 Conflict, 632B, 15ms]
+  Pass  Status is 409
+  Pass  Role in use
+
+Sub-folder Assigned role cannot be deleted
+  DELETE http://127.0.0.1:18081/api/admin/roles/8 [409 Conflict, 632B, 8ms]
+  Pass  Status is 409
+  Pass  Role in use
+
+Sub-folder Rename assigned custom role
+  PUT http://127.0.0.1:18081/api/admin/roles/8 [200 OK, 546B, 30ms]
+  Pass  Status is 200
+  Pass  Rename keeps assignment
+
+Sub-folder Unassign custom role using legacy role names
+  PUT http://127.0.0.1:18081/api/admin/users/19/roles [200 OK, 629B, 19ms]
+  Pass  Status is 200
+  Pass  Legacy assignment remains supported
+
+Sub-folder Existing token uses current role permissions
+  GET http://127.0.0.1:18081/api/studio/artists [403 Forbidden, 536B, 5ms]
+  Pass  Status is 403
+
+Sub-folder Delete unused custom role
+  DELETE http://127.0.0.1:18081/api/admin/roles/8 [204 No Content, 371B, 9ms]
+  Pass  Status is 204
+
+Sub-folder Deleted role is not found
+  GET http://127.0.0.1:18081/api/admin/roles/8 [404 Not Found, 576B, 5ms]
+  Pass  Status is 404
+
+Sub-folder System roles cannot be deleted
+  DELETE http://127.0.0.1:18081/api/admin/roles/1 [409 Conflict, 586B, 4ms]
+  Pass  Status is 409
+  Pass  System role protected
+
+Sub-folder Delete temporary custom role user
+  DELETE http://127.0.0.1:18081/api/admin/users/19 [204 No Content, 371B, 20ms]
+  Pass  Status is 204
+
+------------------------------------------------------------------
+|                         |          executed |           failed |
+--------------------------+-------------------+-------------------
+|              iterations |                 1 |                0 |
+--------------------------+-------------------+-------------------
+|                requests |               103 |                0 |
+--------------------------+-------------------+-------------------
+|            test-scripts |               103 |                0 |
+--------------------------+-------------------+-------------------
+|      prerequest-scripts |                 4 |                0 |
+--------------------------+-------------------+-------------------
+|              assertions |               175 |                0 |
+------------------------------------------------------------------
+| total run duration: 3.4s                                       |
+------------------------------------------------------------------
+| total data received: 41.69kB (approx)                          |
+------------------------------------------------------------------
+| average response time: 19ms [min: 3ms, max: 138ms, s.d.: 25ms] |
+------------------------------------------------------------------

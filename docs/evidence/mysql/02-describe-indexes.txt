@@ -1,0 +1,51 @@
+--------------
+DESCRIBE users
+--------------
+
++------------+--------------+------+-----+----------------------+-------------------+
+| Field      | Type         | Null | Key | Default              | Extra             |
++------------+--------------+------+-----+----------------------+-------------------+
+| id         | bigint       | NO   | PRI | NULL                 | auto_increment    |
+| first_name | varchar(80)  | NO   |     | NULL                 |                   |
+| last_name  | varchar(80)  | NO   |     | NULL                 |                   |
+| email      | varchar(190) | NO   | UNI | NULL                 |                   |
+| password   | varchar(100) | NO   |     | NULL                 |                   |
+| phone      | varchar(30)  | YES  |     | NULL                 |                   |
+| enabled    | tinyint(1)   | NO   |     | 1                    |                   |
+| created_at | timestamp(6) | NO   |     | CURRENT_TIMESTAMP(6) | DEFAULT_GENERATED |
++------------+--------------+------+-----+----------------------+-------------------+
+--------------
+DESCRIBE auctions
+--------------
+
++-------------------+---------------+------+-----+----------------------+-------------------+
+| Field             | Type          | Null | Key | Default              | Extra             |
++-------------------+---------------+------+-----+----------------------+-------------------+
+| id                | bigint        | NO   | PRI | NULL                 | auto_increment    |
+| artwork_id        | bigint        | NO   | MUL | NULL                 |                   |
+| starting_price    | decimal(14,2) | NO   |     | NULL                 |                   |
+| current_price     | decimal(14,2) | NO   |     | NULL                 |                   |
+| minimum_increment | decimal(14,2) | NO   |     | NULL                 |                   |
+| starts_at         | timestamp(6)  | NO   |     | NULL                 |                   |
+| ends_at           | timestamp(6)  | NO   |     | NULL                 |                   |
+| status            | varchar(16)   | NO   | MUL | NULL                 |                   |
+| bid_count         | int           | NO   |     | 0                    |                   |
+| leading_bidder_id | bigint        | YES  | MUL | NULL                 |                   |
+| winner_id         | bigint        | YES  | MUL | NULL                 |                   |
+| created_at        | timestamp(6)  | NO   |     | CURRENT_TIMESTAMP(6) | DEFAULT_GENERATED |
+| version           | bigint        | NO   |     | 0                    |                   |
++-------------------+---------------+------+-----+----------------------+-------------------+
+--------------
+SELECT INDEX_NAME, NON_UNIQUE, SEQ_IN_INDEX, COLUMN_NAME FROM information_schema.STATISTICS
+WHERE TABLE_SCHEMA = 'atelier' AND TABLE_NAME = 'bids' ORDER BY INDEX_NAME, SEQ_IN_INDEX
+--------------
+
++------------------------+------------+--------------+-------------+
+| INDEX_NAME             | NON_UNIQUE | SEQ_IN_INDEX | COLUMN_NAME |
++------------------------+------------+--------------+-------------+
+| idx_bids_bidder        |          1 |            1 | bidder_id   |
+| idx_bids_bidder        |          1 |            2 | created_at  |
+| PRIMARY                |          0 |            1 | id          |
+| uk_bids_auction_amount |          0 |            1 | auction_id  |
+| uk_bids_auction_amount |          0 |            2 | amount      |
++------------------------+------------+--------------+-------------+

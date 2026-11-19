@@ -1,0 +1,303 @@
+[
+  {
+    "file": "live-artworks.png",
+    "title": "Artwork gallery",
+    "caption": "The public gallery listing artworks with filters.",
+    "source": "live",
+    "route": "/artworks"
+  },
+  {
+    "file": "live-artists.png",
+    "title": "Artists",
+    "caption": "The list of artists represented by the gallery.",
+    "source": "live",
+    "route": "/artists"
+  },
+  {
+    "file": "live-exhibitions.png",
+    "title": "Exhibitions",
+    "caption": "The public list of exhibitions.",
+    "source": "live",
+    "route": "/exhibitions"
+  },
+  {
+    "file": "live-auctions.png",
+    "title": "Auctions",
+    "caption": "The list of auctions with their status and current price.",
+    "source": "live",
+    "route": "/auctions"
+  },
+  {
+    "file": "live-login.png",
+    "title": "Sign in",
+    "caption": "The sign-in form, shown without submitting.",
+    "source": "live",
+    "route": "/login"
+  },
+  {
+    "file": "live-register.png",
+    "title": "Register",
+    "caption": "The account registration form, shown without submitting.",
+    "source": "live",
+    "route": "/register"
+  },
+  {
+    "file": "live-404.png",
+    "title": "Not found",
+    "caption": "The page displayed for an unknown route.",
+    "source": "live",
+    "route": "/this-does-not-exist"
+  },
+  {
+    "file": "live-artwork-detail.png",
+    "title": "Artwork detail",
+    "caption": "The detail page of the first artwork in the gallery.",
+    "source": "live",
+    "route": "/artworks/bather-in-the-woods-437306"
+  },
+  {
+    "file": "live-artist-profile.png",
+    "title": "Artist profile",
+    "caption": "The profile page of the first listed artist.",
+    "source": "live",
+    "route": "/artists/9"
+  },
+  {
+    "file": "live-auction-room.png",
+    "title": "Auction page",
+    "caption": "The page of the first listed auction.",
+    "source": "live",
+    "route": "/auctions/4"
+  },
+  {
+    "file": "live-mobile-home.png",
+    "title": "Home page on mobile",
+    "caption": "The home page at 390 by 844 pixels.",
+    "source": "live",
+    "route": "/"
+  },
+  {
+    "file": "live-mobile-artworks.png",
+    "title": "Gallery on mobile",
+    "caption": "The artwork gallery at 390 by 844 pixels.",
+    "source": "live",
+    "route": "/artworks"
+  },
+  {
+    "file": "live-mobile-auction.png",
+    "title": "Auction page on mobile",
+    "caption": "An auction page at 390 by 844 pixels.",
+    "source": "live",
+    "route": "/auctions/4"
+  },
+  {
+    "file": "local-studio-overview.png",
+    "title": "Studio overview",
+    "caption": "The studio dashboard for the administrator.",
+    "source": "local",
+    "route": "/studio"
+  },
+  {
+    "file": "local-studio-overview-full.png",
+    "title": "Studio overview, full page",
+    "caption": "The full-length studio dashboard.",
+    "source": "local",
+    "route": "/studio"
+  },
+  {
+    "file": "local-studio-artists.png",
+    "title": "Studio artists list",
+    "caption": "The artists list in the studio (Clients).",
+    "source": "local",
+    "route": "/studio/artists"
+  },
+  {
+    "file": "local-artist-form.png",
+    "title": "Artist form filled",
+    "caption": "The new artist form filled with sample data and not yet submitted.",
+    "source": "local",
+    "route": "/studio/artists"
+  },
+  {
+    "file": "local-artist-created.png",
+    "title": "Artist created",
+    "caption": "The artists list showing the newly created row.",
+    "source": "local",
+    "route": "/studio/artists"
+  },
+  {
+    "file": "local-studio-exhibitions.png",
+    "title": "Studio exhibitions list",
+    "caption": "The exhibitions (Projets) list in the studio.",
+    "source": "local",
+    "route": "/studio/exhibitions"
+  },
+  {
+    "file": "local-exhibition-form.png",
+    "title": "Studio exhibition form",
+    "caption": "The empty form to create a exhibition.",
+    "source": "local",
+    "route": "/studio/exhibitions"
+  },
+  {
+    "file": "local-studio-artworks.png",
+    "title": "Studio artworks list",
+    "caption": "The artworks list in the studio.",
+    "source": "local",
+    "route": "/studio/artworks"
+  },
+  {
+    "file": "local-artwork-form.png",
+    "title": "Studio artwork form",
+    "caption": "The empty form to create a artwork.",
+    "source": "local",
+    "route": "/studio/artworks"
+  },
+  {
+    "file": "local-studio-auctions.png",
+    "title": "Studio auctions list",
+    "caption": "The auctions list in the studio.",
+    "source": "local",
+    "route": "/studio/auctions"
+  },
+  {
+    "file": "local-auction-form.png",
+    "title": "Studio auction form",
+    "caption": "The empty form to create a auction.",
+    "source": "local",
+    "route": "/studio/auctions"
+  },
+  {
+    "file": "local-studio-users.png",
+    "title": "Studio users list",
+    "caption": "The users list in the studio.",
+    "source": "local",
+    "route": "/studio/users"
+  },
+  {
+    "file": "local-user-form.png",
+    "title": "Studio user form",
+    "caption": "The empty form to create a user.",
+    "source": "local",
+    "route": "/studio/users"
+  },
+  {
+    "file": "local-studio-roles.png",
+    "title": "Studio roles list",
+    "caption": "The roles list in the studio.",
+    "source": "local",
+    "route": "/studio/roles"
+  },
+  {
+    "file": "local-role-form.png",
+    "title": "Studio role form",
+    "caption": "The empty form to create a role.",
+    "source": "local",
+    "route": "/studio/roles"
+  },
+  {
+    "file": "local-profile.png",
+    "title": "Studio profile",
+    "caption": "The profile page of the signed-in administrator.",
+    "source": "local",
+    "route": "/studio/profile"
+  },
+  {
+    "file": "local-user-roles.png",
+    "title": "User form with roles",
+    "caption": "The user form listing the assignable roles as checkboxes.",
+    "source": "local",
+    "route": "/studio/users"
+  },
+  {
+    "file": "local-collaborateur.png",
+    "title": "Collaborateur studio view",
+    "caption": "The artists list for a Collaborateur account, without edit or delete actions.",
+    "source": "local",
+    "route": "/studio/artists"
+  },
+  {
+    "file": "local-forbidden.png",
+    "title": "Access denied",
+    "caption": "The forbidden page shown when a Collaborateur opens the users screen.",
+    "source": "local",
+    "route": "/forbidden"
+  },
+  {
+    "file": "local-login-error.png",
+    "title": "Login error",
+    "caption": "The message displayed after signing in with a wrong password.",
+    "source": "local",
+    "route": "/login"
+  },
+  {
+    "file": "local-register-errors.png",
+    "title": "Register validation errors",
+    "caption": "The registration form with validation messages after an invalid submission.",
+    "source": "local",
+    "route": "/register"
+  },
+  {
+    "file": "local-account.png",
+    "title": "Bidder account",
+    "caption": "The account page of a bidder with bids and wins.",
+    "source": "local",
+    "route": "/account"
+  },
+  {
+    "file": "local-mailpit-inbox.png",
+    "title": "Mailpit inbox",
+    "caption": "The local mail catcher listing messages sent by the application.",
+    "source": "local",
+    "route": "/ (Mailpit)"
+  },
+  {
+    "file": "local-mailpit-message.png",
+    "title": "Mailpit message",
+    "caption": "One opened gallery email in the local mail catcher.",
+    "source": "local",
+    "route": "/ (Mailpit)"
+  },
+  {
+    "file": "live-home.png",
+    "title": "Home page",
+    "caption": "Opening section of the public site after the intro animation settles.",
+    "source": "live",
+    "route": "/"
+  },
+  {
+    "file": "live-home-featured.png",
+    "title": "Home page, featured section",
+    "caption": "The home page scrolled to the featured works and live auctions.",
+    "source": "live",
+    "route": "/"
+  },
+  {
+    "file": "live-studio-clients.png",
+    "title": "Live Studio \u2014 Clients (artists)",
+    "caption": "The Clients list on the deployed Studio, signed in as the administrator; the top bar is cropped out.",
+    "source": "live",
+    "route": "/studio/artists"
+  },
+  {
+    "file": "local-auction-before.png",
+    "title": "Auction room before a bid",
+    "caption": "An open auction as the bidder, showing the current price and the minimum next bid.",
+    "source": "local",
+    "route": "/auctions/:id"
+  },
+  {
+    "file": "local-auction-after.png",
+    "title": "Auction room after a bid",
+    "caption": "The same room after a bid at the minimum next amount; price and history update without reloading.",
+    "source": "local",
+    "route": "/auctions/:id"
+  },
+  {
+    "file": "local-auction-live-viewer.png",
+    "title": "Second viewer receives the bid",
+    "caption": "Another signed-in browser on the same auction shows the new bid pushed over WebSocket.",
+    "source": "local",
+    "route": "/auctions/:id"
+  }
+]

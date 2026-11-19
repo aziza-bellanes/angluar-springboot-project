@@ -1,0 +1,58 @@
+ERROR 1062 (23000) at line 3: Duplicate entry '1-503400.00' for key 'bids.uk_bids_auction_amount'
+--------------
+START TRANSACTION
+--------------
+
+Query OK, 0 rows affected (0.00 sec)
+
+--------------
+SELECT auction_id, bidder_id, amount FROM bids WHERE auction_id = 1 ORDER BY amount LIMIT 1
+--------------
+
++------------+-----------+-----------+
+| auction_id | bidder_id | amount    |
++------------+-----------+-----------+
+|          1 |         3 | 503400.00 |
++------------+-----------+-----------+
+1 row in set (0.00 sec)
+
+--------------
+INSERT INTO bids (auction_id, bidder_id, amount, created_at)
+SELECT auction_id, bidder_id, amount, NOW(6) FROM bids WHERE auction_id = 1 ORDER BY amount LIMIT 1
+--------------
+
+ERROR 3819 (HY000) at line 7: Check constraint 'ck_exhibitions_budget' is violated.
+--------------
+ROLLBACK
+--------------
+
+Query OK, 0 rows affected (0.00 sec)
+
+--------------
+START TRANSACTION
+--------------
+
+Query OK, 0 rows affected (0.00 sec)
+
+--------------
+INSERT INTO exhibitions (title, budget, duration_days, artist_id) VALUES ('Negative budget', -1, 10, 1)
+--------------
+
+--------------
+ROLLBACK
+--------------
+
+Query OK, 0 rows affected (0.00 sec)
+
+--------------
+SELECT COUNT(*) AS rows_left FROM exhibitions WHERE title = 'Negative budget'
+--------------
+
++-----------+
+| rows_left |
++-----------+
+|         0 |
++-----------+
+1 row in set (0.00 sec)
+
+Bye

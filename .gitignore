@@ -15,3 +15,6 @@ backend/src/main/resources/static/
 deployment/.env.prod
 # Optional machine-local SMTP override; may contain credentials.
 compose.smtp.yaml
+
+# Full Newman reports contain tokens and test passwords; only the CLI summary is kept.
+docs/evidence/postman/newman-report.*

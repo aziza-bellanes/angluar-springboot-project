@@ -1,0 +1,40 @@
+ERROR 1451 (23000) at line 3: Cannot delete or update a parent row: a foreign key constraint fails (`atelier`.`artworks`, CONSTRAINT `fk_artworks_artist` FOREIGN KEY (`artist_id`) REFERENCES `artists` (`id`))
+--------------
+START TRANSACTION
+--------------
+
+Query OK, 0 rows affected (0.00 sec)
+
+--------------
+SELECT id, title, artist_id FROM exhibitions WHERE artist_id = 1
+--------------
+
++----+---------------------+-----------+
+| id | title               | artist_id |
++----+---------------------+-----------+
+|  1 | The Weight of Earth |         1 |
++----+---------------------+-----------+
+1 row in set (0.00 sec)
+
+--------------
+DELETE FROM artists WHERE id = 1
+--------------
+
+--------------
+ROLLBACK
+--------------
+
+Query OK, 0 rows affected (0.00 sec)
+
+--------------
+SELECT id, name FROM artists WHERE id = 1
+--------------
+
++----+------------------+
+| id | name             |
++----+------------------+
+|  1 | Vincent van Gogh |
++----+------------------+
+1 row in set (0.00 sec)
+
+Bye

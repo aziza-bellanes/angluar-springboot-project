@@ -1,0 +1,52 @@
+[
+  {
+    "file": "01-tables-foreign-keys.png",
+    "title": "MySQL — tables and the 13 foreign keys with delete rules",
+    "caption": "SHOW TABLES lists the nine tables and information_schema lists the 13 foreign keys with their delete rules."
+  },
+  {
+    "file": "02-describe-indexes.png",
+    "title": "MySQL — DESCRIBE users, DESCRIBE auctions, indexes of bids",
+    "caption": "DESCRIBE shows the column types of users and auctions and information_schema.STATISTICS lists the bids indexes including the unique (auction_id, amount)."
+  },
+  {
+    "file": "03-commit-rollback.png",
+    "title": "MySQL — START TRANSACTION, INSERT, ROLLBACK",
+    "caption": "An artist inserted inside a transaction is visible to the session, then ROLLBACK removes it and the second SELECT returns no row."
+  },
+  {
+    "file": "04-pessimistic-lock.png",
+    "title": "MySQL — two sessions, SELECT … FOR UPDATE",
+    "caption": "Session 2 asked for the same auction row 1 second after session 1 and its SELECT … FOR UPDATE returned only after session 1 rolled back, as the timestamps show."
+  },
+  {
+    "file": "05-optimistic-lock.png",
+    "title": "MySQL — optimistic lock with the version column",
+    "caption": "The first UPDATE ... WHERE version = old matches 1 row and bumps the version, the repeat with the stale version matches 0 rows; the transaction is rolled back."
+  },
+  {
+    "file": "06a-fk-restrict.png",
+    "title": "MySQL — foreign key without ON DELETE, ERROR 1451",
+    "caption": "Deleting an artist that still has an exhibition and artworks is refused with ERROR 1451 (the fk_artworks_artist constraint, delete rule NO ACTION) and the transaction is rolled back."
+  },
+  {
+    "file": "06b-fk-set-null.png",
+    "title": "MySQL — ON DELETE SET NULL on artworks.exhibition_id",
+    "caption": "Deleting exhibition 2 inside a transaction sets exhibition_id to NULL on its artworks; ROLLBACK restores the links."
+  },
+  {
+    "file": "06c-fk-cascade.png",
+    "title": "MySQL — ON DELETE CASCADE on user_roles.user_id",
+    "caption": "Deleting a temporary user removes its user_roles row automatically; ROLLBACK leaves no trace of the temporary user."
+  },
+  {
+    "file": "07-unique-check.png",
+    "title": "MySQL — UNIQUE (auction_id, amount) and CHECK constraint",
+    "caption": "A duplicate bid amount fails with ERROR 1062 and a negative exhibition budget fails with ERROR 3819; both transactions are rolled back."
+  },
+  {
+    "file": "hibernate-bid-sql.png",
+    "title": "MySQL — SQL issued by Hibernate for one bid",
+    "caption": "General query log of the connection that placed a bid through the API: autocommit off, SELECT … FOR UPDATE on the auction, INSERT into bids, UPDATE auctions, COMMIT."
+  }
+]

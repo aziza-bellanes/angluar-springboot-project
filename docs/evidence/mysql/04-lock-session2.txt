@@ -1,0 +1,52 @@
+--------------
+SET SESSION innodb_lock_wait_timeout = 10
+--------------
+
+Query OK, 0 rows affected (0.00 sec)
+
+--------------
+START TRANSACTION
+--------------
+
+Query OK, 0 rows affected (0.00 sec)
+
+--------------
+SELECT NOW(3) AS s2_before_lock
+--------------
+
++-------------------------+
+| s2_before_lock          |
++-------------------------+
+| 2026-11-19 21:20:59.303 |
++-------------------------+
+1 row in set (0.00 sec)
+
+--------------
+SELECT id, current_price, version FROM auctions WHERE id = 5 FOR UPDATE
+--------------
+
++----+---------------+---------+
+| id | current_price | version |
++----+---------------+---------+
+|  5 |     400320.00 |       2 |
++----+---------------+---------+
+1 row in set (3.99 sec)
+
+--------------
+SELECT NOW(3) AS s2_lock_acquired
+--------------
+
++-------------------------+
+| s2_lock_acquired        |
++-------------------------+
+| 2026-11-19 21:21:03.300 |
++-------------------------+
+1 row in set (0.01 sec)
+
+--------------
+ROLLBACK
+--------------
+
+Query OK, 0 rows affected (0.00 sec)
+
+Bye
