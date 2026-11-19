@@ -63,6 +63,21 @@ SELECT a.id, a.name, COUNT(e.id) AS exhibitions
 SELECT version, description, installed_on FROM flyway_schema_history;
 ```
 
+## Where the images are stored
+
+MySQL does not store the images. It stores only their path:
+
+| Part | Where |
+| --- | --- |
+| Image files | `frontend/public/artworks/` (30 JPEG files). In `psm.jar` they are in `BOOT-INF/classes/static/artworks/` |
+| Path of an artwork image | table `artworks`, column `image_url`, for example `/artworks/madame-roulin-and-her-baby-459123.jpg` |
+| Image source | table `artworks`, column `image_credit` (The Met Open Access, CC0) |
+| Artist photo | table `artists`, column `photo_url` (optional) |
+
+Open one image directly: http://localhost:4200/artworks/madame-roulin-and-her-baby-459123.jpg
+
+To add an artwork, the Studio form asks for an **Image URL**: a full `https://` link, or `/artworks/<file>.jpg` for a file placed in `frontend/public/artworks/`.
+
 ## Public site pages
 
 | Page | Link |
