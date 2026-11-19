@@ -22,6 +22,8 @@ Notes:
 
 ---
 
+All links and accounts on one page: [LOCAL_LINKS.md](LOCAL_LINKS.md). The database is also viewable in the browser with phpMyAdmin at http://localhost:8090.
+
 ## 1. What you need to install
 
 | Tool | Needed for | Required? | Download |

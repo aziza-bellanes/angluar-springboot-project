@@ -60,6 +60,7 @@ The first start downloads dependencies and may take a few minutes.
 | Application (Angular dev server, proxies `/api` and `/ws`) | http://localhost:4200 |
 | REST API | http://localhost:8080 |
 | Mailpit (catches outgoing emails) | http://localhost:8025 |
+| phpMyAdmin (the database in the browser) | http://localhost:8090 |
 | MySQL | localhost:3306 |
 
 The development stack starts with `DEMO_DATA=true`, which loads a demonstration gallery (public-domain works from The Met Open Access) with auctions in every state.
@@ -93,6 +94,7 @@ These PDFs share one report layout in ATELIER's midnight, cobalt, sunflower and 
 
 | Document | Content |
 |---|---|
+| [docs/LOCAL_LINKS.md](docs/LOCAL_LINKS.md) | Every local link (app, Studio, phpMyAdmin, Mailpit, API) and every account on one page |
 | [docs/OPEN_EVERYTHING.md](docs/OPEN_EVERYTHING.md) | **Start here:** open the app, the database (terminal, DBeaver, Workbench), the emails, Postman and the documents on your own computer |
 | [docs/cahier-des-charges.pdf](docs/cahier-des-charges.pdf) | Cahier des charges: the idea, the users, what the application does, its stack and deployment |
 | [docs/compte-rendu.pdf](docs/compte-rendu.pdf) | Compte rendu: screens, Studio dashboard, Postman tests, deployment and results |
