@@ -2,7 +2,7 @@
 
 Audit date: 18 November 2026. Scope: the supplied three-page `../Cahier_charges_projet_Formation(1).pdf`, current source code, database migrations, and recorded verification evidence. This is a traceability audit, not a claim of 100% specification completion.
 
-**Conclusion:** the functional Spring/Angular requirements and required database relationships are implemented in an art-gallery vocabulary. Two explicit adaptations require clear presentation: Client becomes Artist, Projet becomes Exhibition; the UI is an original implementation inspired by the cited Argon dashboard. A third BIDDER role and gallery/auction extensions broaden the product. Production packaging is evidenced locally. **CDC step 12, deployment to a live VPS, remains PENDING.**
+**Conclusion:** the functional Spring/Angular requirements and required database relationships are implemented in an art-gallery vocabulary. Two explicit adaptations require clear presentation: Client becomes Artist, Projet becomes Exhibition; the UI is an original implementation inspired by the cited Argon dashboard. A third BIDDER role and gallery/auction extensions broaden the product. Production packaging is evidenced locally. **CDC step 12, deployment to a VPS, is done** (AWS EC2, see the step 12 row).
 
 ## Status definitions
 
@@ -47,7 +47,7 @@ There are 8 application tables and 13 foreign keys after V1/V2/V3. Their deletio
 | 9. Guard and interceptor | IMPLEMENTED / VERIFIED | `frontend/src/app/core/auth/guards.ts`, `auth.interceptor.ts`, and their specs; 64 frontend tests pass across 10 files. | Guards cover authentication/roles; interceptor attaches JWT to /api/ requests and handles rejected sessions. |
 | 10. Respect roles | IMPLEMENTED / VERIFIED | ADMIN full artist/exhibition CRUD; COLLABORATEUR consult/add, no update/delete; BIDDER additional collector role. Backend matrix and Angular role guards/menu behavior. | BIDDER is an extension, not a replacement of the two required roles. Public gallery reads are a product extension; private Studio permissions remain enforced. |
 | 11. Build psm.jar containing Angular in Spring static | IMPLEMENTED / VERIFIED | `Dockerfile` builds Angular, copies dist/atelier/browser into backend/src/main/resources/static, packages target/psm.jar; Maven with-frontend profile also copies Angular output. Recorded image `smartsoft/atelier:roles-20261118` uses Java 17 and was exercised locally. | Local production-container run at http://127.0.0.1:18081 provides packaging/runtime evidence. Image build uses -DskipTests; test evidence comes from separate completed verification runs. |
-| 12. Deploy everything to a VPS | PENDING | No live VPS hostname, remote service evidence or authenticated remote deployment verification is supplied. | Docker packaging, local Compose and documentation do not prove this final deployment step. |
+| 12. Deploy everything to a VPS | VERIFIED | The application runs on an AWS EC2 instance (t3.small, Ubuntu, Docker Compose with the application and MySQL containers), reached over HTTPS through a Cloudflare Quick Tunnel. Deployed 18–19 November 2026; read-only remote checks recorded on 19 November in `docs/evidence/vps-smoke.json` (10/10 passed: Angular index and deep link, readiness, public APIs, 401 on protected APIs). | The Quick Tunnel address is temporary; a named tunnel or domain is the next step. Authenticated CRUD and registration email on the live host are shown in the demo ([DEMO.md](DEMO.md)). |
 
 ## Permission model against the CDC
 
@@ -80,7 +80,7 @@ The recorded local verification reruns the backend, frontend and API suites for 
 
 ## Remaining acceptance work
 
-1. Deploy the production image / psm.jar and database configuration to the intended VPS, configure its public route and environment, then record remote health, login, secured CRUD, registration email and Angular deep-link evidence. Until then step 12 remains PENDING.
+1. Replace the temporary Quick Tunnel address with a named tunnel or a domain, and repeat `docs/evidence/vps-smoke.json` after each redeployment.
 2. Present Client → Artist, Projet → Exhibition, added BIDDER profile and Argon-inspired redesign as explicit adaptations. Demonstrate role CRUD and dynamic user assignments. If exact template integration is required by the evaluator, obtain acceptance for the rebuilt design.
 3. Preserve evidence that distinguishes database constraints from service rules: at least one role, matching artwork/exhibition artist, current auction overlap, transitions and bid increments are not SQL-wide guarantees.
 

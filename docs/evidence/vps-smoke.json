@@ -1,0 +1,78 @@
+{
+  "date": "2026-11-19T21:20:19+00:00",
+  "target": "AWS EC2 deployment via Cloudflare Quick Tunnel (temporary URL)",
+  "checks": [
+    {
+      "check": "Angular index served by psm.jar",
+      "request": "GET /",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "note": "response contains <at-root>"
+    },
+    {
+      "check": "Angular deep link falls back to index.html",
+      "request": "GET /studio/artists",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "note": "response contains <at-root>"
+    },
+    {
+      "check": "Readiness probe",
+      "request": "GET /actuator/health/readiness",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "check": "Public artworks API",
+      "request": "GET /api/artworks?size=1",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "check": "Public artists API",
+      "request": "GET /api/artists?size=1",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "check": "Public exhibitions API",
+      "request": "GET /api/exhibitions?size=1",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "check": "Open auctions API",
+      "request": "GET /api/auctions?status=OPEN",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "check": "Studio API without token is refused",
+      "request": "GET /api/studio/artists",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "check": "Admin API without token is refused",
+      "request": "GET /api/admin/users",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "check": "Login with wrong password is refused",
+      "request": "POST /api/auth/login",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    }
+  ]
+}
