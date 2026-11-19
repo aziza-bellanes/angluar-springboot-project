@@ -13,6 +13,27 @@ npx playwright install chromium
 cd ../..
 ```
 
+## Document pack (cahier des charges, compte rendu, study guide, database reference)
+
+The sources are Markdown files in `docs/pack/`. `docs/build/pack.mjs` renders each one to `docs/<name>.pdf` in the shared report layout: cover, contents with page numbers, running header, numbered sections on new pages, Graphviz diagrams (```` ```dot ````), bar charts (```` ```chart ````), figure tiles (```` ```stats ````) and two-column blocks (```` ```cols ````). Large screenshots are embedded as resized JPEG copies cached in `docs/pack/.cache/`. It needs Graphviz, Poppler (`pdftotext`, `pdfunite`) and ImageMagick.
+
+```bash
+node docs/build/pack.mjs                      # every document
+node docs/build/pack.mjs compte-rendu         # one document
+```
+
+The renderer fails on a missing image or on horizontal overflow. Review the pages visually after each change.
+
+### Evidence used by the pack
+
+| Script | Output | Target |
+| --- | --- | --- |
+| `capture-pack.mjs` | `evidence/screenshots/app/` | Live deployment (read-only pages) and the local audit instance (Studio, forms, bidding, Mailpit). Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` for the local admin. A run places one bid. |
+| `evidence-postman.mjs --run` | `evidence/postman/newman-cli.txt`, `evidence/screenshots/postman/` | Runs the collection with Newman, then renders the summary, folders, HTML report and request cards. Passwords are masked and tokens shortened. The full reports stay untracked. |
+| `evidence-mysql.sh` | `evidence/mysql/`, `evidence/screenshots/mysql/` | Runs each SQL scenario on the audit database container and renders the output as terminal windows. It places one real bid to capture Hibernate's SQL. |
+
+Only run the capture scripts against disposable data, never against a production database.
+
 ## Guide and report
 
 ```bash
@@ -25,10 +46,9 @@ Outputs are `docs/guide.pdf`, `docs/report.pdf` and editable HTML under `docs/gu
 
 ```bash
 python3 docs/database/generate.py
-node docs/database/render.mjs
 ```
 
-The shared `database/schema.py` parser reads CREATE TABLE and V3 ADD/MODIFY COLUMN / ADD CONSTRAINT statements in migration order. Both dictionary and detailed graph generators use that schema. Unsupported ALTER clauses fail explicitly. This regenerates `docs/DATABASE.md`, the complete `docs/database/schema.json`, its editable HTML/CSS, relationship graph and `docs/database.pdf`. The main graph under `docs/diagrams/` can be rebuilt with `dot -Tsvg docs/diagrams/database.dot -o docs/diagrams/database.svg` and the analogous PNG command. `python3 docs/build/diagrams.py` regenerates the detailed ER graphs under `docs/diagrams/` directly from the SQL. The simplified `cdc-overview.dot` diagram can be rendered with the same Graphviz commands.
+The shared `database/schema.py` parser reads CREATE TABLE and V3 ADD/MODIFY COLUMN / ADD CONSTRAINT statements in migration order. Both dictionary and detailed graph generators use that schema. Unsupported ALTER clauses fail explicitly. This regenerates `docs/DATABASE.md`, the complete `docs/database/schema.json`, its editable HTML/CSS and relationship graph. `node docs/database/render.mjs` prints that dictionary to `docs/database/database-dictionary.pdf`; the illustrated `docs/database.pdf` reference is built by the document pack above (`node docs/build/pack.mjs database`). The main graph under `docs/diagrams/` can be rebuilt with `dot -Tsvg docs/diagrams/database.dot -o docs/diagrams/database.svg` and the analogous PNG command. `python3 docs/build/diagrams.py` regenerates the detailed ER graphs under `docs/diagrams/` directly from the SQL. The simplified `cdc-overview.dot` diagram can be rendered with the same Graphviz commands.
 
 ## Browser evidence
 
